@@ -29,7 +29,7 @@
 \NewDocumentCommand\project{mmmO{}}{%
     #1 \hfill #2 \hfill #3
     \IfNoValueTF{#4}
-        {}
+        {\nolinebreak}
         {\newline #4}%
 }
 
