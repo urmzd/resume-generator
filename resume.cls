@@ -5,6 +5,7 @@
 
 \RequirePackage{fix-cm}
 \RequirePackage{amsmath}
+\RequirePackage{enumitem}
 
 \newcommand{\name}[1]{%
     \begin{center}
@@ -12,16 +13,17 @@
     \end{center}%
 }
 
-\newcommand{\contact}[4]{%
-    \hfill #1 \hfill \textbar \hfill #2 \hfill \textbar \hfill #3 \hfill \textbar \hfill #4 \hfill
-    \vspace{1mm}
-    \hrule%
+\newcommand{\beforeTextLine}{%
+    \vspace{0.125in}%
 }
 
-\renewcommand{\section}[1]{%
-    \vspace{3mm}
-    \uppercase{\textbf{#1}}
-    \vspace{1mm}
+\newcommand{\afterTextLine}{%
+    \vspace{0.0625in}%
+}
+
+\newcommand{\contact}[4]{%
+    \hfill #1 \hfill \textbar \hfill #2 \hfill \textbar \hfill #3 \hfill \textbar \hfill #4 \hfill
+    \afterTextLine
     \hrule%
 }
 

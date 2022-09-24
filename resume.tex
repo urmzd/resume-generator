@@ -1,19 +1,29 @@
 \documentclass{resume}
 \usepackage[utf8]{inputenc}
 \usepackage{geometry}
+\usepackage{titlesec}
 
 \geometry{
     a4paper,
     left=0.5in,
-    right=0.5in
+    right=0.5in,
+    bottom=0.5in,
+    top = 0.5in,
 }
+
+\titleformat{\section}
+  {\normalfont\Large\scshape\fontsize{12}{15}}{\thesection}{1em}{}[{\titlerule[0.8pt]}]
 
 \begin{document}
 \pagestyle{empty}
 \name{Urmzd Mukhammadnaim}
 \contact{urmzd@dal.ca}{+1-416-731-2124}{linkedin.com/in/urmzd}{github.com/urmzd}
-\section{skills}
-\section{experience}
-\section{projects}
-\section{education}
+\section*{skills}
+\begin{description}
+  \item[Languages]{(Proficient) Java, Python, Rust, TypeScript, Bash; (Familiar) C, Lua, SQL}
+  \item[Tools \& Frameworks]{AWS, Docker, React, Spring Boot, Node.js, MongoDB, Serverless, GraphQL, Redis}
+\end{description}
+\section*{experience}
+\section*{projects}
+\section*{education}
 \end{document}
