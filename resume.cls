@@ -26,17 +26,17 @@
     \hfill #1 \hfill \textbar \hfill #2 \hfill \textbar \hfill #3 \hfill \textbar \hfill #4 \hfill
 }
 
-\NewDocumentCommand\project{mmmO{}}{%
-    #1 \hfill #2 \hfill #3
-    \IfNoValueTF{#4}
-        {\nolinebreak}
-        {\newline #4}%
+\NewDocumentCommand\project{mmm}{%
+    \makebox[0pt][l]{\textbf{#1}} \hfill \makebox[0pt][c]{\textbf{#2}} \hfill \makebox[0pt][r]{\textbf{#3}}%
+}
+\NewDocumentCommand\subproject{m}{%
+    \newline
+    \textbf{#1}
 }
 
-\NewDocumentCommand\achievements{O{11}O{22}O{33}}{%
+\NewDocumentCommand\achievements{O{11}O{22}}{%
     \begin{itemize}
         \item #1
         \item #2
-        \item #3
     \end{itemize}%
 }
