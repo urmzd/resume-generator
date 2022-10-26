@@ -29,14 +29,15 @@
 \NewDocumentCommand\project{mmm}{%
     \makebox[0pt][l]{\textbf{#1}} \hfill \makebox[0pt][c]{\textbf{#2}} \hfill \makebox[0pt][r]{\textbf{#3}}%
 }
+
 \NewDocumentCommand\subproject{m}{%
     \newline
     \textbf{#1}
 }
 
-\NewDocumentCommand\achievements{O{11}O{22}}{%
+\NewDocumentCommand\achievements{O{Did X as measured by Y resulting in Z}o}{%
     \begin{itemize}
-        \item #1
-        \item #2
+        \IfNoValueTF{#1}{}{\item #1}
+        \IfNoValueTF{#2}{}{\item #2}
     \end{itemize}%
 }
