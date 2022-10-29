@@ -1,0 +1,3 @@
+src/*
+!src/resume.cls
+!src/resume.tex
