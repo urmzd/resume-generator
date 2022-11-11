@@ -1,3 +1,4 @@
 src/*
 !src/resume.cls
 !src/resume.tex
+!src/resume.pdf
