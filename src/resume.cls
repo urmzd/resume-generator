@@ -35,9 +35,11 @@
     \textbf{#1}
 }
 
-\NewDocumentCommand\achievements{O{Did X as measured by Y resulting in Z}o}{%
+\NewDocumentCommand\achievements{O{Did X as measured by Y resulting in Z}ooo}{%
     \begin{itemize}
         \IfNoValueTF{#1}{}{\item #1}
         \IfNoValueTF{#2}{}{\item #2}
+        \IfNoValueTF{#3}{}{\item #3}
+        \IfNoValueTF{#4}{}{\item #4}
     \end{itemize}%
 }
