@@ -1,4 +1,4 @@
-src/*
-!src/resume.cls
-!src/resume.tex
-!src/resume.pdf
+resume-template/*
+!resume-template/resume.cls
+!resume-template/resume.tex
+!resume-template/resume.pdf
