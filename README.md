@@ -1,6 +1,6 @@
 # Resume
 
-The default template used by EasyApply.
+A simple resume template.
 
 ## Usage (WIP)
 
