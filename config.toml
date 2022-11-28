@@ -1,0 +1,41 @@
+name = ""
+
+[contact]
+phone = ""
+email = ""
+
+[[contact.links]]
+ref = ""
+link = ""
+
+[[contact.links]]
+ref= ""
+link = ""
+
+[[experiences]]
+company = ""
+title = ""
+job_title = ""
+start_date = ""
+end_date = ""
+locaiton = ""
+achievements = []
+
+[[projects]]
+name = ""
+language_used = ""
+details = []
+
+[[projects.link]]
+ref = ""
+link = ""
+
+[[education]]
+school = ""
+degree = ""
+start_date = ""
+end_date = ""
+
+[[education.details]]
+summary = ""
+explaination = ""

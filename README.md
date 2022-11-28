@@ -5,5 +5,5 @@ A simple resume template.
 ## Usage (WIP)
 
 ```bash
-  ./generate-resume --config=...
+  ./urt CONFIG_LOCATION
 ```
