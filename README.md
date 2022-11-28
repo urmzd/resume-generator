@@ -1,9 +1,9 @@
-# Resume
+# Generate Resumes
 
-A simple resume template.
+Generate different resumes using one config.
 
 ## Usage (WIP)
 
 ```bash
-  ./urt CONFIG_LOCATION
+  ./srt CONFIG_LOCATION
 ```
