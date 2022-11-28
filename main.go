@@ -3,13 +3,21 @@ package main
 import "fmt"
 
 /**
-(AddTitle) -> (, AddContact) -> (,,AddExperience) -> ...
+  The pipeline for construction will go as follows:
+
+  CreateResume(Basics) -> AddExperience -> AddSkill -> AddProject -> AddContact
 */
 
 
 type Resume struct {
-
+  experiences []Experience
+  projects []Project
+  skills Skills
 }
+
+type Basics struct {
+
+} 
 
 type Experience struct {
 
@@ -23,19 +31,19 @@ type Skills struct {
 
 }
 
-func AddContact() {
+func CreateResume(basics *Basics) Resume  {
 
 }
 
-func AddProject() {
+func AddProject(*resume Resume, project Project) *Resume {
 
 }
 
-func AddExperience() {
+func AddExperience(*resume Resume, experience Experience) *Resume {
 
 }
 
-func AddSkills() {
+func AddSkills(*resume Resume, skill Skill) *Resume {
 
 }
 

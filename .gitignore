@@ -2,3 +2,5 @@ resume-template/*
 !resume-template/resume.cls
 !resume-template/resume.tex
 !resume-template/resume.pdf
+
+config.urmzd.toml

@@ -39,3 +39,13 @@ end_date = ""
 [[education.details]]
 summary = ""
 explaination = ""
+
+[[skills]]
+type=""
+values=[]
+
+[[skills]]
+type=""
+values=[]
+
+
