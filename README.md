@@ -1,9 +1,16 @@
 # Generate Resumes
 
-Generate different resumes using one config.
+Generates $\LaTeX $ resumes with one command.
 
-## Usage (WIP)
+## Usage
+
+```toml
+# [CONFIG LOCATION]
+
+...
+```
 
 ```bash
-  ./srt CONFIG_LOCATION
+  # run the following in the terminal
+  ./generate-resumes [CONFIG_LOCATION]
 ```

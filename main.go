@@ -1,13 +1,12 @@
 package main
 
-import "fmt"
-import "github.com/BurntSushi/toml"
-
-/**
-  The pipeline for construction will go as follows:
-
-  CreateResume(Basics) -> AddExperience -> AddSkill -> AddProject -> AddContact
-*/
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"github.com/BurntSushi/toml"
+	"time"
+)
 
 type Resume struct {
 	Basics      Basics
@@ -43,8 +42,8 @@ type Location struct {
 }
 
 type DateRange struct {
-	Start string
-	End   string
+	Start time.Time
+	End time.Time
 }
 
 type Experience struct {
@@ -67,14 +66,32 @@ type Detail struct {
 }
 
 type ResumeGenerator interface {
-	CreateResume(*Basics) Resume
-	AddProject(*Resume, Project) *Resume
-	AddExperience(*Resume, Experience) *Resume
-	AddSkill(*Resume, Detail) *Resume
-	GenerateResume(Resume) string
+	GenerateResume(*Resume) string
+}
+
+type DefaultResume struct {
+	beforeCode string
+	afterCode string
 }
 
 func main() {
-  resume := Resume {}
-	fmt.Println(resume)
+	filename := os.Args[1]
+	data, err := os.ReadFile(filename)
+	config := string(data)
+
+	fmt.Println(config)
+
+	if err != nil {
+		panic(err)
+	}
+	
+	var resume Resume
+	_, err = toml.Decode(config, &resume)
+
+	if err != nil {
+		panic(err)
+	}
+
+	resumeJson, err := json.MarshalIndent(resume, "", "\t")
+	fmt.Println(string(resumeJson))
 }
