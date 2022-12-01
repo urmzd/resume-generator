@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"github.com/BurntSushi/toml"
+	"strings"
 	"time"
+
+	"github.com/BurntSushi/toml"
 )
 
 type Resume struct {
@@ -43,7 +45,7 @@ type Location struct {
 
 type DateRange struct {
 	Start time.Time
-	End time.Time
+	End   time.Time
 }
 
 type Experience struct {
@@ -66,12 +68,59 @@ type Detail struct {
 }
 
 type ResumeGenerator interface {
-	GenerateResume(*Resume) string
+	StartResume(*Basics)
+	AddSkills(*[]Detail)
+	AddExperiences(*[]Experience)
+	AddEducation(*[]Education)
+	AddProjects(*[]Project)
+	EndResume() string
 }
 
-type DefaultResume struct {
-	beforeCode string
-	afterCode string
+type DefaultResumeGenerator struct {
+	builder strings.Builder
+}
+
+func (generator *DefaultResumeGenerator) StartResume(basics *Basics) {
+	//generator.builder.Write(
+	beforeCode := `
+		\documentclass{resume}
+		\usepackage{geometry}
+		\usepackage{titlesec}
+		\usepackage[allcolors=blue]{hyperref}
+		\usepackage{helvet}
+
+		\geometry{
+				a4paper,
+				left=0.5in,
+				right=0.5in,
+				bottom=0.5in,
+				top = 0.5in,
+		}
+
+		\hypersetup {
+			colorlinks=true,
+			linkcolor=blue
+		}
+
+		\titleformat{\section}
+			{\normalfont\Large\scshape\fontsize{12}{15}}
+			{\thesection}{1em}
+			{}[{\titlerule[0.8pt]}]
+
+		\begin{document}
+		\pagestyle{empty}
+	`
+
+	name := fmt.Sprintf(`\name{%s}`, basics.Name)
+	contact := fmt.Sprintf(
+		`\contact%
+			{\href{mailto://%s}{%s}}
+			{\href{tel:%s}{%s}}
+			{\href{%s}{%s}}
+			{\href{%s}{%s}}
+		`,
+	)
+
 }
 
 func main() {
@@ -84,7 +133,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	var resume Resume
 	_, err = toml.Decode(config, &resume)
 

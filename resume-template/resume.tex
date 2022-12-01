@@ -1,5 +1,4 @@
 \documentclass{resume}
-\usepackage[utf8]{inputenc}
 \usepackage{geometry}
 \usepackage{titlesec}
 \usepackage[allcolors=blue]{hyperref}
@@ -19,7 +18,9 @@
 }
 
 \titleformat{\section}
-  {\normalfont\Large\scshape\fontsize{12}{15}}{\thesection}{1em}{}[{\titlerule[0.8pt]}]
+  {\normalfont\Large\scshape\fontsize{12}{15}}
+  {\thesection}{1em}
+  {}[{\titlerule[0.8pt]}]
 
 \begin{document}
 \pagestyle{empty}
@@ -31,8 +32,8 @@
 {\href{https://github.com/urmzd}{github.com/urmzd}}
 \section*{skills}
 \begin{description}
-  \item[Languages:]{(Proficient) Java, Python, Rust, TypeScript, Bash; (Familiar) C, Lua, SQL}
-  \item[Tools \& Frameworks:]{AWS, Docker, React, Redis, Spring Boot, Serverless Framework, Node.js, GraphQL, Jenkins}
+	\item[Languages:]{(Proficient) Java, Python, Rust, TypeScript, Bash; (Familiar) C, Lua, SQL}
+	\item[Tools \& Frameworks:]{AWS, Docker, React, Redis, Spring Boot, Serverless Framework, Node.js, GraphQL, Jenkins}
 \end{description}
 \section*{experience}
 \project{Software Engineer}{Air Miles}{Sep 2022 - Present}
@@ -67,8 +68,8 @@
 \project{Dalhousie University}{}{Sep 2018 - Apr 2023}
 \subproject{Bachelor of Computer Science (Hons)(Co-op)}
 \begin{description}
-  \item[Description:] Minor in Mathematics; Certificate in Artificial Intelligence \& Intelligent Systems
-  \item[Achievements:] Sexton Scholar - Winter 2020, Summer 2021
+	\item[Description:] Minor in Mathematics; Certificate in Artificial Intelligence \& Intelligent Systems
+	\item[Achievements:] Sexton Scholar - Winter 2020, Summer 2021
 \end{description}
 
 \end{document}
