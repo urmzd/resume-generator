@@ -11,7 +11,7 @@ import (
 )
 
 type Resume struct {
-	Contact     *Contact
+	Contact     Contact
 	Skills      []Detail
 	Experiences []Experience
 	Projects    []Project
@@ -19,48 +19,61 @@ type Resume struct {
 }
 
 type Education struct {
-	School   *string
-	Degree   *string
+	School   string
+	Degree   string
 	Suffixes []string
 	Details  []Detail
-	Location *Location
-	Dates    *DateRange
+	Location Location
+	Dates    DateRange
 }
 
 type Contact struct {
-	Name  *string
-	Email *string
-	Phone *string
+	Name  string
+	Email string
+	Phone string
 	Links []Link
 }
 
 type Link struct {
-	Text *string
-	Link *string
+	Text string
+	Link string
 }
 
-func NewLink(text string, link string, prefix string) *Link {
+func NewPrefixedLink(link string, prefix string) *Link {
+	text := prefix + link
 	return &Link {
-		Text: prefix + text,
+		Text: text,
 		Link: link,
 	}
 }
 
 func (link *Link) toString() string {
-	return fmt.Sprintf(`\href{%s}{%s}`, *link.Text, *link.Link)
+	if link.Text == "" {
+		parsedLinked, err := url.Parse(link.Link)
+
+		if err != nil {
+			panic(err)
+		}
+
+		urlWithoutSchema := fmt.Sprintf("%s%s", parsedLinked.Hostname(), parsedLinked.Path)
+
+		link.Text = urlWithoutSchema
+	}
+
+	return fmt.Sprintf(`\href{%s}{%s}`, link.Text, link.Link)
 }
 
 type Location struct {
-	City  *string
-	State *string
+	City  string
+	State string
 }
 
 func (loc *Location) toString() string {
-	return fmt.Sprintf("%s, %s", *loc.City, *loc.State)
+	return fmt.Sprintf("%s, %s", loc.City, loc.State)
 }
 
 type DateRange struct {
-	Start *time.Time
+	Start time.Time
 	End   *time.Time
 }
 
@@ -78,7 +91,7 @@ func (rng *DateRange) toString() string {
 }
 
 type Experience struct {
-	CompanyName  string
+	Company      string
 	Title        string
 	Achievements []string
 	Dates        DateRange
@@ -87,8 +100,9 @@ type Experience struct {
 
 type Project struct {
 	Name         string
-	LanguageUsed string
+	Language string
 	Details      []string
+	Link Link
 }
 
 type Detail struct {
@@ -106,14 +120,29 @@ type ResumeGenerator interface {
 }
 
 type DefaultResumeGenerator struct {
-	builder strings.Builder
+	code []string
+}
+
+func (generator *DefaultResumeGenerator) AddProjects(projects *[]Project) {
+	beforeCode := `\section*{projects}`
+
+	generator.write(beforeCode)
+
+	for _, project := range(*projects)  {
+		generator.addProject(project.Name, project.Language, project.Link.toString())
+		generator.addAchievements(project.Details...)
+	}
 }
 
 func (generator *DefaultResumeGenerator) write(strs ...string) {
 	for _, str := range strs {
-		generator.builder.WriteString(strings.TrimSpace(str))
-		generator.builder.WriteString("\n")
+		generator.code = append(generator.code, strings.TrimSpace(str))
 	}
+}
+
+func (gen *DefaultResumeGenerator) EndResume() string {
+	gen.write(`\end{document}`)
+	return strings.Join(gen.code, "\n")
 }
 
 func (generator *DefaultResumeGenerator) AddExperiences(experiences *[]Experience) {
@@ -123,7 +152,7 @@ func (generator *DefaultResumeGenerator) AddExperiences(experiences *[]Experienc
 
 	for _, experience := range *experiences {
 		dateRange := experience.Dates.toString()
-		generator.addProject(experience.Title, experience.CompanyName, dateRange)
+		generator.addProject(experience.Title, experience.Company, dateRange)
 		generator.addSubProject(experience.Location.toString())
 		generator.addAchievements(experience.Achievements...)
 	}
@@ -177,12 +206,8 @@ func (generator *DefaultResumeGenerator) AddSkills(skills *[]Detail) {
 
 func (generator *DefaultResumeGenerator) StartResume(contact *Contact) {
 
-	// Ensure that all links have a text display.
-	FillMissingLinkParts(&contact.Links[0])
-	FillMissingLinkParts(&contact.Links[1])
-
 	beforeCode := []string{
-		`\documentclass{resume}`,
+		`\documentclass{default}`,
 		`\usepackage{geometry}`,
 		`\usepackage{titlesec}`,
 		`\usepackage[]{hyperref}`,
@@ -194,30 +219,16 @@ func (generator *DefaultResumeGenerator) StartResume(contact *Contact) {
 		`\pagestyle{empty}`,
 	}
 
-	name := fmt.Sprintf(`\name{%s}`, *contact.Name)
-	basics := fmt.Sprintf(`\contact{}{}{}{}`,
-		NewLink(*contact.Email, *contact.Email, "mailto://"),
-		NewLink(*contact.Phone, *contact.Phone, "tel:"),
-		contact.Links[0],
-		contact.Links[1]
+	name := fmt.Sprintf(`\name{%s}`, contact.Name)
+	basics := fmt.Sprintf(`\contact{%s}{%s}{%s}{%s}`,
+		NewPrefixedLink(contact.Email, "mailto://").toString(),
+		NewPrefixedLink(contact.Phone, "tel:").toString(),
+		contact.Links[0].toString(),
+		contact.Links[1].toString(),
 	)
 
 	generator.write(beforeCode...)
 	generator.write(name, basics)
-}
-
-func FillMissingLinkParts(link *Link) {
-	if link.Text == nil {
-		parsedLinked, err := url.Parse(*link.Link)
-
-		if err != nil {
-			panic(err)
-		}
-
-		urlWithoutSchema := fmt.Sprintf("%s%s", parsedLinked.Hostname(), parsedLinked.Path)
-
-		link.Text = &urlWithoutSchema
-	}
 }
 
 func main() {
@@ -240,8 +251,10 @@ func main() {
 
 	resumeBuilder := &DefaultResumeGenerator{}
 
-	resumeBuilder.StartResume(resume.Contact)
+	resumeBuilder.StartResume(&resume.Contact)
 	resumeBuilder.AddSkills(&resume.Skills)
 	resumeBuilder.AddExperiences(&resume.Experiences)
-	fmt.Println(resumeBuilder.builder.String())
+	resumeBuilder.AddProjects(&resume.Projects)
+
+	fmt.Println(resumeBuilder.EndResume())
 }

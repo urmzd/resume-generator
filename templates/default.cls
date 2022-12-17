@@ -1,6 +1,6 @@
 \NeedsTeXFormat{LaTeX2e}
 
-\ProvidesClass{resume}
+\ProvidesClass{default}
 \LoadClass{article}
 
 \RequirePackage{fix-cm}

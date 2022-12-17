@@ -4,3 +4,4 @@ resume-template/*
 !resume-template/resume.pdf
 
 config.urmzd.toml
+generate-resumes
