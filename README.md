@@ -1,13 +1,12 @@
 # Generate Resumes
 
-Generates $\LaTeX $ resumes with one command.
+Generates $\LaTeX$ resumes with one command.
 
 ## Usage
 
 ```toml
 # [CONFIG LOCATION]
-
-...
+# TODO
 ```
 
 ```bash

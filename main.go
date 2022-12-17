@@ -1,17 +1,17 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"net/url"
 )
 
 type Resume struct {
-	Basics      Basics
+	Contact     Contact
 	Skills      []Detail
 	Experiences []Experience
 	Projects    []Project
@@ -27,7 +27,7 @@ type Education struct {
 	Dates    DateRange
 }
 
-type Basics struct {
+type Contact struct {
 	Name  string
 	Email string
 	Phone string
@@ -35,6 +35,7 @@ type Basics struct {
 }
 
 type Link struct {
+	Text string
 	Link string
 }
 
@@ -68,7 +69,7 @@ type Detail struct {
 }
 
 type ResumeGenerator interface {
-	StartResume(*Basics)
+	StartResume(*Contact)
 	AddSkills(*[]Detail)
 	AddExperiences(*[]Experience)
 	AddEducation(*[]Education)
@@ -80,8 +81,12 @@ type DefaultResumeGenerator struct {
 	builder strings.Builder
 }
 
-func (generator *DefaultResumeGenerator) StartResume(basics *Basics) {
-	//generator.builder.Write(
+func (generator *DefaultResumeGenerator) StartResume(contact *Contact) {
+
+	// Ensure that all links have a text display.
+	FillMissingLinkParts(&contact.Links[0])
+	FillMissingLinkParts(&contact.Links[1])
+
 	beforeCode := `
 		\documentclass{resume}
 		\usepackage{geometry}
@@ -111,24 +116,49 @@ func (generator *DefaultResumeGenerator) StartResume(basics *Basics) {
 		\pagestyle{empty}
 	`
 
-	name := fmt.Sprintf(`\name{%s}`, basics.Name)
-	contact := fmt.Sprintf(
-		`\contact%
+	fmt.Println(contact)
+
+	name := fmt.Sprintf(`\name{%s}`, contact.Name)
+	basics := fmt.Sprintf(
+		`\contact%%
 			{\href{mailto://%s}{%s}}
 			{\href{tel:%s}{%s}}
 			{\href{%s}{%s}}
 			{\href{%s}{%s}}
 		`,
+		contact.Email,
+		contact.Email,
+		contact.Phone,
+		contact.Phone,
+		contact.Links[0].Text,
+		contact.Links[0].Link,
+		contact.Links[1].Text,
+		contact.Links[1].Link,
 	)
 
+	generator.builder.WriteString(beforeCode)
+	generator.builder.WriteString(name)
+	generator.builder.WriteString(basics)
 }
+
+func FillMissingLinkParts(link *Link) {
+	if link.Text == "" {
+		parsedLinked , err := url.Parse(link.Link)
+
+		if err != nil {
+			panic(err)
+		}
+
+		urlWithoutSchema := fmt.Sprintf("%s%s", parsedLinked.Hostname(), parsedLinked.Path)
+
+		link.Text = urlWithoutSchema
+	}
+} 
 
 func main() {
 	filename := os.Args[1]
 	data, err := os.ReadFile(filename)
 	config := string(data)
-
-	fmt.Println(config)
 
 	if err != nil {
 		panic(err)
@@ -141,6 +171,10 @@ func main() {
 		panic(err)
 	}
 
-	resumeJson, err := json.MarshalIndent(resume, "", "\t")
-	fmt.Println(string(resumeJson))
+	fmt.Printf("%+v\n", &resume)
+
+	resumeBuilder := &DefaultResumeGenerator{}
+
+	resumeBuilder.StartResume(&resume.Contact)
+	fmt.Println(resumeBuilder.builder.String())
 }
