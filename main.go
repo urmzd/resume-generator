@@ -7,15 +7,16 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/thoas/go-funk"
 	"net/url"
 )
 
 type Resume struct {
-	Contact     Contact
-	Skills      []Detail
-	Experiences []Experience
-	Projects    []Project
-	Education   []Education
+	Contact    Contact
+	Skills     []Detail
+	Experience []Experience
+	Projects   []Project
+	Education  []Education
 }
 
 type Education struct {
@@ -25,6 +26,23 @@ type Education struct {
 	Details  []Detail
 	Location Location
 	Dates    DateRange
+}
+
+func (generator *DefaultResumeGenerator) AddEducation(education *[]Education) {
+	beforeCode := `\section*{education}`
+
+	generator.write(beforeCode)
+
+	for _, school := range *education {
+		dateRanges := school.Dates.toString()
+		degree := funk.Reduce(school.Suffixes, func(acc string, cur string) string {
+			return fmt.Sprintf("%s (%s)", acc, cur)
+		}, school.Degree)
+		generator.addProject(school.School, "", dateRanges)
+		generator.addSubProject(degree.(string))
+		generator.addDescription(&school.Details)
+	}
+
 }
 
 type Contact struct {
@@ -41,7 +59,7 @@ type Link struct {
 
 func NewPrefixedLink(link string, prefix string) *Link {
 	text := prefix + link
-	return &Link {
+	return &Link{
 		Text: text,
 		Link: link,
 	}
@@ -60,7 +78,7 @@ func (link *Link) toString() string {
 		link.Text = urlWithoutSchema
 	}
 
-	return fmt.Sprintf(`\href{%s}{%s}`, link.Text, link.Link)
+	return fmt.Sprintf(`\href{%s}{%s}`, link.Link, link.Text)
 }
 
 type Location struct {
@@ -99,10 +117,10 @@ type Experience struct {
 }
 
 type Project struct {
-	Name         string
+	Name     string
 	Language string
-	Details      []string
-	Link Link
+	Details  []string
+	Link     Link
 }
 
 type Detail struct {
@@ -128,7 +146,7 @@ func (generator *DefaultResumeGenerator) AddProjects(projects *[]Project) {
 
 	generator.write(beforeCode)
 
-	for _, project := range(*projects)  {
+	for _, project := range *projects {
 		generator.addProject(project.Name, project.Language, project.Link.toString())
 		generator.addAchievements(project.Details...)
 	}
@@ -145,16 +163,16 @@ func (gen *DefaultResumeGenerator) EndResume() string {
 	return strings.Join(gen.code, "\n")
 }
 
-func (generator *DefaultResumeGenerator) AddExperiences(experiences *[]Experience) {
-	beforeCode := `\section*{education}`
+func (generator *DefaultResumeGenerator) AddExperiences(experience *[]Experience) {
+	beforeCode := `\section*{experience}`
 
 	generator.write(beforeCode)
 
-	for _, experience := range *experiences {
-		dateRange := experience.Dates.toString()
-		generator.addProject(experience.Title, experience.Company, dateRange)
-		generator.addSubProject(experience.Location.toString())
-		generator.addAchievements(experience.Achievements...)
+	for _, xp := range *experience {
+		dateRange := xp.Dates.toString()
+		generator.addProject(xp.Title, xp.Company, dateRange)
+		generator.addSubProject(xp.Location.toString())
+		generator.addAchievements(xp.Achievements...)
 	}
 }
 
@@ -185,7 +203,7 @@ func (generator *DefaultResumeGenerator) addSubProject(label string) {
 func (generator *DefaultResumeGenerator) addDescription(skills *[]Detail) {
 	beforeCode := `\begin{description}`
 	afterCode := `\end{description}`
-	stringTemplate := `\item[%s]{%s}`
+	stringTemplate := `\item[%s:]{%s}`
 
 	generator.write(beforeCode)
 
@@ -205,12 +223,11 @@ func (generator *DefaultResumeGenerator) AddSkills(skills *[]Detail) {
 }
 
 func (generator *DefaultResumeGenerator) StartResume(contact *Contact) {
-
 	beforeCode := []string{
 		`\documentclass{default}`,
 		`\usepackage{geometry}`,
 		`\usepackage{titlesec}`,
-		`\usepackage[]{hyperref}`,
+		`\usepackage[allcolors=blue]{hyperref}`,
 		`\usepackage{helvet}`,
 		`\geometry{a4paper,left=0.5in,right=0.5in,bottom=0.5in,top = 0.5in}`,
 		`\hypersetup {colorlinks=true,linkcolor=blue }`,
@@ -247,14 +264,15 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf("%+v\n", &resume)
+	//fmt.Printf("%+v\n", &resume)
 
 	resumeBuilder := &DefaultResumeGenerator{}
 
 	resumeBuilder.StartResume(&resume.Contact)
 	resumeBuilder.AddSkills(&resume.Skills)
-	resumeBuilder.AddExperiences(&resume.Experiences)
+	resumeBuilder.AddExperiences(&resume.Experience)
 	resumeBuilder.AddProjects(&resume.Projects)
+	resumeBuilder.AddEducation(&resume.Education)
 
 	fmt.Println(resumeBuilder.EndResume())
 }
