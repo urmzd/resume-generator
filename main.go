@@ -135,6 +135,11 @@ type ResumeGenerator interface {
 	AddEducation(*[]Education)
 	AddProjects(*[]Project)
 	EndResume() string
+	CompileResume(string) 
+}
+
+func (generator *DefaultResumeGenerator) Compile(outputFile string) {
+	cmd := ""
 }
 
 type DefaultResumeGenerator struct {
