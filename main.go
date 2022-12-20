@@ -135,11 +135,16 @@ type ResumeGenerator interface {
 	AddEducation(*[]Education)
 	AddProjects(*[]Project)
 	EndResume() string
-	CompileResume(string) 
 }
 
-func (generator *DefaultResumeGenerator) Compile(outputFile string) {
-	cmd := ""
+type Compiler interface {
+	CompileLatex(string, string)
+}
+
+type DefaultCompiler struct { }
+
+func (compiler *DefaultCompiler) CompileLatex(latex string, outputFile string) {
+
 }
 
 type DefaultResumeGenerator struct {
@@ -165,7 +170,11 @@ func (generator *DefaultResumeGenerator) write(strs ...string) {
 
 func (gen *DefaultResumeGenerator) EndResume() string {
 	gen.write(`\end{document}`)
-	return strings.Join(gen.code, "\n")
+	preTex := strings.Join(gen.code, "\n");
+	// We need to need to escape amparcents.
+	// We can move this to the compile step when finished.
+	processedTex := strings.ReplaceAll(preTex, "&", `\&`);
+	return processedTex; 
 }
 
 func (generator *DefaultResumeGenerator) AddExperiences(experience *[]Experience) {

@@ -1,15 +1,10 @@
 # Generate Resumes
 
-Generates $\LaTeX$ resumes with one command.
+Generate beautiful $\LaTeX$ resumes with one command.
 
 ## Usage
 
-```toml
-# [CONFIG LOCATION]
-# TODO
-```
-
 ```bash
-  # run the following in the terminal
-  ./generate-resumes [CONFIG_LOCATION]
+    # If OUTPUT_FOLDER is not provided, a folder in the users current working directory will be created.
+  ./generate-resumes [CONFIG_LOCATION] <OUTPUT_FOLDER>
 ```
