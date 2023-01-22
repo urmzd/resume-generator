@@ -35,6 +35,41 @@ func (compiler *XeLaTeXCompiler) AddOutputFolder(folder string) {
 	}
 }
 
-func (compiler *XeLaTeXCompiler) Compile (folder string) {
+func (compiler *XeLaTeXCompiler) copyFile(filename string, outputFolder string) {
+	data, err := os.ReadFile(filename)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// TODO: Figure out which permissions to use, default 644)
+	err = os.WriteFile(filename, data, 0644)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (compiler *XeLaTeXCompiler) Compile (resume string) {
+
+	for _, class := range(compiler.classes) {
+		compiler.copyFile(class, compiler.outputFolder)
+	}
+
+	outputFile , err := os.CreateTemp(compiler.outputFolder, "resume")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = outputFile.Write([]byte(resume));
+
+	// TODO: Get current working directory.
+
+	//cmd := `pdflatex <resume_file>`
+
+	// TODO: Run cmd
+
+	// 
 
 }

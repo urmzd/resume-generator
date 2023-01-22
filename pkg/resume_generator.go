@@ -55,11 +55,11 @@ type Link struct {
 	Link string
 }
 
-func NewPrefixedLink(link string, prefix string) *Link {
-	text := prefix + link
+func NewPrefixedLink(text string, prefix string) *Link {
+	new_link := prefix + text
 	return &Link{
 		Text: text,
-		Link: link,
+		Link: new_link,
 	}
 }
 
