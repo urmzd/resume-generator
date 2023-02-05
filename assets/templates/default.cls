@@ -22,8 +22,8 @@
     \vspace{0.0625in}%
 }
 
-\newcommand{\contact}[4]{%
-    \hfill #1 \hfill \textbar \hfill #2 \hfill \textbar \hfill #3 \hfill \textbar \hfill #4 \hfill
+\NewDocumentCommand{\contact}{mmmo}{%
+    \hfill #1 \hfill \textbar \hfill #2 \hfill \textbar \hfill #3 \hfill \textbar \hfill \IfNotValueTF{#4}{}{#4} \hfill
 }
 
 \NewDocumentCommand\project{mmm}{%

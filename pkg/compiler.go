@@ -3,6 +3,8 @@ package pkg
 import (
 	"os"
 	"log"
+	"path/filepath"
+	"os/exec"
 )
 
 type Compiler interface {
@@ -11,17 +13,26 @@ type Compiler interface {
 	Compile(string)
 }
 
-type XeLaTeXCompiler struct {
+type DefaultCompiler struct {
 	command string
 	outputFolder string
 	classes []string
 }
 
-func (compiler *XeLaTeXCompiler) LoadClasses(classes ...string) {
+func NewDefaultCompiler(command string) *DefaultCompiler {
+	return &DefaultCompiler {
+		command: command,
+		outputFolder: "",
+		classes: []string{},
+	}
+
+}
+
+func (compiler *DefaultCompiler) LoadClasses(classes ...string) {
 	compiler.classes = classes
 }
 
-func (compiler *XeLaTeXCompiler) AddOutputFolder(folder string) {
+func (compiler *DefaultCompiler) AddOutputFolder(folder string) {
 	if folder == "" {
 		dir, err := os.MkdirTemp("", "resume-generator");
 
@@ -35,23 +46,23 @@ func (compiler *XeLaTeXCompiler) AddOutputFolder(folder string) {
 	}
 }
 
-func (compiler *XeLaTeXCompiler) copyFile(filename string, outputFolder string) {
+func (compiler *DefaultCompiler) copyFile(filename string, outputFolder string) {
 	data, err := os.ReadFile(filename)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// TODO: Figure out which permissions to use, default 644)
-	err = os.WriteFile(filename, data, 0644)
+	newPath := filepath.Clean(filepath.Join(outputFolder, filename))
+
+	err = os.WriteFile(newPath, data, 0644)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func (compiler *XeLaTeXCompiler) Compile (resume string) {
-
+func (compiler *DefaultCompiler) Compile (resume string) {
 	for _, class := range(compiler.classes) {
 		compiler.copyFile(class, compiler.outputFolder)
 	}
@@ -64,12 +75,23 @@ func (compiler *XeLaTeXCompiler) Compile (resume string) {
 
 	_, err = outputFile.Write([]byte(resume));
 
-	// TODO: Get current working directory.
+	executable, err :=  os.Executable()
 
-	//cmd := `pdflatex <resume_file>`
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// TODO: Run cmd
+	cwd := filepath.Dir(executable)
 
-	// 
+	os.Chdir(compiler.outputFolder)
 
+	cmd := exec.Command(compiler.command, outputFile.Name())
+
+	err = cmd.Run()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	os.Chdir(cwd)
 }

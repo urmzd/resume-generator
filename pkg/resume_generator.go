@@ -2,11 +2,14 @@ package pkg
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
-	"github.com/thoas/go-funk"
 	"net/url"
+
+	"errors"
+	"github.com/thoas/go-funk"
 )
 
 type Resume struct {
@@ -239,12 +242,25 @@ func (generator *DefaultResumeGenerator) StartResume(contact *Contact) {
 	}
 
 	name := fmt.Sprintf(`\name{%s}`, contact.Name)
-	basics := fmt.Sprintf(`\contact{%s}{%s}{%s}{%s}`,
-		NewPrefixedLink(contact.Email, "mailto://").toString(),
-		NewPrefixedLink(contact.Phone, "tel:").toString(),
-		contact.Links[0].toString(),
-		contact.Links[1].toString(),
-	)
+
+	basics := ""
+
+	if len(contact.Links) == 1 {
+		basics = fmt.Sprintf(`\contacts{%s}{%s}{%s}`,
+			NewPrefixedLink(contact.Email, "mailto://").toString(),
+			NewPrefixedLink(contact.Phone, "tel:").toString(),
+			contact.Links[0].toString(),
+		)
+	} else if len(contact.Links) == 2 {
+		basics = fmt.Sprintf(`\contacts{%s}{%s}{%s}{%s}`,
+			NewPrefixedLink(contact.Email, "mailto://").toString(),
+			NewPrefixedLink(contact.Phone, "tel:").toString(),
+			contact.Links[0].toString(),
+			contact.Links[1].toString(),
+		)
+	} else {
+		log.Fatal(errors.New("Contact length must be 1 or 2"))
+	}
 
 	generator.write(beforeCode...)
 	generator.write(name, basics)

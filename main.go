@@ -24,8 +24,6 @@ func main() {
 		panic(err)
 	}
 
-	//fmt.Printf("%+v\n", &resume)
-
 	resumeBuilder := &pkg.DefaultResumeGenerator{}
 
 	resumeBuilder.StartResume(&resume.Contact)
@@ -34,5 +32,9 @@ func main() {
 	resumeBuilder.AddProjects(&resume.Projects)
 	resumeBuilder.AddEducation(&resume.Education)
 
-	fmt.Println(resumeBuilder.EndResume())
+	resumeStr := resumeBuilder.EndResume()
+
+	fmt.Printf("%s", resumeStr)
+
+	//compiler := pkg.NewDefaultCompiler("xelatex")
 }

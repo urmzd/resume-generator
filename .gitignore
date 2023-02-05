@@ -3,5 +3,8 @@ resume-template/*
 !resume-template/resume.tex
 !resume-template/resume.pdf
 
+# custom
 config.urmzd.toml
+config.m.toml
+
 generate-resumes
