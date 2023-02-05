@@ -27,10 +27,12 @@ func main() {
 	resumeBuilder := &pkg.DefaultResumeGenerator{}
 
 	resumeBuilder.StartResume(&resume.Contact)
-	resumeBuilder.AddSkills(&resume.Skills)
 	resumeBuilder.AddExperiences(&resume.Experience)
-	resumeBuilder.AddProjects(&resume.Projects)
 	resumeBuilder.AddEducation(&resume.Education)
+	resumeBuilder.AddSkills(&resume.Skills)
+	if resume.Projects != nil {
+		resumeBuilder.AddProjects(&resume.Projects)
+	}
 
 	resumeStr := resumeBuilder.EndResume()
 

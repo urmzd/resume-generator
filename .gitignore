@@ -8,3 +8,5 @@ config.urmzd.toml
 config.m.toml
 
 generate-resumes
+
+assets/templates/m/*

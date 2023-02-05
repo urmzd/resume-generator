@@ -23,7 +23,7 @@
 }
 
 \NewDocumentCommand{\contact}{mmmo}{%
-    \hfill #1 \hfill \textbar \hfill #2 \hfill \textbar \hfill #3 \hfill \textbar \hfill \IfNotValueTF{#4}{}{#4} \hfill
+    \hfill #1 \hfill \textbar \hfill #2 \hfill \textbar \hfill #3 \hfill \textbar \hfill \IfNotValueTF{#4}{}{#4 \hfill}
 }
 
 \NewDocumentCommand\project{mmm}{%
