@@ -23,7 +23,7 @@
 }
 
 \NewDocumentCommand{\contact}{mmmo}{%
-    \hfill #1 \hfill \textbar \hfill #2 \hfill \textbar \hfill #3 \hfill \textbar \hfill \IfNotValueTF{#4}{}{#4 \hfill}
+    \hfill #1 \hfill \textbar \hfill #2 \hfill \textbar \hfill #3 \hfill \IfNoValueTF{#4}{}{\textbar \hfill #4 \hfill}
 }
 
 \NewDocumentCommand\project{mmm}{%
@@ -35,7 +35,7 @@
     \textbf{#1}
 }
 
-\NewDocumentCommand\achievements{O{Did X as measured by Y resulting in Z}ooo}{%
+\NewDocumentCommand{\achievements}{O{Did X as measured by Y resulting in Z}ooo}{%
     \begin{itemize}
         \IfNoValueTF{#1}{}{\item #1}
         \IfNoValueTF{#2}{}{\item #2}

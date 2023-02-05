@@ -164,7 +164,9 @@ func (gen *DefaultResumeGenerator) EndResume() string {
 	preTex := strings.Join(gen.code, "\n");
 	// We need to need to escape amparcents.
 	// We can move this to the compile step when finished.
-	processedTex := strings.ReplaceAll(preTex, "&", `\&`);
+	
+	processedTex := strings.ReplaceAll(preTex, "&", `\&`)
+
 	return processedTex; 
 }
 
@@ -246,14 +248,14 @@ func (generator *DefaultResumeGenerator) StartResume(contact *Contact) {
 	basics := ""
 
 	if len(contact.Links) == 1 {
-		basics = fmt.Sprintf(`\contacts{%s}{%s}{%s}`,
-			NewPrefixedLink(contact.Email, "mailto://").toString(),
+		basics = fmt.Sprintf(`\contact{%s}{%s}{%s}`,
+			NewPrefixedLink(contact.Email, "mailto:").toString(),
 			NewPrefixedLink(contact.Phone, "tel:").toString(),
 			contact.Links[0].toString(),
 		)
 	} else if len(contact.Links) == 2 {
-		basics = fmt.Sprintf(`\contacts{%s}{%s}{%s}{%s}`,
-			NewPrefixedLink(contact.Email, "mailto://").toString(),
+		basics = fmt.Sprintf(`\contact{%s}{%s}{%s}{%s}`,
+			NewPrefixedLink(contact.Email, "mailto:").toString(),
 			NewPrefixedLink(contact.Phone, "tel:").toString(),
 			contact.Links[0].toString(),
 			contact.Links[1].toString(),

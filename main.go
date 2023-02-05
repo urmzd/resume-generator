@@ -30,6 +30,7 @@ func main() {
 	resumeBuilder.AddExperiences(&resume.Experience)
 	resumeBuilder.AddEducation(&resume.Education)
 	resumeBuilder.AddSkills(&resume.Skills)
+
 	if resume.Projects != nil {
 		resumeBuilder.AddProjects(&resume.Projects)
 	}
