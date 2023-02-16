@@ -114,7 +114,7 @@ type Experience struct {
 	Title        string
 	Achievements []string
 	Dates        DateRange
-	Location     Location
+	Location     *Location
 }
 
 type Project struct {
@@ -178,7 +178,11 @@ func (generator *DefaultResumeGenerator) AddExperiences(experience *[]Experience
 	for _, xp := range *experience {
 		dateRange := xp.Dates.toString()
 		generator.addProject(xp.Title, xp.Company, dateRange)
-		generator.addSubProject(xp.Location.toString())
+		if xp.Location == nil {
+			generator.addSubProject("Remote")
+		} else {
+			generator.addSubProject(xp.Location.toString())
+		}
 		generator.addAchievements(xp.Achievements...)
 	}
 }

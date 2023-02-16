@@ -133,5 +133,7 @@ func (compiler *DefaultCompiler) Compile (resume string, resume_name string) {
 		}
 	}
 
+	compiler.logger.Infow("Compilation completed.", "outputFolder", compiler.outputFolder)
+
 	defer os.Chdir(cwd)
 }
