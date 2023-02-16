@@ -49,8 +49,8 @@ func (compiler *DefaultCompiler) AddOutputFolder(folder string) {
 	}
 }
 
-func (compiler *DefaultCompiler) copyFile(filename string, outputFolder string) {
-	absFilepath, err := filepath.Abs(filename)
+func (compiler *DefaultCompiler) copyFile(sourceFilePath string, outputFolder string) {
+	absFilepath, err := filepath.Abs(sourceFilePath)
 
 	if err != nil {
 		compiler.logger.Fatal(err)
@@ -62,7 +62,10 @@ func (compiler *DefaultCompiler) copyFile(filename string, outputFolder string) 
 		compiler.logger.Error(err)
 	}
 
-	newPath := filepath.Clean(filepath.Join(outputFolder, filename))
+	fileName := filepath.Base(absFilepath)
+	newPath := filepath.Clean(filepath.Join(outputFolder, fileName))
+
+	compiler.logger.Info(absFilepath, newPath)
 
 	err = os.WriteFile(newPath, data, 0644)
 
@@ -73,6 +76,8 @@ func (compiler *DefaultCompiler) copyFile(filename string, outputFolder string) 
 
 func (compiler *DefaultCompiler) Compile (resume string, resume_name string) {
 	// Copy style classes over to temporary directory.
+	compiler.logger.Info(compiler.classes)
+
 	for _, class := range(compiler.classes) {
 		compiler.copyFile(class, compiler.outputFolder)
 	}
@@ -100,7 +105,7 @@ func (compiler *DefaultCompiler) Compile (resume string, resume_name string) {
 	os.Chdir(compiler.outputFolder)
 
 	// Create the compilation command.
-	compiler.logger.Info("%s", outputFile.Name())
+	compiler.logger.Info(outputFile.Name())
 	cmd := exec.Command(compiler.command, outputFile.Name())
 
 	// Run the command.
@@ -108,6 +113,24 @@ func (compiler *DefaultCompiler) Compile (resume string, resume_name string) {
 
 	if err != nil {
 		compiler.logger.Fatal(err)
+	}
+
+	// Clean
+	dirFiles, err := os.ReadDir("./")
+
+	if err != nil {
+		compiler.logger.Fatal(err)
+	}
+
+	for _, file := range dirFiles {
+		baseName := file.Name()
+		baseExt := filepath.Ext(baseName)
+
+		compiler.logger.Info(baseName, baseExt)
+
+		if baseExt != ".pdf" {
+			os.Remove(filepath.Clean(filepath.Join("./", baseName)))
+		}
 	}
 
 	defer os.Chdir(cwd)
