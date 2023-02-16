@@ -1,14 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/urmzd/generate-resumes/pkg"
 	"github.com/BurntSushi/toml"
+	"go.uber.org/zap"
 )
 
 func main() {
+	logger, _ := zap.NewDevelopment()
+	sugar := logger.Sugar()
+
 	filename := os.Args[1]
 	data, err := os.ReadFile(filename)
 	config := string(data)
@@ -37,7 +40,8 @@ func main() {
 
 	resumeStr := resumeBuilder.EndResume()
 
-	fmt.Printf("%s", resumeStr)
-
-	//compiler := pkg.NewDefaultCompiler("xelatex")
+	compiler := pkg.NewDefaultCompiler("xelatex", sugar)
+	compiler.AddOutputFolder("")
+	compiler.LoadClasses("./assets/templates/default.cls")
+	compiler.Compile(resumeStr, "resume_default")
 }

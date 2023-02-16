@@ -1,29 +1,32 @@
 package pkg
 
 import (
+	"fmt"
 	"os"
-	"log"
-	"path/filepath"
 	"os/exec"
+	"path/filepath"
+	"go.uber.org/zap"
 )
 
 type Compiler interface {
 	LoadClasses(classes ...string)
 	AddOutputFolder(string)
-	Compile(string)
+	Compile(string, string)
 }
 
 type DefaultCompiler struct {
 	command string
 	outputFolder string
 	classes []string
+	logger *zap.SugaredLogger
 }
 
-func NewDefaultCompiler(command string) *DefaultCompiler {
+func NewDefaultCompiler(command string, logger *zap.SugaredLogger) Compiler {
 	return &DefaultCompiler {
 		command: command,
 		outputFolder: "",
 		classes: []string{},
+		logger: logger,
 	}
 
 }
@@ -37,7 +40,7 @@ func (compiler *DefaultCompiler) AddOutputFolder(folder string) {
 		dir, err := os.MkdirTemp("", "resume-generator");
 
 		if err != nil {
-			log.Fatal(err)
+			compiler.logger.Fatal(err)
 		}
 
 		compiler.outputFolder = dir
@@ -47,10 +50,16 @@ func (compiler *DefaultCompiler) AddOutputFolder(folder string) {
 }
 
 func (compiler *DefaultCompiler) copyFile(filename string, outputFolder string) {
-	data, err := os.ReadFile(filename)
+	absFilepath, err := filepath.Abs(filename)
 
 	if err != nil {
-		log.Fatal(err)
+		compiler.logger.Fatal(err)
+	}
+
+	data, err := os.ReadFile(absFilepath)
+
+	if err != nil {
+		compiler.logger.Error(err)
 	}
 
 	newPath := filepath.Clean(filepath.Join(outputFolder, filename))
@@ -58,40 +67,48 @@ func (compiler *DefaultCompiler) copyFile(filename string, outputFolder string) 
 	err = os.WriteFile(newPath, data, 0644)
 
 	if err != nil {
-		log.Fatal(err)
+		compiler.logger.Error(err)
 	}
 }
 
-func (compiler *DefaultCompiler) Compile (resume string) {
+func (compiler *DefaultCompiler) Compile (resume string, resume_name string) {
+	// Copy style classes over to temporary directory.
 	for _, class := range(compiler.classes) {
 		compiler.copyFile(class, compiler.outputFolder)
 	}
 
-	outputFile , err := os.CreateTemp(compiler.outputFolder, "resume")
+	// Create the resume tex file.
+	outputFileName := fmt.Sprintf("%s.tex", resume_name);
+	outputFile , err := os.Create(filepath.Join(compiler.outputFolder, outputFileName));
 
 	if err != nil {
-		log.Fatal(err)
+		compiler.logger.Fatal(err)
 	}
 
+	// Copy the code over.
 	_, err = outputFile.Write([]byte(resume));
 
-	executable, err :=  os.Executable()
+	executable, err := os.Executable() 
 
 	if err != nil {
-		log.Fatal(err)
+		compiler.logger.Fatal(err)
 	}
 
 	cwd := filepath.Dir(executable)
 
+	// Switch to temporary directory.
 	os.Chdir(compiler.outputFolder)
 
+	// Create the compilation command.
+	compiler.logger.Info("%s", outputFile.Name())
 	cmd := exec.Command(compiler.command, outputFile.Name())
 
+	// Run the command.
 	err = cmd.Run()
 
 	if err != nil {
-		log.Fatal(err)
+		compiler.logger.Fatal(err)
 	}
 
-	os.Chdir(cwd)
+	defer os.Chdir(cwd)
 }
