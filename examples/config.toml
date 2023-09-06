@@ -3,17 +3,17 @@ degree = "laboris consequat Excepteur"
 school = "tempor dolore et non"
 suffixes = [ "et ut mollit", "fugiat incididunt do sed" ]
 
-[education.details]
+[[education.details]]
 category = "nulla"
 value = "sed eu velit id aliqua"
 
-[education.details]
+[[education.details]]
 category = "voluptate proident esse do dolore"
 value = "culpa sed aliquip elit sint"
 
-[[education.dates]]
-start = 2020-02
-end = 2020-03
+[education.dates]
+start = 2020-02-01
+end = 2020-03-01
 
 [education.location]
 city = "aliquip laborum ea sint"
@@ -30,8 +30,8 @@ company = "Duis exercitation eu consequat ut"
 title = "cupidatat"
 
 [experience.dates]
-start = 2020-02
-end = 2020-03
+start = 2020-02-01
+end = 2020-03-01
 
 [experience.location]
 city = "reprehenderit voluptate sit"
@@ -43,8 +43,8 @@ company = "irure aliquip"
 title = "est cupidatat deserunt ullamco"
 
 [experience.dates]
-start = 2020-02
-end = 2020-03
+start = 2020-02-01
+end = 2020-03-01
 
 [experience.location]
 city = "velit non est Lorem"
@@ -56,8 +56,8 @@ company = "sed fugiat non cillum"
 title = "sit fugiat exercitation"
 
 [experience.dates]
-start = 2020-02
-end = 2020-03
+start = 2020-02-01
+end = 2020-03-01
 
 [experience.location]
 city = "adipisicing nulla minim"
@@ -69,8 +69,8 @@ company = "et in qui"
 title = "pariatur"
 
 [experience.dates]
-start = 2020-02
-end = 2020-03
+start = 2020-02-01
+end = 2020-03-01
 
 [experience.location]
 city = "commodo"

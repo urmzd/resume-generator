@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
 	"go.uber.org/zap"
 )
 
@@ -15,18 +16,18 @@ type Compiler interface {
 }
 
 type DefaultCompiler struct {
-	command string
+	command      string
 	outputFolder string
-	classes []string
-	logger *zap.SugaredLogger
+	classes      []string
+	logger       *zap.SugaredLogger
 }
 
 func NewDefaultCompiler(command string, logger *zap.SugaredLogger) Compiler {
-	return &DefaultCompiler {
-		command: command,
+	return &DefaultCompiler{
+		command:      command,
 		outputFolder: "",
-		classes: []string{},
-		logger: logger,
+		classes:      []string{},
+		logger:       logger,
 	}
 
 }
@@ -37,7 +38,7 @@ func (compiler *DefaultCompiler) LoadClasses(classes ...string) {
 
 func (compiler *DefaultCompiler) AddOutputFolder(folder string) {
 	if folder == "" {
-		dir, err := os.MkdirTemp("", "resume-generator");
+		dir, err := os.MkdirTemp("", "resume-generator")
 
 		if err != nil {
 			compiler.logger.Fatal(err)
@@ -74,26 +75,32 @@ func (compiler *DefaultCompiler) copyFile(sourceFilePath string, outputFolder st
 	}
 }
 
-func (compiler *DefaultCompiler) Compile (resume string, resume_name string) {
+func (compiler *DefaultCompiler) Compile(resume string, resume_name string) {
 	// Copy style classes over to temporary directory.
 	compiler.logger.Info(compiler.classes)
 
-	for _, class := range(compiler.classes) {
+	for _, class := range compiler.classes {
 		compiler.copyFile(class, compiler.outputFolder)
 	}
 
 	// Create the resume tex file.
-	outputFileName := fmt.Sprintf("%s.tex", resume_name);
-	outputFile , err := os.Create(filepath.Join(compiler.outputFolder, outputFileName));
+	outputFileName := fmt.Sprintf("%s.tex", resume_name)
+	outputFilePath := filepath.Join(compiler.outputFolder, outputFileName)
+	outputFile, err := os.Create(outputFilePath)
+
+	if err != nil {
+		compiler.logger.Info("Path doesn't exist.")
+		compiler.logger.Fatal(err)
+	}
+
+	// Copy the code over.
+	_, err = outputFile.Write([]byte(resume))
 
 	if err != nil {
 		compiler.logger.Fatal(err)
 	}
 
-	// Copy the code over.
-	_, err = outputFile.Write([]byte(resume));
-
-	executable, err := os.Executable() 
+	executable, err := os.Executable()
 
 	if err != nil {
 		compiler.logger.Fatal(err)
@@ -126,7 +133,7 @@ func (compiler *DefaultCompiler) Compile (resume string, resume_name string) {
 		baseName := file.Name()
 		baseExt := filepath.Ext(baseName)
 
-		compiler.logger.Info(baseName, baseExt)
+		compiler.logger.Info(baseName)
 
 		if baseExt != ".pdf" {
 			os.Remove(filepath.Clean(filepath.Join("./", baseName)))
@@ -136,4 +143,5 @@ func (compiler *DefaultCompiler) Compile (resume string, resume_name string) {
 	compiler.logger.Infow("Compilation completed.", "outputFolder", compiler.outputFolder)
 
 	defer os.Chdir(cwd)
+	defer outputFile.Close()
 }

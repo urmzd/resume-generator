@@ -35,13 +35,15 @@
     \textbf{#1}
 }
 
-\NewDocumentCommand{\achievements}{oooo}{%
+\NewDocumentCommand{\achievements}{oooooo}{%
     \IfNoValueTF{#1}{\\}{
         \begin{itemize}
             \item #1
             \IfNoValueTF{#2}{}{\item #2}
             \IfNoValueTF{#3}{}{\item #3}
             \IfNoValueTF{#4}{}{\item #4}
+            \IfNoValueTF{#5}{}{\item #5}
+            \IfNoValueTF{#6}{}{\item #6}
         \end{itemize}%
     }
 }
