@@ -46,7 +46,20 @@ func (compiler *DefaultCompiler) AddOutputFolder(folder string) {
 
 		compiler.outputFolder = dir
 	} else {
-		compiler.outputFolder = folder
+		// if folder is not absolute, make it absolute, create paths recursively.
+		absFolder, err := filepath.Abs(folder)
+
+		if err != nil {
+			compiler.logger.Fatal(err)
+		}
+
+		err = os.MkdirAll(absFolder, 0755)
+
+		if err != nil {
+			compiler.logger.Fatal(err)
+		}
+
+		compiler.outputFolder = absFolder
 	}
 }
 

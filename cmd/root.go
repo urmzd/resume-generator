@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
@@ -12,7 +14,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "generate-resumes CONFIG",
 	Short: "Generate beautiful LaTex resumes with one command.",
-	Args: cobra.ExactArgs(1),
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		logger, _ := zap.NewDevelopment()
 		sugar := logger.Sugar()
@@ -49,7 +51,14 @@ var rootCmd = &cobra.Command{
 		compiler := pkg.NewDefaultCompiler("xelatex", sugar)
 		compiler.AddOutputFolder(OutputFolder)
 		compiler.LoadClasses(ClassFiles...)
-		compiler.Compile(resumeStr, "resume")
+
+		// append timestamp to filename
+		resumeFileName := "resume"
+		now := time.Now()
+		nowSecs := now.Unix()
+		resumeFileNameFull := fmt.Sprintf("%s-%d", resumeFileName, nowSecs)
+
+		compiler.Compile(resumeStr, resumeFileNameFull)
 	},
 }
 
