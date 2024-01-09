@@ -6,7 +6,7 @@ init:
 	cp examples/*.toml inputs
 
 run:
-	docker run -v "$(shell pwd)/outputs:/outputs" -v "$(shell pwd)/inputs:/inputs" generate-resumes /inputs/$(filename).toml -o /outputs
+	docker run -v "$(shell pwd)/outputs:/outputs" -v "$(shell pwd)/inputs:/inputs" generate-resumes /inputs/$(FILENAME).toml -o /outputs
 
 clean:
 	rm -rf outputs
