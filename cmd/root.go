@@ -3,12 +3,16 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
 	"github.com/urmzd/generate-resumes/pkg"
 	"go.uber.org/zap"
+	"gopkg.in/yaml.v3"
+
+	"encoding/json"
 )
 
 var rootCmd = &cobra.Command{
@@ -28,8 +32,20 @@ var rootCmd = &cobra.Command{
 			panic(err)
 		}
 
+		// If resume is toml, use toml.Decode else if resume is yaml, use yaml.Decode
+		// else if resume is json, use json.Decode else panic.
 		var resume pkg.Resume
-		_, err = toml.Decode(config, &resume)
+		if strings.HasSuffix(filename, ".toml") {
+			_, err = toml.Decode(config, &resume)
+		} else if strings.HasSuffix(filename, ".yaml") || strings.HasSuffix(filename, ".yml") {
+			decoder := yaml.NewDecoder(strings.NewReader(config))
+			err = decoder.Decode(&resume)
+		} else if strings.HasSuffix(filename, ".json") {
+			decoder := json.NewDecoder(strings.NewReader(config))
+			err = decoder.Decode(&resume)
+		} else {
+			panic("Unknown file type.")
+		}
 
 		if err != nil {
 			panic(err)
@@ -52,13 +68,10 @@ var rootCmd = &cobra.Command{
 		compiler.AddOutputFolder(OutputFolder)
 		compiler.LoadClasses(ClassFiles...)
 
-		// append timestamp to filename
-		resumeFileName := "resume"
-		now := time.Now()
-		nowSecs := now.Unix()
-		resumeFileNameFull := fmt.Sprintf("%s-%d", resumeFileName, nowSecs)
+		contactName := strings.ReplaceAll(resume.Contact.Name, " ", "_")
+		resumeFileName := fmt.Sprintf("%s_%s", contactName, time.Now().Format("20060102"))
 
-		compiler.Compile(resumeStr, resumeFileNameFull)
+		compiler.Compile(resumeStr, resumeFileName)
 	},
 }
 

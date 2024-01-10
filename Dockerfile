@@ -18,5 +18,5 @@ RUN mkdir -p /outputs /inputs
 RUN GCO_ENABLED=0 go build -o generate-resumes main.go
 
 ENTRYPOINT [ "./generate-resumes" ]
-CMD ["examples/config.toml", "-o", "/outputs"]
+CMD ["examples/example.toml", "-o", "/outputs"]
 
