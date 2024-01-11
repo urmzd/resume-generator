@@ -196,7 +196,9 @@ func (generator *DefaultResumeGenerator) addAchievements(achievements ...string)
 
 	for _, achievement := range achievements {
 		stringValue := fmt.Sprintf(stringTemplate, achievement)
-		generator.write(stringValue)
+		// escape % in stringValue
+		stringValueEscaped := strings.ReplaceAll(stringValue, "%", `\%`)
+		generator.write(stringValueEscaped)
 	}
 }
 
