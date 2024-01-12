@@ -49,7 +49,7 @@ These dependencies are crucial for running the tool in a containerized environme
 
 4. **Run the Application**
 
-   Generate a resume from a specified source file (e.g., `example.yml`).
+   Generate a resume from a specified source file (e.g. `example.yml`).
 
    ```bash
    make run FILENAME=example.yml
