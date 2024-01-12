@@ -47,6 +47,14 @@ run:
 		-v "$(shell pwd)/$(ASSETS_DIR):/assets" \
 	       	$(APP_IMAGE_TAG) /inputs/$(FILENAME) -o /outputs $(KEEPTEX_FLAG) -c /assets/classes -t /assets/templates
 
+# Run the application in Docker with a shell
+help:
+	@echo "Running application in Docker with a shell..."
+	docker run -it -v "$(shell pwd)/$(OUTPUTS_DIR):/outputs" \
+	       	-v "$(shell pwd)/$(INPUTS_DIR):/inputs" \
+		-v "$(shell pwd)/$(EXAMPLES_DIR):/examples" \
+		-v "$(shell pwd)/$(ASSETS_DIR):/assets" \
+	       	$(APP_IMAGE_TAG) -h
 
 # Clean outputs and inputs directories
 clean:
