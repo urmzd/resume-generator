@@ -49,17 +49,27 @@ These dependencies are crucial for running the tool in a containerized environme
 
 4. **Run the Application**
 
-   Generate a resume from a specified source file (e.g., `example.toml`).
+   Generate a resume from a specified source file (e.g., `example.yml`).
 
    ```bash
-   make run FILENAME=example.toml
+   make run FILENAME=example.yml
    ```
 
    This will output the generated resume in the specified output directory.
 
+## Showcase
+
+Here are some examples of resumes generated with our tool:
+
+### Sample Resume 1
+
+![Sample Resume 1](assets/example_results/example.jpg)
+
+A clean, professional layout suitable for various industries.
+
 ## Customization
 
-To customize your resume, edit the source file (e.g., `example.toml`) with your personal information, experiences, and skills. The tool supports various file formats like TOML, YAML, and JSON.
+To customize your resume, edit the source file (e.g., `example.yml`) with your personal information, experiences, and skills. The tool supports various file formats like TOML, YAML, and JSON.
 
 ## Contributing
 
@@ -72,5 +82,3 @@ This project is licensed under the [MIT License](LICENSE). Feel free to use, mod
 ## Acknowledgments
 
 Thanks to all the contributors who have helped in building and maintaining this tool. Special thanks to the LaTeX community for the underlying typesetting system.
-
----

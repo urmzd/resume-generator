@@ -5,54 +5,102 @@ contact:
   links:
     - link: linkedin.com/in/janedoe
     - link: github.com/janedoe
+
 education:
-- degree: Bachelor of Science in Software Engineering
-  school: University of Fictional
-  suffixes:
-    - Magna Cum Laude
-    - Research Distinction
-  details:
-    - category: Certificate
-      value: "Specialization in Data Science"
-    - category: Notable Achievements
-      value: "Dean's List (2018, 2019), Undergraduate Research Award"
-  dates:
-    start: 2017-09-01
-    end: 2021-06-30
-  location:
-    city: Imaginary City
-    state: Stateville
+  - degree: Ph.D. in Computer Science
+    school: Prestigious University
+    details:
+      - category: Dissertation
+        value: "Advanced Algorithms in Machine Learning"
+      - category: Notable Achievements
+        value: "Published 5 papers in top-tier journals, Received Best Dissertation Award"
+    dates:
+      start: 2021-09-01
+      end: 2024-05-30
+    location:
+      city: Techville
+      state: Academia
+
+  - degree: Bachelor of Science in Software Engineering
+    school: University of Fictional
+    suffixes:
+      - Magna Cum Laude
+      - Research Distinction
+    details:
+      - category: Certificate
+        value: "Specialization in Data Science"
+      - category: Notable Achievements
+        value: "Dean's List (2018, 2019), Undergraduate Research Award"
+    dates:
+      start: 2017-09-01
+      end: 2021-06-30
+    location:
+      city: Imaginary City
+      state: Stateville
+
 experience:
-- company: Tech Innovations Inc.
-  title: Software Developer
-  achievements:
-    - "Developed a cloud-based storage solution improving data retrieval efficiency by 40%"
-    - "Collaborated on a team project to create a cross-platform mobile application"
-  dates:
-    start: 2021-07-01
-  location:
-    city: Imaginary City
-    state: Stateville
-- company: NextGen Solutions
-  title: Junior Developer
-  achievements:
-    - "Assisted in developing APIs for internal tools, improving workflow by 25%"
-    - "Participated in a hackathon and won second place for a machine learning project"
-  dates:
-    start: 2020-01-01
-    end: 2021-06-30
-  location:
-    city: Dreamtown
-    state: Futureland
+  - company: Tech Innovations Inc.
+    title: Software Developer
+    achievements:
+      - "Developed a cloud-based storage solution improving data retrieval efficiency by 40%"
+      - "Collaborated on a team project to create a cross-platform mobile application"
+    dates:
+      start: 2021-07-01
+    location:
+      city: Imaginary City
+      state: Stateville
+
+  - company: NextGen Solutions
+    title: Junior Developer
+    achievements:
+      - "Assisted in developing APIs for internal tools, improving workflow by 25%"
+      - "Participated in a hackathon and won second place for a machine learning project"
+    dates:
+      start: 2020-01-01
+      end: 2021-06-30
+    location:
+      city: Dreamtown
+      state: Futureland
+
+  - company: Innovative Tech Corp
+    title: Lead Developer
+    achievements:
+      - "Led the development of a scalable web platform for e-commerce, increasing user engagement by 30%"
+      - "Managed a team of 5 developers, fostering a collaborative and productive work environment"
+    dates:
+      start: 2022-08-01
+    location:
+      city: New Tech City
+      state: Silicon Valley
+
+  - company: FutureSoft
+    title: Systems Engineer
+    achievements:
+      - "Implemented a company-wide upgrade of network security protocols, enhancing system security by 50%"
+      - "Automated key processes using Python and Bash scripts, saving 200 man-hours annually"
+    dates:
+      start: 2023-01-01
+    location:
+      city: Cyber Town
+      state: Digital State
+
 skills:
-- category: Programming Languages
-  value: "Python, Java, C++, JavaScript"
-- category: Tools & Frameworks
-  value: "AWS, Docker, React, Node.js"
+  - category: Programming Languages
+    value: "Python, Java, C++, JavaScript"
+  - category: Tools & Frameworks
+    value: "AWS, Docker, React, Node.js"
+
 projects:
-- name: "Personal Finance Tracker"
-  language: "Python, JavaScript"
-  details: 
-    - "Developed a web application for personal finance management"
-  link: 
-    ref: "https://github.com/janedoe/finance-tracker"
+  - name: "Personal Finance Tracker"
+    language: "Python, JavaScript"
+    details: 
+      - "Developed a web application for personal finance management"
+    link: 
+      ref: "https://github.com/janedoe/finance-tracker"
+
+  - name: "Eco-Friendly Route Finder"
+    language: "Java, Swift"
+    details: 
+      - "Created a mobile app that calculates the most eco-friendly travel routes to reduce carbon footprint"
+    link: 
+      ref: "https://github.com/janedoe/eco-route-finder"
