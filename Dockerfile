@@ -30,6 +30,3 @@ COPY examples examples
 
 # Define the container's entrypoint as the application
 ENTRYPOINT [ "./generate-resumes" ]
-
-# Set default command arguments when the container starts
-CMD [ "examples/example.toml", "-o", "/outputs"]

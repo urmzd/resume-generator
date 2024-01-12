@@ -1,4 +1,4 @@
-package default_impl
+package base
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"github.com/urmzd/generate-resumes/pkg/standard"
 )
 
-type DefaultResumeGenerator struct {
+type BaseResumeGenerator struct {
 	code []string
 }
 
@@ -21,7 +21,7 @@ func locationToStr(location standard.Location) string {
 	return fmt.Sprintf("%s, %s", location.City, location.State)
 }
 
-func (generator *DefaultResumeGenerator) AddEducation(education *[]standard.Education) {
+func (generator *BaseResumeGenerator) AddEducation(education *[]standard.Education) {
 	beforeCode := `\section*{education}`
 
 	generator.write(beforeCode)
@@ -75,7 +75,7 @@ func dateRangeToStr(rng standard.DateRange) string {
 	return fmt.Sprintf("%s - %s", rng.Start.Format(dateFmt), end)
 }
 
-func (generator *DefaultResumeGenerator) AddProjects(projects *[]standard.Project) {
+func (generator *BaseResumeGenerator) AddProjects(projects *[]standard.Project) {
 	beforeCode := `\section*{projects}`
 
 	generator.write(beforeCode)
@@ -86,13 +86,13 @@ func (generator *DefaultResumeGenerator) AddProjects(projects *[]standard.Projec
 	}
 }
 
-func (generator *DefaultResumeGenerator) write(strs ...string) {
+func (generator *BaseResumeGenerator) write(strs ...string) {
 	for _, str := range strs {
 		generator.code = append(generator.code, strings.TrimSpace(str))
 	}
 }
 
-func (gen *DefaultResumeGenerator) EndResume() string {
+func (gen *BaseResumeGenerator) EndResume() string {
 	gen.write(`\end{document}`)
 	preTex := strings.Join(gen.code, "\n")
 	// We need to need to escape amparcents.
@@ -103,7 +103,7 @@ func (gen *DefaultResumeGenerator) EndResume() string {
 	return processedTex
 }
 
-func (generator *DefaultResumeGenerator) AddExperiences(experience *[]standard.Experience) {
+func (generator *BaseResumeGenerator) AddExperiences(experience *[]standard.Experience) {
 	beforeCode := `\section*{experience}`
 
 	generator.write(beforeCode)
@@ -120,7 +120,7 @@ func (generator *DefaultResumeGenerator) AddExperiences(experience *[]standard.E
 	}
 }
 
-func (generator *DefaultResumeGenerator) addAchievements(achievements ...string) {
+func (generator *BaseResumeGenerator) addAchievements(achievements ...string) {
 	beforeCode := `\achievements%`
 	stringTemplate := `[%s]`
 
@@ -134,19 +134,19 @@ func (generator *DefaultResumeGenerator) addAchievements(achievements ...string)
 	}
 }
 
-func (generator *DefaultResumeGenerator) addProject(left string, middle string, right string) {
+func (generator *BaseResumeGenerator) addProject(left string, middle string, right string) {
 	stringTemplate := `\project{%s}{%s}{%s}`
 	stringValue := fmt.Sprintf(stringTemplate, left, middle, right)
 	generator.write(stringValue)
 }
 
-func (generator *DefaultResumeGenerator) addSubProject(label string) {
+func (generator *BaseResumeGenerator) addSubProject(label string) {
 	stringTemplate := `\subproject{%s}`
 	stringValue := fmt.Sprintf(stringTemplate, label)
 	generator.write(stringValue)
 }
 
-func (generator *DefaultResumeGenerator) addDescription(skills *[]standard.Detail) {
+func (generator *BaseResumeGenerator) addDescription(skills *[]standard.Detail) {
 	beforeCode := `\begin{description}`
 	afterCode := `\end{description}`
 	stringTemplate := `\item[%s:]{%s}`
@@ -161,7 +161,7 @@ func (generator *DefaultResumeGenerator) addDescription(skills *[]standard.Detai
 	generator.write(afterCode)
 }
 
-func (generator *DefaultResumeGenerator) AddSkills(skills *[]standard.Detail) {
+func (generator *BaseResumeGenerator) AddSkills(skills *[]standard.Detail) {
 	if len(*skills) > 0 {
 		beforeCode := `\section*{skills}`
 		generator.write(beforeCode)
@@ -169,7 +169,7 @@ func (generator *DefaultResumeGenerator) AddSkills(skills *[]standard.Detail) {
 	}
 }
 
-func (generator *DefaultResumeGenerator) StartResume(contact *standard.Contact) {
+func (generator *BaseResumeGenerator) StartResume(contact *standard.Contact) {
 	beforeCode := []string{
 		`\documentclass{default}`,
 		`\usepackage{geometry}`,

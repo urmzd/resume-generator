@@ -1,4 +1,4 @@
-package default_impl
+package base
 
 import (
 	"bytes"
@@ -20,9 +20,9 @@ type DefaultCompiler struct {
 	logger       *zap.SugaredLogger // Logger for logging information, warnings, and errors
 }
 
-// NewDefaultCompiler creates a new instance of DefaultCompiler with the specified command and logger.
+// NewBaseCompiler creates a new instance of DefaultCompiler with the specified command and logger.
 // The command is typically a LaTeX compiler like xelatex.
-func NewDefaultCompiler(command string, logger *zap.SugaredLogger) standard.Compiler {
+func NewBaseCompiler(command string, logger *zap.SugaredLogger) standard.Compiler {
 	return &DefaultCompiler{
 		command:      command,
 		outputFolder: "",

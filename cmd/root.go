@@ -9,7 +9,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
-	"github.com/urmzd/generate-resumes/pkg/default_impl"
+	"github.com/urmzd/generate-resumes/pkg/base"
 	"github.com/urmzd/generate-resumes/pkg/standard"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -53,7 +53,7 @@ var rootCmd = &cobra.Command{
 			panic(err)
 		}
 
-		resumeBuilder := &default_impl.DefaultResumeGenerator{}
+		resumeBuilder := &base.BaseResumeGenerator{}
 
 		resumeBuilder.StartResume(&resume.Contact)
 		resumeBuilder.AddExperiences(&resume.Experience)
@@ -66,7 +66,7 @@ var rootCmd = &cobra.Command{
 
 		resumeStr := resumeBuilder.EndResume()
 
-		compiler := default_impl.NewDefaultCompiler("xelatex", sugar)
+		compiler := base.NewBaseCompiler("xelatex", sugar)
 		compiler.AddOutputFolder(OutputFolder)
 		compiler.LoadClasses(ClassFiles...)
 
