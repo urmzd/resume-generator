@@ -1,42 +1,33 @@
-package pkg
+package default_impl
 
 import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"net/url"
 
 	"errors"
 
 	"github.com/thoas/go-funk"
+	"github.com/urmzd/generate-resumes/pkg/standard"
 )
 
-type Resume struct {
-	Contact    Contact
-	Skills     []Detail
-	Experience []Experience
-	Projects   []Project
-	Education  []Education
+type DefaultResumeGenerator struct {
+	code []string
 }
 
-type Education struct {
-	School   string
-	Degree   string
-	Suffixes []string
-	Details  []Detail
-	Location Location
-	Dates    DateRange
+func locationToStr(location standard.Location) string {
+	return fmt.Sprintf("%s, %s", location.City, location.State)
 }
 
-func (generator *DefaultResumeGenerator) AddEducation(education *[]Education) {
+func (generator *DefaultResumeGenerator) AddEducation(education *[]standard.Education) {
 	beforeCode := `\section*{education}`
 
 	generator.write(beforeCode)
 
 	for _, school := range *education {
-		dateRanges := school.Dates.toString()
+		dateRanges := dateRangeToStr(school.Dates)
 		degree := funk.Reduce(school.Suffixes, func(acc string, cur string) string {
 			return fmt.Sprintf("%s (%s)", acc, cur)
 		}, school.Degree)
@@ -47,27 +38,15 @@ func (generator *DefaultResumeGenerator) AddEducation(education *[]Education) {
 
 }
 
-type Contact struct {
-	Name  string
-	Email string
-	Phone string
-	Links []Link
-}
-
-type Link struct {
-	Text string
-	Link string
-}
-
-func NewPrefixedLink(text string, prefix string) *Link {
+func NewPrefixedLink(text string, prefix string) *standard.Link {
 	new_link := prefix + text
-	return &Link{
+	return &standard.Link{
 		Text: text,
 		Link: new_link,
 	}
 }
 
-func (link *Link) toString() string {
+func linkToStr(link standard.Link) string {
 	if link.Text == "" {
 		parsedLinked, err := url.Parse(link.Link)
 
@@ -83,21 +62,7 @@ func (link *Link) toString() string {
 	return fmt.Sprintf(`\href{%s}{%s}`, link.Link, link.Text)
 }
 
-type Location struct {
-	City  string
-	State string
-}
-
-func (loc *Location) toString() string {
-	return fmt.Sprintf("%s, %s", loc.City, loc.State)
-}
-
-type DateRange struct {
-	Start time.Time
-	End   *time.Time
-}
-
-func (rng *DateRange) toString() string {
+func dateRangeToStr(rng standard.DateRange) string {
 	dateFmt := "Jan 2006"
 
 	var end string
@@ -110,46 +75,13 @@ func (rng *DateRange) toString() string {
 	return fmt.Sprintf("%s - %s", rng.Start.Format(dateFmt), end)
 }
 
-type Experience struct {
-	Company      string
-	Title        string
-	Achievements []string
-	Dates        DateRange
-	Location     *Location
-}
-
-type Project struct {
-	Name     string
-	Language string
-	Details  []string
-	Link     Link
-}
-
-type Detail struct {
-	Category string
-	Value    string
-}
-
-type ResumeGenerator interface {
-	StartResume(*Contact)
-	AddSkills(*[]Detail)
-	AddExperiences(*[]Experience)
-	AddEducation(*[]Education)
-	AddProjects(*[]Project)
-	EndResume() string
-}
-
-type DefaultResumeGenerator struct {
-	code []string
-}
-
-func (generator *DefaultResumeGenerator) AddProjects(projects *[]Project) {
+func (generator *DefaultResumeGenerator) AddProjects(projects *[]standard.Project) {
 	beforeCode := `\section*{projects}`
 
 	generator.write(beforeCode)
 
 	for _, project := range *projects {
-		generator.addProject(project.Name, project.Language, project.Link.toString())
+		generator.addProject(project.Name, project.Language, linkToStr(project.Link))
 		generator.addAchievements(project.Details...)
 	}
 }
@@ -171,18 +103,18 @@ func (gen *DefaultResumeGenerator) EndResume() string {
 	return processedTex
 }
 
-func (generator *DefaultResumeGenerator) AddExperiences(experience *[]Experience) {
+func (generator *DefaultResumeGenerator) AddExperiences(experience *[]standard.Experience) {
 	beforeCode := `\section*{experience}`
 
 	generator.write(beforeCode)
 
 	for _, xp := range *experience {
-		dateRange := xp.Dates.toString()
+		dateRange := dateRangeToStr(xp.Dates)
 		generator.addProject(xp.Title, xp.Company, dateRange)
 		if xp.Location == nil {
 			generator.addSubProject("Remote")
 		} else {
-			generator.addSubProject(xp.Location.toString())
+			generator.addSubProject(locationToStr(*xp.Location))
 		}
 		generator.addAchievements(xp.Achievements...)
 	}
@@ -214,7 +146,7 @@ func (generator *DefaultResumeGenerator) addSubProject(label string) {
 	generator.write(stringValue)
 }
 
-func (generator *DefaultResumeGenerator) addDescription(skills *[]Detail) {
+func (generator *DefaultResumeGenerator) addDescription(skills *[]standard.Detail) {
 	beforeCode := `\begin{description}`
 	afterCode := `\end{description}`
 	stringTemplate := `\item[%s:]{%s}`
@@ -229,7 +161,7 @@ func (generator *DefaultResumeGenerator) addDescription(skills *[]Detail) {
 	generator.write(afterCode)
 }
 
-func (generator *DefaultResumeGenerator) AddSkills(skills *[]Detail) {
+func (generator *DefaultResumeGenerator) AddSkills(skills *[]standard.Detail) {
 	if len(*skills) > 0 {
 		beforeCode := `\section*{skills}`
 		generator.write(beforeCode)
@@ -237,7 +169,7 @@ func (generator *DefaultResumeGenerator) AddSkills(skills *[]Detail) {
 	}
 }
 
-func (generator *DefaultResumeGenerator) StartResume(contact *Contact) {
+func (generator *DefaultResumeGenerator) StartResume(contact *standard.Contact) {
 	beforeCode := []string{
 		`\documentclass{default}`,
 		`\usepackage{geometry}`,
@@ -257,16 +189,16 @@ func (generator *DefaultResumeGenerator) StartResume(contact *Contact) {
 
 	if len(contact.Links) == 1 {
 		basics = fmt.Sprintf(`\contact{%s}{%s}{%s}`,
-			NewPrefixedLink(contact.Email, "mailto:").toString(),
-			NewPrefixedLink(contact.Phone, "tel:").toString(),
-			contact.Links[0].toString(),
+			linkToStr(*NewPrefixedLink(contact.Email, "mailto:")),
+			linkToStr(*NewPrefixedLink(contact.Phone, "tel:")),
+			linkToStr(contact.Links[0]),
 		)
 	} else if len(contact.Links) == 2 {
 		basics = fmt.Sprintf(`\contact{%s}{%s}{%s}{%s}`,
-			NewPrefixedLink(contact.Email, "mailto:").toString(),
-			NewPrefixedLink(contact.Phone, "tel:").toString(),
-			contact.Links[0].toString(),
-			contact.Links[1].toString(),
+			linkToStr(*NewPrefixedLink(contact.Email, "mailto:")),
+			linkToStr(*NewPrefixedLink(contact.Phone, "tel:")),
+			linkToStr(contact.Links[0]),
+			linkToStr(contact.Links[1]),
 		)
 	} else {
 		log.Fatal(errors.New("Contact length must be 1 or 2"))

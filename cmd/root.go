@@ -3,12 +3,14 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
-	"github.com/urmzd/generate-resumes/pkg"
+	"github.com/urmzd/generate-resumes/pkg/default_impl"
+	"github.com/urmzd/generate-resumes/pkg/standard"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 
@@ -34,7 +36,7 @@ var rootCmd = &cobra.Command{
 
 		// If resume is toml, use toml.Decode else if resume is yaml, use yaml.Decode
 		// else if resume is json, use json.Decode else panic.
-		var resume pkg.Resume
+		var resume standard.Resume
 		if strings.HasSuffix(filename, ".toml") {
 			_, err = toml.Decode(config, &resume)
 		} else if strings.HasSuffix(filename, ".yaml") || strings.HasSuffix(filename, ".yml") {
@@ -51,7 +53,7 @@ var rootCmd = &cobra.Command{
 			panic(err)
 		}
 
-		resumeBuilder := &pkg.DefaultResumeGenerator{}
+		resumeBuilder := &default_impl.DefaultResumeGenerator{}
 
 		resumeBuilder.StartResume(&resume.Contact)
 		resumeBuilder.AddExperiences(&resume.Experience)
@@ -64,15 +66,29 @@ var rootCmd = &cobra.Command{
 
 		resumeStr := resumeBuilder.EndResume()
 
-		compiler := pkg.NewDefaultCompiler("xelatex", sugar)
+		compiler := default_impl.NewDefaultCompiler("xelatex", sugar)
 		compiler.AddOutputFolder(OutputFolder)
 		compiler.LoadClasses(ClassFiles...)
 
 		contactName := strings.ReplaceAll(resume.Contact.Name, " ", "_")
-		resumeFileName := fmt.Sprintf("%s_%s", contactName, time.Now().Format("20060102"))
+		timestamp := time.Now().Format("20060102")
+		versionSuffix := getVersionSuffix(contactName, OutputFolder)
+		resumeFileName := fmt.Sprintf("%s_%s%s", contactName, timestamp, versionSuffix)
 
 		compiler.Compile(resumeStr, resumeFileName)
 	},
+}
+
+// getVersionSuffix checks if a file with a similar name already exists in the output folder
+// and generates a version suffix if needed.
+func getVersionSuffix(baseName, outputFolder string) string {
+	pattern := filepath.Join(outputFolder, baseName+"_*")
+	files, err := filepath.Glob(pattern)
+	if err != nil || len(files) == 0 {
+		return ""
+	}
+
+	return fmt.Sprintf("_v%d", len(files)+1)
 }
 
 var TemplateFile string

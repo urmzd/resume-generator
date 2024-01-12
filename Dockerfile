@@ -1,22 +1,35 @@
-FROM golang:1.22-rc-bookworm
+# Start the first stage using the Go image for building the Go application
+FROM golang:1.22-rc-bookworm as builder
 
-RUN apt-get -y update && apt-get -y install libfontconfig
-
-WORKDIR /tmp
-RUN wget https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
-RUN zcat < install-tl-unx.tar.gz | tar xf -
-# TODO: update year when the next millenium comes
-RUN cd install-tl-2* && perl install-tl --no-interaction --scheme=small
-ENV PATH="/usr/local/texlive/2023/bin/x86_64-linux:${PATH}"
-RUN tlmgr install enumitem titlesec
-
+# Set the working directory in the container
 WORKDIR /app
-COPY . /app
 
-RUN mkdir -p /outputs /inputs
+# Copy the Go module files and download dependencies
+COPY go.mod go.sum ./
+RUN go mod download
 
-RUN GCO_ENABLED=0 go build -o generate-resumes main.go
+# Copy the Go source code and other necessary files into the container at /app
+# This includes all necessary files from the 'pkg', 'cmd' directories, and the 'main.go' file
+COPY pkg/ pkg/
+COPY cmd/ cmd/
+COPY main.go .
 
+# Compile the Go application
+RUN go build -o generate-resumes main.go
+
+# Start the second stage using your custom base image
+FROM urmzd/generate-resumes-base:24.01.11 as base
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the built Go binary and any other necessary files from the builder stage
+COPY --from=builder /app/generate-resumes .
+COPY assets/templates/ assets/templates/
+COPY examples examples
+
+# Define the container's entrypoint as the application
 ENTRYPOINT [ "./generate-resumes" ]
-CMD ["examples/example.toml", "-o", "/outputs"]
 
+# Set default command arguments when the container starts
+CMD [ "examples/example.toml", "-o", "/outputs"]
