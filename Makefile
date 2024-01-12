@@ -9,6 +9,7 @@ VERSION ?= latest
 OUTPUTS_DIR := outputs
 INPUTS_DIR := inputs
 EXAMPLES_DIR := examples
+ASSETS_DIR := assets
 
 # Docker image names
 BASE_IMAGE_TAG := $(ORGANIZATION)/$(BASE_IMAGE_NAME):$(VERSION)
@@ -40,7 +41,11 @@ init:
 run:
 	@echo "Running application in Docker..."
 	$(eval KEEPTEX_FLAG=$(if $(KEEPTEX),-k,))
-	docker run -v "$(shell pwd)/$(OUTPUTS_DIR):/outputs" -v "$(shell pwd)/$(INPUTS_DIR):/inputs" $(APP_IMAGE_TAG) /inputs/$(FILENAME) -o /outputs $(KEEPTEX_FLAG)
+	docker run -v "$(shell pwd)/$(OUTPUTS_DIR):/outputs" \
+	       	-v "$(shell pwd)/$(INPUTS_DIR):/inputs" \
+		-v "$(shell pwd)/$(EXAMPLES_DIR):/examples" \
+		-v "$(shell pwd)/$(ASSETS_DIR):/assets" \
+	       	$(APP_IMAGE_TAG) /inputs/$(FILENAME) -o /outputs $(KEEPTEX_FLAG) -c /assets/classes -t /assets/templates
 
 
 # Clean outputs and inputs directories
@@ -52,5 +57,5 @@ clean:
 run-examples:
 	@echo "Running examples..."
 	make init
-	cp -r $(EXAMPLES_DIR)/ $(INPUTS_DIR)
-	make run FILENAME=example.yml
+	cp -r $(EXAMPLES_DIR)/* $(INPUTS_DIR)
+	make run KEEPTEX=true FILENAME=example.yml

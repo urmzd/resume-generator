@@ -25,8 +25,6 @@ WORKDIR /app
 
 # Copy the built Go binary and any other necessary files from the builder stage
 COPY --from=builder /app/generate-resumes .
-COPY assets/templates/ assets/templates/
-COPY examples examples
 
 # Define the container's entrypoint as the application
 ENTRYPOINT [ "./generate-resumes" ]

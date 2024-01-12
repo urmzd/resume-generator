@@ -1,30 +1,34 @@
-package template
+package definition
 
 import (
 	"time"
 )
 
 type Compiler interface {
-	LoadClasses(classes ...string)
+	LoadClasses(string)
 	AddOutputFolder(string)
 	Compile(string, string)
 }
 
 type Resume struct {
 	Contact    Contact
-	Skills     []Detail
+	Skills     []CategoryValuePair
 	Experience []Experience
 	Projects   []Project
 	Education  []Education
 }
 
+type Generator interface {
+	Generate(string, *Resume) string
+}
+
 type Education struct {
-	School   string
-	Degree   string
-	Suffixes []string
-	Details  []Detail
-	Location Location
-	Dates    DateRange
+	School      string
+	Degree      string
+	Suffixes    []string
+	Description []CategoryValuePair
+	Location    Location
+	Dates       DateRange
 }
 
 type Contact struct {
@@ -45,21 +49,21 @@ type Location struct {
 }
 
 type Experience struct {
-	Company      string
-	Title        string
-	Achievements []string
-	Dates        DateRange
-	Location     *Location
+	Company     string
+	Title       string
+	Description []string
+	Dates       DateRange
+	Location    *Location
 }
 
 type Project struct {
-	Name     string
-	Language string
-	Details  []string
-	Link     Link
+	Name        string
+	Language    string
+	Description []string
+	Link        Link
 }
 
-type Detail struct {
+type CategoryValuePair struct {
 	Category string
 	Value    string
 }
@@ -67,13 +71,4 @@ type Detail struct {
 type DateRange struct {
 	Start time.Time
 	End   *time.Time
-}
-
-type ResumeGenerator interface {
-	StartResume(*Contact)
-	AddSkills(*[]Detail)
-	AddExperiences(*[]Experience)
-	AddEducation(*[]Education)
-	AddProjects(*[]Project)
-	EndResume() string
 }

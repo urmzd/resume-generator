@@ -3,16 +3,16 @@ contact:
   name: Jane Doe
   phone: "+1-123-456-7890"
   links:
-    - link: linkedin.com/in/janedoe
-    - link: github.com/janedoe
+    - ref: linkedin.com/in/janedoe
+    - ref: github.com/janedoe
 
 education:
   - degree: Ph.D. in Computer Science
     school: Prestigious University
-    details:
+    description:
       - category: Dissertation
         value: "Advanced Algorithms in Machine Learning"
-      - category: Notable Achievements
+      - category: Notable description
         value: "Published 5 papers in top-tier journals, Received Best Dissertation Award"
     dates:
       start: 2021-09-01
@@ -26,10 +26,10 @@ education:
     suffixes:
       - Magna Cum Laude
       - Research Distinction
-    details:
+    description:
       - category: Certificate
         value: "Specialization in Data Science"
-      - category: Notable Achievements
+      - category: Notable description
         value: "Dean's List (2018, 2019), Undergraduate Research Award"
     dates:
       start: 2017-09-01
@@ -41,7 +41,7 @@ education:
 experience:
   - company: Tech Innovations Inc.
     title: Software Developer
-    achievements:
+    description:
       - "Developed a cloud-based storage solution improving data retrieval efficiency by 40%"
       - "Collaborated on a team project to create a cross-platform mobile application"
     dates:
@@ -52,7 +52,7 @@ experience:
 
   - company: NextGen Solutions
     title: Junior Developer
-    achievements:
+    description:
       - "Assisted in developing APIs for internal tools, improving workflow by 25%"
       - "Participated in a hackathon and won second place for a machine learning project"
     dates:
@@ -64,7 +64,7 @@ experience:
 
   - company: Innovative Tech Corp
     title: Lead Developer
-    achievements:
+    description:
       - "Led the development of a scalable web platform for e-commerce, increasing user engagement by 30%"
       - "Managed a team of 5 developers, fostering a collaborative and productive work environment"
     dates:
@@ -75,7 +75,7 @@ experience:
 
   - company: FutureSoft
     title: Systems Engineer
-    achievements:
+    description:
       - "Implemented a company-wide upgrade of network security protocols, enhancing system security by 50%"
       - "Automated key processes using Python and Bash scripts, saving 200 man-hours annually"
     dates:
@@ -93,14 +93,14 @@ skills:
 projects:
   - name: "Personal Finance Tracker"
     language: "Python, JavaScript"
-    details: 
+    description: 
       - "Developed a web application for personal finance management"
     link: 
       ref: "https://github.com/janedoe/finance-tracker"
 
   - name: "Eco-Friendly Route Finder"
     language: "Java, Swift"
-    details: 
+    description: 
       - "Created a mobile app that calculates the most eco-friendly travel routes to reduce carbon footprint"
     link: 
       ref: "https://github.com/janedoe/eco-route-finder"

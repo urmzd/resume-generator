@@ -10,27 +10,25 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
 	"github.com/urmzd/generate-resumes/pkg/compilers"
+	"github.com/urmzd/generate-resumes/pkg/definition"
 	"github.com/urmzd/generate-resumes/pkg/generators"
-	"github.com/urmzd/generate-resumes/pkg/template"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"gopkg.in/yaml.v3"
 
 	"encoding/json"
 )
 
 var (
-	TemplateFile  string
-	ClassFiles    []string
-	OutputFolder  string
-	TemplateTypes []string
-	KeepTex       bool
+	ClassesFolder  string
+	TemplateFolder string
+	OutputsFolder  string
+	KeepTex        bool
 )
 
 func initRootCmd() {
-	rootCmd.PersistentFlags().StringArrayVarP(&ClassFiles, "classes", "c", []string{"./assets/templates/default.cls"}, "Define the style classes that can be used.")
-	rootCmd.PersistentFlags().StringVarP(&OutputFolder, "output-folder", "o", "", "Defines the location to output the compiled files.")
-	rootCmd.PersistentFlags().StringSliceVarP(&TemplateTypes, "templates", "t", []string{"professional", "creative", "technical", "base"}, "Specify which resume templates to use.")
+	rootCmd.PersistentFlags().StringVarP(&ClassesFolder, "classes", "c", "./assets/classes", "Define the style classes that can be used.")
+	rootCmd.PersistentFlags().StringVarP(&TemplateFolder, "templates", "t", "./assets/templates", "Define the templates that can be used.")
+	rootCmd.PersistentFlags().StringVarP(&OutputsFolder, "outputs", "o", "./outputs", "Defines the location to output the compiled files.")
 	rootCmd.PersistentFlags().BoolVarP(&KeepTex, "keep-tex", "k", false, "Keep .tex files after compilation")
 }
 
@@ -39,7 +37,7 @@ var rootCmd = &cobra.Command{
 	Short: "Generate beautiful LaTeX resumes with one command.",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		logger, _ := zap.NewProduction(zap.AddStacktrace(zapcore.FatalLevel))
+		logger, _ := zap.NewDevelopment()
 		sugar := logger.Sugar()
 
 		filename := args[0]
@@ -48,10 +46,10 @@ var rootCmd = &cobra.Command{
 		config := string(data)
 
 		if err != nil {
-			panic(err)
+			sugar.Fatalf("Error reading config file: %s", err)
 		}
 
-		var resume template.Resume
+		var resume definition.Resume
 		if strings.HasSuffix(filename, ".toml") {
 			_, err = toml.Decode(config, &resume)
 		} else if strings.HasSuffix(filename, ".yaml") || strings.HasSuffix(filename, ".yml") {
@@ -68,47 +66,33 @@ var rootCmd = &cobra.Command{
 			panic(err)
 		}
 
-		for _, templateType := range TemplateTypes {
-			var resumeBuilder template.ResumeGenerator
+		compiler := compilers.NewXelatexCompiler("xelatex", sugar)
+		compiler.AddOutputFolder(OutputsFolder)
+		compiler.LoadClasses(ClassesFolder)
 
-			switch templateType {
-			case "base":
-				resumeBuilder = generators.NewBaseResumeGenerator()
-			case "professional":
+		generator := generators.NewBaseResumeGenerator(sugar)
+
+		templateFiles, err := os.ReadDir(TemplateFolder)
+		if err != nil {
+			sugar.Fatal("Error reading template folder:", err)
+		}
+		for _, file := range templateFiles {
+			templatePath := filepath.Join(TemplateFolder, file.Name())
+			tmpl, err := loadTemplate(templatePath)
+			if err != nil {
+				sugar.Error("Error loading template:", err)
 				continue
-				// resumeBuilder = generators.NewProfessionalResumeGenerator()
-			case "creative":
-				// Skip for now
-				continue
-				// resumeBuilder = generators.NewCreativeResumeGenerator()
-			case "technical":
-				continue
-				// resumeBuilder = generators.NewTechnicalResumeGenerator()
-			default:
-				sugar.Fatalf("Unknown template type: %s", templateType)
 			}
 
-			resumeBuilder.StartResume(&resume.Contact)
-			resumeBuilder.AddExperiences(&resume.Experience)
-			resumeBuilder.AddEducation(&resume.Education)
-			resumeBuilder.AddSkills(&resume.Skills)
-
-			if resume.Projects != nil {
-				resumeBuilder.AddProjects(&resume.Projects)
-			}
-
-			resumeStr := resumeBuilder.EndResume()
-
-			compiler := compilers.NewXelatexCompiler("xelatex", sugar)
-			compiler.AddOutputFolder(OutputFolder)
-			compiler.LoadClasses(ClassFiles...)
+			latex := generator.Generate(tmpl, &resume)
 
 			contactName := strings.ReplaceAll(resume.Contact.Name, " ", "_")
 			timestamp := time.Now().Format("20060102")
-			versionSuffix := getVersionSuffix(contactName, OutputFolder)
+			versionSuffix := getVersionSuffix(contactName, OutputsFolder)
+			templateType := strings.TrimSuffix(file.Name(), filepath.Ext(file.Name()))
 			resumeFileName := fmt.Sprintf("%s_%s_%s%s", contactName, timestamp, templateType, versionSuffix)
 
-			compiler.Compile(resumeStr, resumeFileName)
+			compiler.Compile(latex, resumeFileName)
 
 			if KeepTex {
 				cleanArtifacts(sugar, ".tex")
@@ -117,6 +101,12 @@ var rootCmd = &cobra.Command{
 			}
 		}
 	},
+}
+
+func loadTemplate(filePath string) (string, error) {
+	data, err := os.ReadFile(filePath)
+	dataStr := string(data)
+	return dataStr, err
 }
 
 func getVersionSuffix(baseName, outputFolder string) string {
@@ -130,7 +120,7 @@ func getVersionSuffix(baseName, outputFolder string) string {
 }
 
 func cleanArtifacts(logger *zap.SugaredLogger, keepExtensions ...string) {
-	files, err := os.ReadDir(OutputFolder)
+	files, err := os.ReadDir(OutputsFolder)
 	if err != nil {
 		logger.Fatal("Error reading output folder:", err)
 	}
@@ -146,7 +136,7 @@ func cleanArtifacts(logger *zap.SugaredLogger, keepExtensions ...string) {
 	for _, file := range files {
 		if _, ok := keep[filepath.Ext(file.Name())]; !ok {
 			// If the file's extension is not in the keep list, remove it
-			err := os.Remove(filepath.Join(OutputFolder, file.Name()))
+			err := os.Remove(filepath.Join(OutputsFolder, file.Name()))
 			if err != nil {
 				logger.Error("Error removing file:", err)
 			}
