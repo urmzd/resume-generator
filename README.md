@@ -71,6 +71,32 @@ A clean, professional layout suitable for various industries.
 
 To customize your resume, edit the source file (e.g., `example.yml`) with your personal information, experiences, and skills. The tool supports various file formats like TOML, YAML, and JSON.
 
+## Advanced Usage
+
+For more advanced users, the following options are available for interacting with the CLI tool:
+
+1. **Direct CLI Interaction with Specific Commands**
+
+   Execute specific commands within the Docker container using `make exec`. This allows you to pass custom arguments and commands directly to the CLI tool. For example, to execute a command `command-name` with arguments `arg1 arg2`, use:
+
+   ```bash
+   make exec CMD="command-name arg1 arg2"
+   ```
+
+   Replace `command-name`, `arg1`, and `arg2` with your actual command and arguments. This method is useful for executing specific operations without starting an interactive shell.
+
+2. **Interactive Shell Session**
+
+   Start an interactive shell session within the Docker container for a more hands-on approach:
+
+   ```bash
+   make shell
+   ```
+
+   This command opens a `/bin/bash` session in the Docker container, allowing you to interact directly with the tool and the file system.
+
+Use these advanced options for more control over the tool or for tasks that require direct interaction with the CLI environment.
+
 ## Contributing
 
 Contributions to the Generate Resumes project are welcome. Please read our contributing guidelines and submit pull requests for any enhancements, bug fixes, or documentation improvements.
