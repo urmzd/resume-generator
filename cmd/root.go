@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -110,13 +112,26 @@ func loadTemplate(filePath string) (string, error) {
 }
 
 func getVersionSuffix(baseName, outputFolder string) string {
-	pattern := filepath.Join(outputFolder, baseName+"_*")
+	pattern := filepath.Join(outputFolder, baseName+"_*.pdf")
 	files, err := filepath.Glob(pattern)
 	if err != nil || len(files) == 0 {
-		return ""
+		return "_v1" // Start from version 1 if no files are found
 	}
 
-	return fmt.Sprintf("_v%d", len(files)+1)
+	highestVersion := 0
+	versionRegex := regexp.MustCompile(`_v(\d+)\.pdf$`)
+
+	for _, file := range files {
+		matches := versionRegex.FindStringSubmatch(filepath.Base(file))
+		if len(matches) == 2 {
+			versionNum, err := strconv.Atoi(matches[1])
+			if err == nil && versionNum > highestVersion {
+				highestVersion = versionNum
+			}
+		}
+	}
+
+	return fmt.Sprintf("_v%d", highestVersion+1)
 }
 
 func cleanArtifacts(logger *zap.SugaredLogger, keepExtensions ...string) {

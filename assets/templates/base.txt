@@ -1,50 +1,50 @@
 \documentclass{default}
 \usepackage{geometry}
 \usepackage{titlesec}
-\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage[allcolors=blue]{hyperref}
 \usepackage{helvet}
-\geometry{a4paper, left=0.5in, right=0.5in, bottom=0.5in, top=0.5in}
-\titleformat{\section}{\normalfont\Large\scshape\fontsize{12}{15}}{\thesection}{1em}{}
+\geometry{a4paper,left=0.5in,right=0.5in,bottom=0.5in,top=0.5in}
+\hypersetup{colorlinks=true,linkcolor=blue}
+\titleformat{\section}{\normalfont\Large\scshape\fontsize{12}{15}}{\thesection}{1em}{}[{\titlerule[0.8pt]}]
 \begin{document}
 \pagestyle{empty}
-\name{ {{ .Contact.Name }} }  % Access Contact's Name field
-\contact{\href{mailto:{{ .Contact.Email }}}{ {{ .Contact.Email }} } }{ \href{tel:{{ .Contact.Phone }}}{ {{ .Contact.Phone }} } }{{ range .Contact.Links }}{ {{ fmtLink . }} }{{ end }}
+\name{- {{ .Contact.Name }} }
+\contact{\href{mailto:{{ .Contact.Email }}}{ {{ .Contact.Email }} }}{ \href{tel:{{ .Contact.Phone }}}{ {{ .Contact.Phone }} }}{{ range .Contact.Links }}{ {{ fmtLink . }} }{{ end }}
 \section*{experience}
-{{ range .Experience }}
-\project{ {{.Title}} }{ {{.Company}} }{ {{fmtDates .Dates}} }
-\subproject{ {{ fmtLocation .Location }} }
+{{- range .Experience }}
+\project{{ "{" }}{{ .Title }}{{ "}" }}{{ "{" }}{{ .Company }}{{ "}" }}{{ "{" }}{{ fmtDates .Dates }}{{ "}" }}
+\subproject{{ "{" }}{{ fmtLocation .Location }}{{ "}" }}
 \begin{itemize}
-{{ range .Description }}
+{{- range .Description }}
 \item {{ . }}
-{{ end }}
+{{- end }}
 \end{itemize}
-{{ end }}
+{{- end }}
 \section*{education}
-{{ range .Education }}
-\project{ {{ .School }} }{}{ {{ fmtDates .Dates}} }
-\subproject{ {{ .Degree }} {{ range .Suffixes }} ({{.}}) {{ end }} } 
-\begin{itemize}
-{{ range .Description }}
-\item[ {{ .Category }}:]{ {{ .Value }} }
-{{ end }}
-\end{itemize}
-{{ end }}
+{{- range .Education }}
+\project{{ "{" }}{{ .School }}{{ "}" }}{}{{ "{" }}{{ fmtDates .Dates }}{{ "}" }}
+\subproject{{ "{" }}{{ .Degree }}{{ range .Suffixes }} ({{ . }}) {{ end }}{{ "}" }}
+\begin{description}
+{{- range .Description }}
+\item[{{ .Category }}:]{{ "{" }}{{ .Value }}{{ "}" }}
+{{- end }}
+\end{description}
+{{- end }}
 \section*{skills}
-\begin{itemize}
-{{ range .Skills }}
-\item[ {{ .Category | escapeLatexChars }}:]{ {{ .Value }} }
-{{ end }}
-\end{itemize}
-{{if .Projects}}
+\begin{description}
+{{- range .Skills }}
+\item[{{ .Category | escapeLatexChars }}:]{{ "{" }}{{ .Value }}{{ "}" }}
+{{- end }}
+\end{description}
+{{- if .Projects }}
 \section*{projects}
-{{ range .Projects }}
-\project{ {{.Name}} }{ {{.Language}} }{ {{fmtLink .Link}} }
-\begin{itemize}
-{{ range .Description }}
-\item{ {{.}} }
-{{end}}
-\end{itemize}
-{{end}}
-{{end}}
+{{- range .Projects }}
+\project{{ "{" }}{{ .Name }}{{ "}" }}{{ "{" }}{{ .Language }}{{ "}" }}{{ "{" }}{{ fmtLink .Link }}{{ "}" }}
+\begin{description}
+{{- range .Description }}
+\item{{ "{" }}{{ . }}{{ "}" }}
+{{- end }}
+\end{description}
+{{- end }}
+{{- end }}
 \end{document}
-
