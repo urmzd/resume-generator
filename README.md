@@ -27,7 +27,7 @@ These dependencies are crucial for running the tool in a containerized environme
    Clone this repository to your local machine to get started with Generate Resumes.
 
    ```bash
-   git clone https://github.com/your-repository/generate-resumes.git
+   git clone https://github.com/urmzd/generate-resumes.git
    cd generate-resumes
    ```
 
