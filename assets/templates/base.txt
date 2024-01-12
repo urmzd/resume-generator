@@ -11,7 +11,7 @@
 \name{ {{ .Contact.Name }} }
 \hfill {\href{mailto:{{ .Contact.Email }}}{ {{ .Contact.Email }} }} \hfill \textbar \hfill {\href{tel:{{ .Contact.Phone }}}{ {{ .Contact.Phone }} }} \hfill
 {{- range .Contact.Links }}
-    \textbar \hfill{\href{ {{ . }} }{ {{ . }} }} \hfill
+    \textbar \hfill{ {{fmtLink .}} } \hfill
 {{- end }}
 \section*{experience}
 {{- range .Experience }}

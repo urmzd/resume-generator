@@ -72,7 +72,7 @@ func (generator *BaseResumeGenerator) fmtLink(link definition.Link) string {
 
 	}
 
-	return fmt.Sprintf(`\href{%s}{%s}`, link.Ref, link.Text)
+	return fmt.Sprintf(`\href{http://%s}{%s}`, link.Ref, link.Text)
 }
 
 func (generator *BaseResumeGenerator) fmtLocation(location *definition.Location) string {
