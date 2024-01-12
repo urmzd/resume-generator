@@ -42,13 +42,13 @@ func NewPrefixedLink(text string, prefix string) *standard.Link {
 	new_link := prefix + text
 	return &standard.Link{
 		Text: text,
-		Link: new_link,
+		Ref:  new_link,
 	}
 }
 
 func linkToStr(link standard.Link) string {
 	if link.Text == "" {
-		parsedLinked, err := url.Parse(link.Link)
+		parsedLinked, err := url.Parse(link.Ref)
 
 		if err != nil {
 			panic(err)
@@ -59,7 +59,7 @@ func linkToStr(link standard.Link) string {
 		link.Text = urlWithoutSchema
 	}
 
-	return fmt.Sprintf(`\href{%s}{%s}`, link.Link, link.Text)
+	return fmt.Sprintf(`\href{%s}{%s}`, link.Ref, link.Text)
 }
 
 func dateRangeToStr(rng standard.DateRange) string {

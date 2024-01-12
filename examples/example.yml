@@ -33,7 +33,6 @@ experience:
   location:
     city: Imaginary City
     state: Stateville
-
 - company: NextGen Solutions
   title: Junior Developer
   achievements:
@@ -53,5 +52,7 @@ skills:
 projects:
 - name: "Personal Finance Tracker"
   language: "Python, JavaScript"
-  details: "Developed a web application for personal finance management"
-  link: "https://github.com/janedoe/finance-tracker"
+  details: 
+    - "Developed a web application for personal finance management"
+  link: 
+    ref: "https://github.com/janedoe/finance-tracker"

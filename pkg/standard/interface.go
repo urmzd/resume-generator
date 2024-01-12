@@ -36,7 +36,7 @@ type Contact struct {
 
 type Link struct {
 	Text string
-	Link string
+	Ref  string
 }
 
 type Location struct {

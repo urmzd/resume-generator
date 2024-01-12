@@ -52,8 +52,3 @@ run-examples:
 	make init
 	cp -r $(EXAMPLES_DIR)/ $(INPUTS_DIR)
 	make run FILENAME=example.yml
-	make run FILENAME=example.toml
-	make run FILENAME=example.json
-
-
-
