@@ -39,7 +39,7 @@ var rootCmd = &cobra.Command{
 	Short: "Generate beautiful LaTeX resumes with one command.",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		logger, _ := zap.NewDevelopment()
+		logger, _ := zap.NewProduction()
 		sugar := logger.Sugar()
 
 		filename := args[0]
