@@ -7,7 +7,7 @@ import (
 type Compiler interface {
 	LoadClasses(string)
 	AddOutputFolder(string)
-	Compile(string, string)
+	Compile(string, string) string
 }
 
 type Resume struct {

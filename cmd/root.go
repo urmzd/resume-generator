@@ -93,14 +93,15 @@ var rootCmd = &cobra.Command{
 			versionSuffix := getVersionSuffix(contactName, OutputsFolder)
 			templateType := strings.TrimSuffix(file.Name(), filepath.Ext(file.Name()))
 			resumeFileName := fmt.Sprintf("%s_%s_%s%s", contactName, timestamp, templateType, versionSuffix)
-
-			compiler.Compile(latex, resumeFileName)
+			resumeFilePath := compiler.Compile(latex, resumeFileName)
 
 			if KeepTex {
 				cleanArtifacts(sugar, ".tex")
 			} else {
 				cleanArtifacts(sugar)
 			}
+
+			sugar.Infof("Generate resume of type %s at %s", templateType, resumeFilePath)
 		}
 	},
 }

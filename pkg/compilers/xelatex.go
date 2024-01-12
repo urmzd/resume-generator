@@ -104,7 +104,7 @@ func (compiler *XelatexCompiler) AddOutputFolder(folder string) {
 // Compile compiles the LaTeX document into a PDF.
 // It copies necessary class files to the output directory, creates the .tex file,
 // and then runs the LaTeX compiler.
-func (compiler *XelatexCompiler) Compile(resume string, resumeName string) {
+func (compiler *XelatexCompiler) Compile(resume string, resumeName string) string {
 	// Copy the class files to the output folder
 	copyDir(compiler.classes, compiler.outputFolder)
 
@@ -117,6 +117,8 @@ func (compiler *XelatexCompiler) Compile(resume string, resumeName string) {
 
 	// Compile the LaTeX document
 	compiler.executeLaTeXCommand(outputFilePath)
+
+	return outputFilePath
 }
 
 // executeLaTeXCommand runs the LaTeX compiler on the provided file.

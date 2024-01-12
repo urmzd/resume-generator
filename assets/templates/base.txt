@@ -8,8 +8,11 @@
 \titleformat{\section}{\normalfont\Large\scshape\fontsize{12}{15}}{\thesection}{1em}{}[{\titlerule[0.8pt]}]
 \begin{document}
 \pagestyle{empty}
-\name{- {{ .Contact.Name }} }
-\contact{\href{mailto:{{ .Contact.Email }}}{ {{ .Contact.Email }} }}{ \href{tel:{{ .Contact.Phone }}}{ {{ .Contact.Phone }} }}{{ range .Contact.Links }}{ {{ fmtLink . }} }{{ end }}
+\name{ {{ .Contact.Name }} }
+\hfill {\href{mailto:{{ .Contact.Email }}}{ {{ .Contact.Email }} }} \hfill \textbar \hfill {\href{tel:{{ .Contact.Phone }}}{ {{ .Contact.Phone }} }} \hfill
+{{- range .Contact.Links }}
+    \textbar \hfill{\href{ {{ . }} }{ {{ . }} }} \hfill
+{{- end }}
 \section*{experience}
 {{- range .Experience }}
 \project{{ "{" }}{{ .Title }}{{ "}" }}{{ "{" }}{{ .Company }}{{ "}" }}{{ "{" }}{{ fmtDates .Dates }}{{ "}" }}

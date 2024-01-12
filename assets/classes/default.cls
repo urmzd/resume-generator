@@ -14,6 +14,10 @@
     \end{center}%
 }
 
+\NewDocumentCommand{\contact}{mmmo}{%
+    \hfill #1 \hfill \textbar \hfill #2 \hfill \textbar \hfill #3 \hfill \IfNoValueTF{#4}{}{\textbar \hfill #4 \hfill}
+}
+
 \newcommand{\beforeTextLine}{%
     \vspace{0.125in}%
 }
@@ -22,9 +26,6 @@
     \vspace{0.0625in}%
 }
 
-\NewDocumentCommand{\contact}{mmmo}{%
-    \hfill #1 \hfill \textbar \hfill #2 \hfill \textbar \hfill #3 \hfill \IfNoValueTF{#4}{}{\textbar \hfill #4 \hfill}
-}
 
 \NewDocumentCommand\project{mmm}{%
     \makebox[0pt][l]{\textbf{#1}} \hfill \makebox[0pt][c]{\textbf{#2}} \hfill \makebox[0pt][r]{\textbf{#3}}%
