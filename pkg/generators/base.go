@@ -1,4 +1,4 @@
-package base
+package generators
 
 import (
 	"fmt"
@@ -10,18 +10,18 @@ import (
 	"errors"
 
 	"github.com/thoas/go-funk"
-	"github.com/urmzd/generate-resumes/pkg/standard"
+	"github.com/urmzd/generate-resumes/pkg/template"
 )
 
 type BaseResumeGenerator struct {
 	code []string
 }
 
-func locationToStr(location standard.Location) string {
+func locationToStr(location template.Location) string {
 	return fmt.Sprintf("%s, %s", location.City, location.State)
 }
 
-func (generator *BaseResumeGenerator) AddEducation(education *[]standard.Education) {
+func (generator *BaseResumeGenerator) AddEducation(education *[]template.Education) {
 	beforeCode := `\section*{education}`
 
 	generator.write(beforeCode)
@@ -38,15 +38,15 @@ func (generator *BaseResumeGenerator) AddEducation(education *[]standard.Educati
 
 }
 
-func NewPrefixedLink(text string, prefix string) *standard.Link {
+func NewPrefixedLink(text string, prefix string) *template.Link {
 	new_link := prefix + text
-	return &standard.Link{
+	return &template.Link{
 		Text: text,
 		Ref:  new_link,
 	}
 }
 
-func linkToStr(link standard.Link) string {
+func linkToStr(link template.Link) string {
 	if link.Text == "" {
 		parsedLinked, err := url.Parse(link.Ref)
 
@@ -62,7 +62,7 @@ func linkToStr(link standard.Link) string {
 	return fmt.Sprintf(`\href{%s}{%s}`, link.Ref, link.Text)
 }
 
-func dateRangeToStr(rng standard.DateRange) string {
+func dateRangeToStr(rng template.DateRange) string {
 	dateFmt := "Jan 2006"
 
 	var end string
@@ -75,7 +75,7 @@ func dateRangeToStr(rng standard.DateRange) string {
 	return fmt.Sprintf("%s - %s", rng.Start.Format(dateFmt), end)
 }
 
-func (generator *BaseResumeGenerator) AddProjects(projects *[]standard.Project) {
+func (generator *BaseResumeGenerator) AddProjects(projects *[]template.Project) {
 	beforeCode := `\section*{projects}`
 
 	generator.write(beforeCode)
@@ -103,7 +103,7 @@ func (gen *BaseResumeGenerator) EndResume() string {
 	return processedTex
 }
 
-func (generator *BaseResumeGenerator) AddExperiences(experience *[]standard.Experience) {
+func (generator *BaseResumeGenerator) AddExperiences(experience *[]template.Experience) {
 	beforeCode := `\section*{experience}`
 
 	generator.write(beforeCode)
@@ -146,7 +146,7 @@ func (generator *BaseResumeGenerator) addSubProject(label string) {
 	generator.write(stringValue)
 }
 
-func (generator *BaseResumeGenerator) addDescription(skills *[]standard.Detail) {
+func (generator *BaseResumeGenerator) addDescription(skills *[]template.Detail) {
 	beforeCode := `\begin{description}`
 	afterCode := `\end{description}`
 	stringTemplate := `\item[%s:]{%s}`
@@ -161,7 +161,7 @@ func (generator *BaseResumeGenerator) addDescription(skills *[]standard.Detail) 
 	generator.write(afterCode)
 }
 
-func (generator *BaseResumeGenerator) AddSkills(skills *[]standard.Detail) {
+func (generator *BaseResumeGenerator) AddSkills(skills *[]template.Detail) {
 	if len(*skills) > 0 {
 		beforeCode := `\section*{skills}`
 		generator.write(beforeCode)
@@ -169,7 +169,7 @@ func (generator *BaseResumeGenerator) AddSkills(skills *[]standard.Detail) {
 	}
 }
 
-func (generator *BaseResumeGenerator) StartResume(contact *standard.Contact) {
+func (generator *BaseResumeGenerator) StartResume(contact *template.Contact) {
 	beforeCode := []string{
 		`\documentclass{default}`,
 		`\usepackage{geometry}`,
@@ -201,9 +201,13 @@ func (generator *BaseResumeGenerator) StartResume(contact *standard.Contact) {
 			linkToStr(contact.Links[1]),
 		)
 	} else {
-		log.Fatal(errors.New("Contact length must be 1 or 2"))
+		log.Fatal(errors.New("contact length must be 1 or 2"))
 	}
 
 	generator.write(beforeCode...)
 	generator.write(name, basics)
+}
+
+func NewBaseResumeGenerator() template.ResumeGenerator {
+	return &BaseResumeGenerator{}
 }

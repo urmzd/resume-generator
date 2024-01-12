@@ -39,7 +39,9 @@ init:
 # Run the application in Docker
 run:
 	@echo "Running application in Docker..."
-	docker run -v "$(shell pwd)/$(OUTPUTS_DIR):/outputs" -v "$(shell pwd)/$(INPUTS_DIR):/inputs" $(APP_IMAGE_TAG) /inputs/$(FILENAME) -o /outputs
+	$(eval KEEPTEX_FLAG=$(if $(KEEPTEX),-k,))
+	docker run -v "$(shell pwd)/$(OUTPUTS_DIR):/outputs" -v "$(shell pwd)/$(INPUTS_DIR):/inputs" $(APP_IMAGE_TAG) /inputs/$(FILENAME) -o /outputs $(KEEPTEX_FLAG)
+
 
 # Clean outputs and inputs directories
 clean:
