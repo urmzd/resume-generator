@@ -13,6 +13,7 @@ import (
 	"github.com/urmzd/generate-resumes/pkg/generators"
 	"github.com/urmzd/generate-resumes/pkg/template"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"gopkg.in/yaml.v3"
 
 	"encoding/json"
@@ -38,7 +39,7 @@ var rootCmd = &cobra.Command{
 	Short: "Generate beautiful LaTeX resumes with one command.",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		logger, _ := zap.NewDevelopment()
+		logger, _ := zap.NewProduction(zap.AddStacktrace(zapcore.FatalLevel))
 		sugar := logger.Sugar()
 
 		filename := args[0]
