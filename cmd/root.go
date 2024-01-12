@@ -71,10 +71,11 @@ var rootCmd = &cobra.Command{
 			var resumeBuilder template.ResumeGenerator
 
 			switch templateType {
-			case "professional":
-				resumeBuilder = generators.NewProfessionalResumeGenerator()
 			case "base":
 				resumeBuilder = generators.NewBaseResumeGenerator()
+			case "professional":
+				continue
+				// resumeBuilder = generators.NewProfessionalResumeGenerator()
 			case "creative":
 				// Skip for now
 				continue
@@ -104,7 +105,7 @@ var rootCmd = &cobra.Command{
 			contactName := strings.ReplaceAll(resume.Contact.Name, " ", "_")
 			timestamp := time.Now().Format("20060102")
 			versionSuffix := getVersionSuffix(contactName, OutputFolder)
-			resumeFileName := fmt.Sprintf("%s_%s_%s%s", contactName, templateType, timestamp, versionSuffix)
+			resumeFileName := fmt.Sprintf("%s_%s_%s%s", contactName, timestamp, templateType, versionSuffix)
 
 			compiler.Compile(resumeStr, resumeFileName)
 
