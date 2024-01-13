@@ -19,7 +19,7 @@
 \subproject{{ "{" }}{{ fmtLocation .Location }}{{ "}" }}
 \begin{itemize}
 {{- range .Description }}
-\item {{ . }}
+\item {{ escapeLatexChars . }}
 {{- end }}
 \end{itemize}
 {{- end }}
@@ -29,14 +29,14 @@
 \subproject{{ "{" }}{{ .Degree }}{{ range .Suffixes }} ({{ . }}) {{ end }}{{ "}" }}
 \begin{description}
 {{- range .Description }}
-\item[{{ .Category }}:]{{ "{" }}{{ .Value }}{{ "}" }}
+\item[{{ .Category }}:]{{ "{" }}{{ escapeLatexChars .Value }}{{ "}" }}
 {{- end }}
 \end{description}
 {{- end }}
 \section*{skills}
 \begin{description}
 {{- range .Skills }}
-\item[{{ .Category | escapeLatexChars }}:]{{ "{" }}{{ .Value }}{{ "}" }}
+\item[{{ .Category | escapeLatexChars }}:]{{ "{" }}{{ escapeLatexChars .Value }}{{ "}" }}
 {{- end }}
 \end{description}
 {{- if .Projects }}
@@ -45,7 +45,7 @@
 \project{{ "{" }}{{ .Name }}{{ "}" }}{{ "{" }}{{ .Language }}{{ "}" }}{{ "{" }}{{ fmtLink .Link }}{{ "}" }}
 \begin{description}
 {{- range .Description }}
-\item{{ "{" }}{{ . }}{{ "}" }}
+\item{{ "{" }}{{ escapeLatexChars . }}{{ "}" }}
 {{- end }}
 \end{description}
 {{- end }}

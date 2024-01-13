@@ -96,11 +96,11 @@ projects:
     description: 
       - "Developed a web application for personal finance management"
     link: 
-      ref: "https://github.com/janedoe/finance-tracker"
+      ref: "github.com/janedoe/finance-tracker"
 
   - name: "Eco-Friendly Route Finder"
     language: "Java, Swift"
     description: 
       - "Created a mobile app that calculates the most eco-friendly travel routes to reduce carbon footprint"
     link: 
-      ref: "https://github.com/janedoe/eco-route-finder"
+      ref: "github.com/janedoe/eco-route-finder"
