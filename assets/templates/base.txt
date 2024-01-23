@@ -43,11 +43,11 @@
 \section*{projects}
 {{- range .Projects }}
 \project{{ "{" }}{{ .Name }}{{ "}" }}{{ "{" }}{{ .Language }}{{ "}" }}{{ "{" }}{{ fmtLink .Link }}{{ "}" }}
-\begin{description}
+\begin{itemize}
 {{- range .Description }}
-\item{{ "{" }}{{ escapeLatexChars . }}{{ "}" }}
+\item {{ escapeLatexChars . }}
 {{- end }}
-\end{description}
+\end{itemize}
 {{- end }}
 {{- end }}
 \end{document}
