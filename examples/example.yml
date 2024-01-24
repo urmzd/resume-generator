@@ -46,9 +46,6 @@ experience:
       - "Collaborated on a team project to create a cross-platform mobile application"
     dates:
       start: 2021-07-01
-    location:
-      city: Imaginary City
-      state: Stateville
 
   - company: NextGen Solutions
     title: Junior Developer
@@ -58,9 +55,6 @@ experience:
     dates:
       start: 2020-01-01
       end: 2021-06-30
-    location:
-      city: Dreamtown
-      state: Futureland
 
   - company: Innovative Tech Corp
     title: Lead Developer
@@ -69,9 +63,6 @@ experience:
       - "Managed a team of 5 developers, fostering a collaborative and productive work environment"
     dates:
       start: 2022-08-01
-    location:
-      city: New Tech City
-      state: Silicon Valley
 
   - company: FutureSoft
     title: Systems Engineer
@@ -80,9 +71,6 @@ experience:
       - "Automated key processes using Python and Bash scripts, saving 200 man-hours annually"
     dates:
       start: 2023-01-01
-    location:
-      city: Cyber Town
-      state: Digital State
 
 skills:
   - category: Programming Languages

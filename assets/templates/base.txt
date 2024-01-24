@@ -16,7 +16,6 @@
 \section*{experience}
 {{- range .Experience }}
 \project{{ "{" }}{{ .Title }}{{ "}" }}{{ "{" }}{{ .Company }}{{ "}" }}{{ "{" }}{{ fmtDates .Dates }}{{ "}" }}
-\subproject{{ "{" }}{{ fmtLocation .Location }}{{ "}" }}
 \begin{itemize}
 {{- range .Description }}
 \item {{ escapeLatexChars . }}
