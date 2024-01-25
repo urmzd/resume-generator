@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
@@ -76,7 +75,7 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			sugar.Fatal("Error reading template folder:", err)
 		}
-		for _, file := range templateFiles {
+		for idx, file := range templateFiles {
 			templatePath := filepath.Join(TemplateFolder, file.Name())
 			tmpl, err := loadTemplate(templatePath)
 			if err != nil {
@@ -87,9 +86,8 @@ var rootCmd = &cobra.Command{
 			latex := generator.Generate(tmpl, &resume)
 
 			contactName := strings.ReplaceAll(resume.Contact.Name, " ", "_")
-			timestamp := time.Now().Format("20060102")
 			templateType := strings.TrimSuffix(file.Name(), filepath.Ext(file.Name()))
-			resumeFileName := fmt.Sprintf("%s_%s_%s", contactName, timestamp, templateType)
+			resumeFileName := fmt.Sprintf("%s_%d", contactName, idx)
 			resumeFilePath := compiler.Compile(latex, resumeFileName)
 
 			if KeepTex {
