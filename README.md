@@ -95,7 +95,21 @@ For more advanced users, the following options are available for interacting wit
 
    This command opens a `/bin/bash` session in the Docker container, allowing you to interact directly with the tool and the file system.
 
-Use these advanced options for more control over the tool or for tasks that require direct interaction with the CLI environment.
+Use these advanced options for more control over the tool or for tasks that require direct interaction with the CLI environment. 
+
+## Assets/Helpers Directory
+
+This directory is specifically designed to assist you in creating a more effective and professional resume. Here's what you can expect to find inside:
+
+### Key Features of the `assets` Folder:
+
+1. **Keywords and Phrases**: This section contains a curated list of powerful keywords and phrases relevant to various industries and job roles. Incorporating these into your resume can significantly enhance its impact and help in catching the attention of recruiters and resume screening software.
+
+2. **Formatting Templates**: We provide a selection of formatting templates to give your resume a polished and professional look. These templates are designed to be easily customizable to fit your personal style and the requirements of your industry.
+
+3. **Action Verbs**: A comprehensive list of action verbs is included to help you describe your experiences and achievements in a dynamic and compelling way. These verbs are crucial for making your resume more engaging and effective.
+
+4. **Examples and Samples**: To give you a better idea of how to craft your resume, we've included examples and sample resumes. These can serve as a great starting point or source of inspiration for your own resume.
 
 ## Contributing
 

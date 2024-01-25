@@ -16,7 +16,7 @@
 \section*{experience}
 {{- range .Experience }}
 \project{{ "{" }}{{ .Title }}{{ "}" }}{{ "{" }}{{ .Company }}{{ "}" }}{{ "{" }}{{ fmtDates .Dates }}{{ "}" }}
-\begin{itemize}
+\begin{itemize}[noitemsep,nolistsep]
 {{- range .Description }}
 \item {{ escapeLatexChars . }}
 {{- end }}
@@ -26,14 +26,14 @@
 {{- range .Education }}
 \project{{ "{" }}{{ .School }}{{ "}" }}{}{{ "{" }}{{ fmtDates .Dates }}{{ "}" }}
 \subproject{{ "{" }}{{ .Degree }}{{ range .Suffixes }} ({{ . }}) {{ end }}{{ "}" }}
-\begin{description}
+\begin{description}[noitemsep,nolistsep]
 {{- range .Description }}
 \item[{{ .Category }}:]{{ "{" }}{{ escapeLatexChars .Value }}{{ "}" }}
 {{- end }}
 \end{description}
 {{- end }}
 \section*{skills}
-\begin{description}
+\begin{description}[noitemsep,nolistsep]
 {{- range .Skills }}
 \item[{{ .Category | escapeLatexChars }}:]{{ "{" }}{{ escapeLatexChars .Value }}{{ "}" }}
 {{- end }}
@@ -42,7 +42,7 @@
 \section*{projects}
 {{- range .Projects }}
 \project{{ "{" }}{{ .Name }}{{ "}" }}{{ "{" }}{{ .Language }}{{ "}" }}{{ "{" }}{{ fmtLink .Link }}{{ "}" }}
-\begin{itemize}
+\begin{itemize}[noitemsep,nolistsep]
 {{- range .Description }}
 \item {{ escapeLatexChars . }}
 {{- end }}
