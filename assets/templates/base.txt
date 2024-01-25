@@ -6,6 +6,8 @@
 \geometry{a4paper,left=0.5in,right=0.5in,bottom=0.5in,top=0.5in}
 \hypersetup{colorlinks=true,linkcolor=blue}
 \titleformat{\section}{\normalfont\Large\scshape\fontsize{12}{15}}{\thesection}{1em}{}[{\titlerule[0.8pt]}]
+\setlist[itemize]{itemsep=0pt, topsep=3pt}
+\setlist[description]{itemsep=0pt, topsep=3pt}
 \begin{document}
 \pagestyle{empty}
 \name{ {{ .Contact.Name }} }
@@ -16,7 +18,7 @@
 \section*{experience}
 {{- range .Experience }}
 \project{{ "{" }}{{ .Title }}{{ "}" }}{{ "{" }}{{ .Company }}{{ "}" }}{{ "{" }}{{ fmtDates .Dates }}{{ "}" }}
-\begin{itemize}[noitemsep,nolistsep]
+\begin{itemize}
 {{- range .Description }}
 \item {{ escapeLatexChars . }}
 {{- end }}
@@ -26,14 +28,14 @@
 {{- range .Education }}
 \project{{ "{" }}{{ .School }}{{ "}" }}{}{{ "{" }}{{ fmtDates .Dates }}{{ "}" }}
 \subproject{{ "{" }}{{ .Degree }}{{ range .Suffixes }} ({{ . }}) {{ end }}{{ "}" }}
-\begin{description}[noitemsep,nolistsep]
+\begin{description}
 {{- range .Description }}
 \item[{{ .Category }}:]{{ "{" }}{{ escapeLatexChars .Value }}{{ "}" }}
 {{- end }}
 \end{description}
 {{- end }}
 \section*{skills}
-\begin{description}[noitemsep,nolistsep]
+\begin{description}
 {{- range .Skills }}
 \item[{{ .Category | escapeLatexChars }}:]{{ "{" }}{{ escapeLatexChars .Value }}{{ "}" }}
 {{- end }}
@@ -42,7 +44,7 @@
 \section*{projects}
 {{- range .Projects }}
 \project{{ "{" }}{{ .Name }}{{ "}" }}{{ "{" }}{{ .Language }}{{ "}" }}{{ "{" }}{{ fmtLink .Link }}{{ "}" }}
-\begin{itemize}[noitemsep,nolistsep]
+\begin{itemize}
 {{- range .Description }}
 \item {{ escapeLatexChars . }}
 {{- end }}
