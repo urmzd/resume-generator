@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -90,9 +88,8 @@ var rootCmd = &cobra.Command{
 
 			contactName := strings.ReplaceAll(resume.Contact.Name, " ", "_")
 			timestamp := time.Now().Format("20060102")
-			versionSuffix := getVersionSuffix(contactName, OutputsFolder)
 			templateType := strings.TrimSuffix(file.Name(), filepath.Ext(file.Name()))
-			resumeFileName := fmt.Sprintf("%s_%s_%s%s", contactName, timestamp, templateType, versionSuffix)
+			resumeFileName := fmt.Sprintf("%s_%s_%s", contactName, timestamp, templateType)
 			resumeFilePath := compiler.Compile(latex, resumeFileName)
 
 			if KeepTex {
@@ -110,29 +107,6 @@ func loadTemplate(filePath string) (string, error) {
 	data, err := os.ReadFile(filePath)
 	dataStr := string(data)
 	return dataStr, err
-}
-
-func getVersionSuffix(baseName, outputFolder string) string {
-	pattern := filepath.Join(outputFolder, baseName+"_*.pdf")
-	files, err := filepath.Glob(pattern)
-	if err != nil || len(files) == 0 {
-		return "_v1" // Start from version 1 if no files are found
-	}
-
-	highestVersion := 0
-	versionRegex := regexp.MustCompile(`_v(\d+)\.pdf$`)
-
-	for _, file := range files {
-		matches := versionRegex.FindStringSubmatch(filepath.Base(file))
-		if len(matches) == 2 {
-			versionNum, err := strconv.Atoi(matches[1])
-			if err == nil && versionNum > highestVersion {
-				highestVersion = versionNum
-			}
-		}
-	}
-
-	return fmt.Sprintf("_v%d", highestVersion+1)
 }
 
 func cleanArtifacts(logger *zap.SugaredLogger, keepExtensions ...string) {
