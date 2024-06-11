@@ -18,7 +18,7 @@ COPY main.go .
 RUN go build -o generate-resumes main.go
 
 # Start the second stage using your custom base image
-FROM urmzd/generate-resumes-base:24.01.11 as base
+FROM urmzd/generate-resumes-base:latest as base
 
 # Set the working directory in the container
 WORKDIR /app
