@@ -1,20 +1,3 @@
-FROM debian:bookworm-slim
-
-RUN apt-get -y update && apt-get -y install libfontconfig wget perl
-
-WORKDIR /tmp
-
-RUN wget https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz
-RUN zcat < install-tl-unx.tar.gz | tar xf -
-# TODO: Update year when the next millenium comes
-RUN cd install-tl-2* && perl install-tl --no-interaction --scheme=small
-
-ENV PATH="/usr/local/texlive/2023/bin/x86_64-linux:${PATH}"
-
-RUN tlmgr install enumitem titlesec
-
-ENTRYPOINT [ "/bin/bash", "-c" ]
-
 # Use Debian bookworm-slim as the base image
 FROM debian:bookworm-slim
 
