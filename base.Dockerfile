@@ -22,7 +22,8 @@ RUN zcat < install-tl-unx.tar.gz | tar xf -
 RUN cd install-tl-2* && perl install-tl --no-interaction --scheme=small
 
 # Update PATH to include the TeX Live binaries
-ENV PATH="/usr/local/texlive/2023/bin/x86_64-linux:${PATH}"
+ENV PATH="/usr/local/texlive/2024/bin/x86_64-linux:${PATH}"
+ENV PATH="/usr/local/texlive/2024/bin/aarch64-linux:${PATH}"
 
 # Install additional TeX Live packages
 # - enumitem: Control layout of itemize, enumerate, description
