@@ -1,4 +1,4 @@
-module github.com/urmzd/generate-resumes
+module github.com/urmzd/resume-generator
 
 go 1.19
 

@@ -8,9 +8,9 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
-	"github.com/urmzd/generate-resumes/pkg/compilers"
-	"github.com/urmzd/generate-resumes/pkg/definition"
-	"github.com/urmzd/generate-resumes/pkg/generators"
+	"github.com/urmzd/resume-generator/pkg/compilers"
+	"github.com/urmzd/resume-generator/pkg/definition"
+	"github.com/urmzd/resume-generator/pkg/generators"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 
@@ -32,7 +32,7 @@ func initRootCmd() {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "generate-resumes CONFIG",
+	Use:   "resume-generator CONFIG",
 	Short: "Generate beautiful LaTeX resumes with one command.",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

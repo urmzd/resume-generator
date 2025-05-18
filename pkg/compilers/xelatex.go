@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/urmzd/generate-resumes/pkg/definition"
+	"github.com/urmzd/resume-generator/pkg/definition"
 	"go.uber.org/zap"
 
 	"io"
