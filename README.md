@@ -1,4 +1,4 @@
-# Generate Resumes
+# Resume Generator
 
 ## Introduction
 
@@ -14,7 +14,7 @@ Generate Resumes is a powerful tool designed to create elegant $\LaTeX$ resumes 
 
 ## Prerequisites
 
-Before you start using Generate Resumes, ensure you have the following installed:
+Before you start using the application, ensure you have the following installed:
 - Docker
 - GNU Make
 
@@ -27,8 +27,8 @@ These dependencies are crucial for running the tool in a containerized environme
    Clone this repository to your local machine to get started with Generate Resumes.
 
    ```bash
-   git clone https://github.com/urmzd/generate-resumes.git
-   cd generate-resumes
+   git clone https://github.com/urmzd/resume-generator.git
+   cd resume-generator
    ```
 
 2. **Initialization**
