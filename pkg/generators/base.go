@@ -7,7 +7,7 @@ import (
 
 	"text/template"
 
-	"github.com/urmzd/generate-resumes/pkg/definition"
+	"github.com/urmzd/resume-generator/pkg/definition"
 	"go.uber.org/zap"
 )
 

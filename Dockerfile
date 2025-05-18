@@ -1,30 +1,57 @@
-# Start the first stage using the Go image for building the Go application
-FROM golang:1.22-rc-bookworm as builder
+# ┌─────────────── Stage 1: Build Go binary ───────────────┐
+FROM golang:1.22-rc-bookworm AS builder
 
-# Set the working directory in the container
 WORKDIR /app
-
-# Copy the Go module files and download dependencies
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy the Go source code and other necessary files into the container at /app
-# This includes all necessary files from the 'pkg', 'cmd' directories, and the 'main.go' file
 COPY pkg/ pkg/
 COPY cmd/ cmd/
 COPY main.go .
+RUN go build -o resume-generator main.go
 
-# Compile the Go application
-RUN go build -o generate-resumes main.go
+# └─────────────────────────────────────────────────────────┘
 
-# Start the second stage using your custom base image
-FROM urmzd/generate-resumes-base:latest as base
 
-# Set the working directory in the container
+# ┌─────────────── Stage 2: Install TeX Live ───────────────┐
+FROM debian:bookworm-slim AS tex
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      libfontconfig1 \
+      fonts-dejavu-core \
+      wget \
+      perl \
+      xz-utils \
+ && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /tmp
+RUN wget https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz \
+ && tar -xzf install-tl-unx.tar.gz \
+ && cd install-tl-*/ \
+ && perl install-tl --no-interaction --scheme=small \
+ && rm -rf /tmp/install-tl-*
+
+# Add TeX Live binaries to PATH
+ENV PATH=/usr/local/texlive/2024/bin/x86_64-linux:$PATH
+
+# Install extra packages via tlmgr
+RUN tlmgr install enumitem titlesec \
+ && tlmgr option autobackup 0
+
+# Clean up package manager caches again
+RUN apt-get purge -y --auto-remove wget perl xz-utils \
+ && rm -rf /var/lib/apt/lists/*
+
+# └──────────────────────────────────────────────────────────┘
+
+
+# ┌─────────────── Stage 3: Final runtime image ───────────────┐
+FROM tex
+
 WORKDIR /app
+COPY --from=builder /app/resume-generator .
 
-# Copy the built Go binary and any other necessary files from the builder stage
-COPY --from=builder /app/generate-resumes .
-
-# Define the container's entrypoint as the application
-ENTRYPOINT [ "./generate-resumes" ]
+ENTRYPOINT ["./resume-generator"]
+# └────────────────────────────────────────────────────────────┘
