@@ -66,10 +66,13 @@ COPY --from=builder /build/resume-generator /usr/local/bin/resume-generator
 RUN chmod +x /usr/local/bin/resume-generator
 
 # Create directories for volumes
-RUN mkdir -p /assets /examples /inputs /outputs /tmp/uploads /tmp/downloads
+RUN mkdir -p /templates /examples /inputs /outputs /tmp/uploads /tmp/downloads
 
-# Copy default assets
-COPY assets /assets/
+# Copy default templates
+COPY templates /templates/
+
+# Expose templates within the working directory for relative lookups
+RUN ln -sfn /templates /app/templates
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
@@ -96,8 +99,8 @@ CMD ["--help"]
 # Generate PDF:
 #   docker run --rm -v $(pwd):/work resume-generator run -i /work/resume.yml -f pdf -o /work
 #
-# Start API server:
-#   docker run -p 8080:8080 -v $(pwd)/assets:/assets resume-generator serve -p 8080
+# List templates:
+#   docker run --rm -v $(pwd):/work resume-generator templates list
 #
 # Validate:
 #   docker run --rm -v $(pwd):/work resume-generator validate /work/resume.yml

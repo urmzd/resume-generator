@@ -1,6 +1,6 @@
 # Resume Generator Usage Guide
 
-A comprehensive platform for generating professional resumes from configuration files with support for multiple output formats, web interface, and REST API access.
+A CLI-focused toolkit for generating professional resumes from structured configuration files with support for multiple output formats and flexible templates.
 
 ## Table of Contents
 
@@ -16,79 +16,55 @@ A comprehensive platform for generating professional resumes from configuration 
 
 ## Quick Start
 
-### Fastest Way: Docker Compose (Recommended)
+### Fastest Way: CLI
 
-1. **Clone and Start**
+1. **Clone the repository**
    ```bash
    git clone https://github.com/urmzd/resume-generator.git
    cd resume-generator
-   docker-compose up
    ```
 
-2. **Access Web Interface**
-   - Open: http://localhost:3000
-   - Upload your resume config file
-   - Choose format (HTML/PDF) and template
-   - Download generated resume
-
-3. **Or Use CLI Directly**
+2. **Build the binary**
    ```bash
-   # Copy example config
-   just init
-
-   # Generate resume
-   just generate examples/sample-enhanced.yml resume html modern
+   go build -o resume-generator ./...
    ```
+
+3. **Generate a resume**
+   ```bash
+   ./resume-generator run -i assets/example_inputs/sample-enhanced.yml -t modern-html
+   ```
+
+Prefer Docker? Build the bundled image and run the CLI inside it:
+
+```bash
+docker build -t resume-generator .
+docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_inputs/sample-enhanced.yml -t modern-html
+```
 
 ---
 
 ## Installation Methods
 
-### Docker-Based (Recommended)
+### Go Toolchain
 
-#### Full Platform with Web Interface
 ```bash
-# Start complete platform (API + Frontend + Nginx)
-docker-compose up -d
-
-# Access:
-# - Web UI: http://localhost:3000
-# - API: http://localhost:8080/api/v1
-# - Nginx: http://localhost (production)
+go build -o resume-generator ./...
+./resume-generator --help
 ```
 
-#### CLI-Only Docker Usage
+### Docker Image
+
 ```bash
-# Build the CLI image
-just build
+# Build container with Go binary, LaTeX, and Chromium
+docker build -t resume-generator .
 
-# Generate resume using Docker
-just run example.yml
-
-# Interactive shell access
-just shell
+# Run CLI inside container
+docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_inputs/sample-enhanced.yml -t base-latex
 ```
 
-### Local Development Setup
+### Optional Helpers
 
-#### Prerequisites
-- Go 1.21+
-- Node.js 18+ (for frontend)
-- Docker (for TeX tools)
-
-#### Setup Steps
-```bash
-# Install dependencies
-just deps
-just frontend-install
-
-# Start development environment
-just dev  # Starts both API (8080) and frontend (3000)
-
-# Or start separately
-just serve 8080     # API only
-just frontend       # Frontend only
-```
+Install [just](https://github.com/casey/just) if you want shorthand commands for building images or copying examples. The provided `justfile` includes targets such as `just build` (Docker image), `just init` (copy examples), and `just docker-run` (execute the CLI inside Docker).
 
 ### Using Just Command Runner
 
@@ -192,13 +168,13 @@ experience:
 
 ```bash
 # Validate configuration file
-just validate examples/sample-enhanced.yml
+just validate assets/example_inputs/sample-enhanced.yml
 
 # Or using Go directly
 go run main.go validate config.yml
 
 # Preview configuration (no generation)
-just preview examples/sample-enhanced.yml
+just preview assets/example_inputs/sample-enhanced.yml
 ```
 
 ---
@@ -209,14 +185,11 @@ just preview examples/sample-enhanced.yml
 
 #### Basic Generation
 ```bash
-# Generate HTML resume
-just generate config.yml output html modern
+# Generate resume with Modern HTML template (renders to PDF)
+just generate config.yml output modern-html
 
-# Generate PDF resume
-just generate config.yml output pdf base
-
-# Generate multiple formats
-go run main.go run -i config.yml -f pdf,html -o resume
+# Generate resume with Base LaTeX template
+just generate config.yml output base-latex
 ```
 
 #### Available Commands
@@ -225,83 +198,20 @@ go run main.go run -i config.yml -f pdf,html -o resume
 resume-generator run -i config.yml -o output.pdf     # Generate resume (stores results in timestamped directory)
 resume-generator validate config.yml                 # Validate config
 resume-generator preview config.yml                  # Preview config
-resume-generator serve -p 8080                      # Start API server
 
 # Template management
 resume-generator templates list                      # List templates
 go run main.go templates list                       # Alternative
 
 # Using just shortcuts
-just generate config.yml resume html modern         # Generate with template
+just generate config.yml resume modern-html         # Generate with template
 just validate config.yml                           # Validate
-just serve 8080                                    # Start API
 just templates                                     # List templates
 ```
 
 Each CLI run creates a dedicated output directory named after the contact (`first[_middle]_last_<timestamp>`). The main PDF (or custom filename from `--output`) resides at the root of that folder, and supporting artifacts such as rendered `.tex`/`.html`, `.log`, and `.aux` files are stored under the `debug/` subdirectory.
 
-### 2. Web Interface
-
-1. **Upload Configuration**
-   - Navigate to http://localhost:3000
-   - Upload YAML, JSON, or TOML config file
-   - Or paste configuration directly
-
-2. **Select Options**
-   - Choose output format (PDF/HTML)
-   - Select template theme
-   - Preview configuration if needed
-
-3. **Generate & Download**
-   - Click generate button
-   - Download generated resume
-   - Files expire after 24 hours
-
-### 3. REST API
-
-#### Start API Server
-```bash
-# Using just
-just serve 8080
-
-# Using Go directly
-go run main.go serve -p 8080
-
-# Using Docker
-docker-compose up api
-```
-
-#### API Endpoints
-
-##### Generate Resume
-```bash
-curl -X POST http://localhost:8080/api/v1/generate \
-  -F "config=@examples/sample-enhanced.yml" \
-  -F "format=html" \
-  -F "template=modern"
-```
-
-##### Health Check
-```bash
-curl http://localhost:8080/api/v1/health
-```
-
-##### List Available Formats
-```bash
-curl http://localhost:8080/api/v1/formats
-```
-
-##### List Available Templates
-```bash
-curl http://localhost:8080/api/v1/templates
-```
-
-##### Test All Endpoints
-```bash
-just api-test  # Requires running API server
-```
-
-### 4. Docker Usage
+### 2. Docker Usage
 
 #### Direct Docker Commands
 ```bash
@@ -318,35 +228,19 @@ just exec "resume-generator --help"
 just shell
 ```
 
-#### Docker Compose Workflows
-```bash
-# Development mode
-docker-compose -f docker-compose.yaml -f docker-compose.override.yaml up
-
-# Production mode
-docker-compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
-
-# View logs
-just logs api        # API logs only
-just logs frontend   # Frontend logs only
-just logs            # All services
-```
-
----
-
 ## Output Formats & Templates
 
 ### Supported Output Formats
 
 #### PDF Generation
 - **Engine**: XeLaTeX compiler
-- **Templates**: LaTeX-based templates in `assets/templates/`
+- **Templates**: LaTeX-based templates in `templates/*-latex/`
 - **Features**: Professional typesetting, print-ready
 - **File**: `resume.pdf`
 
 #### HTML Generation
 - **Engine**: Go html/template
-- **Templates**: Modern responsive templates in `assets/templates/html/`
+- **Templates**: Modern responsive templates in `templates/*-html/`
 - **Features**: Responsive design, web-optimized, SEO-friendly
 - **File**: `resume.html`
 
@@ -358,28 +252,21 @@ just logs            # All services
 just templates
 
 # Available templates:
-# - base: Clean, professional layout
-# - json-resume: JSON Resume schema compatible
+# - base-latex: Clean, professional layout
+# - json-resume-latex: JSON Resume schema compatible
 ```
 
 #### HTML Templates
 ```bash
 # Available HTML themes:
-# - modern: Clean, responsive design with modern styling
-# - minimal: Simplified layout focused on content
-# - creative: Enhanced visual design with more colors
+# - modern-html: Clean, responsive design with modern styling
 ```
 
 ### Template Selection
 
 ```bash
 # CLI: Specify template with -t flag
-go run main.go run -i config.yml -t modern -f html
-
-# API: Include template parameter
-curl -X POST http://localhost:8080/api/v1/generate \
-  -F "config=@config.yml" \
-  -F "template=modern"
+go run main.go run -i config.yml -t modern-html
 
 # Config: Set in configuration file
 meta:
@@ -387,16 +274,18 @@ meta:
     theme: "modern"
 ```
 
-### Multi-Format Generation
+### Template Metadata
 
-```bash
-# Generate both PDF and HTML
-go run main.go run -i config.yml -f pdf,html
+Each template directory includes a `config.yml` file that declares its format (`html` or `latex`) along with display metadata. The CLI uses that configuration to choose the correct rendering pipeline, so you no longer need to pass a `--formats`/`-f` flag. To build a custom template, provide both the markup file (`template.html` or `template.tex`) and a `config.yml` similar to:
 
-# Configuration-based
-meta:
-  output:
-    formats: ["pdf", "html"]
+```yaml
+name: custom-html
+display_name: Custom HTML
+description: Lightweight HTML template with accent colors.
+format: html
+tags:
+  - html
+  - custom
 ```
 
 ---
@@ -408,7 +297,7 @@ meta:
 #### Creating HTML Templates
 1. **Create Template File**
    ```html
-   <!-- assets/templates/html/custom.html -->
+   <!-- templates/custom-html/template.html -->
    <!DOCTYPE html>
    <html>
    <head>
@@ -426,56 +315,19 @@ meta:
 
 2. **Use Custom Template**
    ```bash
-   go run main.go run -i config.yml -t custom -f html
+   go run main.go run -i config.yml -t custom-html
    ```
 
 #### Creating LaTeX Templates
 1. **Template Structure**
    ```latex
-   % assets/templates/custom.txt
+   % templates/custom-latex/template.tex
    \documentclass{article}
    \begin{document}
    \section*{ {{.Name}} }
    % Template content
    \end{document}
    ```
-
-### API Integration Examples
-
-#### Python Integration
-```python
-import requests
-
-# Generate resume
-with open('config.yml', 'rb') as f:
-    response = requests.post(
-        'http://localhost:8080/api/v1/generate',
-        files={'config': f},
-        data={'format': 'html', 'template': 'modern'}
-    )
-
-if response.status_code == 200:
-    with open('resume.html', 'wb') as f:
-        f.write(response.content)
-```
-
-#### JavaScript/Node.js Integration
-```javascript
-const FormData = require('form-data');
-const fs = require('fs');
-
-const form = new FormData();
-form.append('config', fs.createReadStream('config.yml'));
-form.append('format', 'html');
-form.append('template', 'modern');
-
-fetch('http://localhost:8080/api/v1/generate', {
-    method: 'POST',
-    body: form
-})
-.then(response => response.buffer())
-.then(buffer => fs.writeFileSync('resume.html', buffer));
-```
 
 ### Batch Processing
 
@@ -485,42 +337,18 @@ fetch('http://localhost:8080/api/v1/generate', {
 # generate_all.sh
 for config in configs/*.yml; do
     basename=$(basename "$config" .yml)
-    just generate "$config" "output/$basename" html modern
-    just generate "$config" "output/$basename" pdf base
+    just generate "$config" "output/$basename" modern-html
+    just generate "$config" "output/$basename" base-latex
 done
-```
-
-#### Automated CI/CD Integration
-```yaml
-# .github/workflows/resume.yml
-name: Generate Resume
-on: [push]
-jobs:
-  generate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Generate Resume
-        run: |
-          docker-compose up --build -d api
-          curl -X POST http://localhost:8080/api/v1/generate \
-            -F "config=@resume.yml" -F "format=pdf" \
-            --output resume.pdf
 ```
 
 ### Development Workflows
 
 #### Hot Reload Development
 ```bash
-# Start with auto-reload
-just dev
-
-# Or manually
+# Use Air for auto-reload during CLI development
 go install github.com/cosmtrek/air@latest
 air  # Auto-reloads on Go file changes
-
-# Frontend development
-cd frontend && npm run dev
 ```
 
 #### Testing
@@ -546,16 +374,13 @@ just test
 
 #### Docker Issues
 ```bash
-# Issue: Container fails to start
-# Solution: Check Docker daemon and rebuild
-docker-compose down
-docker-compose build --no-cache
-docker-compose up
+# Issue: Image is outdated or missing dependencies
+# Solution: Rebuild the container image
+docker build -t resume-generator .
 
-# Issue: Port already in use
-# Solution: Change ports or stop conflicting services
-docker-compose down
-lsof -ti:8080 | xargs kill -9  # Kill process on port 8080
+# Issue: Container exits immediately
+# Solution: Run with interactive shell to inspect
+docker run --rm -it -v "$(pwd)":/work resume-generator /bin/sh
 ```
 
 #### LaTeX/PDF Generation Issues
@@ -577,7 +402,7 @@ just validate config.yml
 
 # Issue: Missing required fields
 # Solution: Check against example configurations
-cp examples/sample-enhanced.yml my-config.yml
+cp assets/example_inputs/sample-enhanced.yml my-config.yml
 ```
 
 ### Performance Optimization
@@ -593,13 +418,6 @@ cp examples/sample-enhanced.yml my-config.yml
 docker images | grep resume-generator
 ```
 
-#### API Response Time
-```bash
-# Monitor API performance
-curl -w "%{time_total}s\n" -X POST http://localhost:8080/api/v1/generate \
-  -F "config=@config.yml" -F "format=html"
-```
-
 ### Security Considerations
 
 #### File Upload Security
@@ -608,27 +426,15 @@ curl -w "%{time_total}s\n" -X POST http://localhost:8080/api/v1/generate \
 - Content validation before processing
 - Temporary file cleanup after processing
 
-#### API Security
-```bash
-# Rate limiting in place
-# CORS configuration for web requests
-# Input sanitization
-# No sensitive data logging
-```
-
 ### Getting Help
 
 #### Debug Information
 ```bash
-# Enable verbose logging
-go run main.go run -i config.yml --verbose
+# Enable verbose logging (set environment variable before running)
+LOG_LEVEL=debug ./resume-generator run -i config.yml
 
-# Check service health
-curl http://localhost:8080/api/v1/health
-
-# View container logs
-docker-compose logs api
-docker-compose logs frontend
+# Inspect generated debug artifacts
+ls -R output_directory/debug
 ```
 
 #### Common Commands Reference
@@ -639,11 +445,8 @@ just --list
 # Essential commands:
 just init          # Initialize project
 just build         # Build Docker images
-just dev           # Start development environment
 just generate      # Generate resume
 just validate      # Validate configuration
-just serve         # Start API server
-just frontend      # Start frontend
 just test          # Run tests
 just clean         # Clean outputs
 ```
@@ -652,9 +455,8 @@ just clean         # Clean outputs
 
 ## Additional Resources
 
-- **Examples**: Check `examples/` directory for sample configurations
-- **Templates**: Explore `assets/templates/` for template customization
-- **API Documentation**: Visit http://localhost:8080/docs when server is running
+- **Examples**: Check `assets/example_inputs/` for sample configurations
+- **Templates**: Explore `templates/` for template customization
 - **Contributing**: See contribution guidelines in the main README
 - **Issues**: Report bugs and feature requests on GitHub
 

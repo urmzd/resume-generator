@@ -5,12 +5,30 @@
 organization := "urmzd"
 version := env_var_or_default("VERSION", "latest")
 image_tag := organization + "/" + "resume-generator" + ":" + version
+cli_output := env_var_or_default("CLI_OUTPUT", "resume-generator")
+cli_binary := justfile_directory() + "/" + cli_output
+release_ldflags := env_var_or_default("GO_LDFLAGS", "-s -w")
 
 # Directories
 outputs_dir := "outputs"
 inputs_dir := "inputs"
-examples_dir := "examples"
-assets_dir := "assets"
+examples_dir := "assets/example_inputs"
+templates_dir := "templates"
+
+# Build the CLI binary for local development or release
+build-cli mode="dev":
+    @echo "Building CLI binary (mode={{mode}}) -> {{cli_output}}"
+    @mkdir -p "$(dirname {{cli_binary}})"
+    @if [ "{{mode}}" = "release" ]; then \
+        CGO_ENABLED=${CGO_ENABLED:-0} go build -trimpath -ldflags "{{release_ldflags}}" -o {{cli_output}} ./...; \
+    else \
+        go build -o {{cli_output}} ./...; \
+    fi
+
+# Run Go unit tests
+go-test pattern="./...":
+    @echo "Running Go tests: {{pattern}}"
+    go test {{pattern}}
 
 # Default recipe to display help
 default:
@@ -23,32 +41,35 @@ init:
     cp -r {{examples_dir}}/* {{inputs_dir}}/
 
 # Build the Docker image (multistage build with Go + TeX)
-build:
+docker-build:
     @echo "Building Docker image {{image_tag}}"
     docker build --tag {{image_tag}} .
 
 # Push the image to Docker Hub
-push: build
+push: docker-build
     @echo "Pushing image to Docker Hub"
     docker push {{image_tag}}
 
+# Build both the local CLI binary and Docker image
+build: build-cli docker-build
+    @echo "Built CLI binary ({{cli_output}}) and Docker image ({{image_tag}})"
 
 # Run the resume-generator inside Docker
-docker-run filename format="pdf":
+docker-run filename template="modern-html":
     @echo "Running resume-generator in Docker"
     docker run --rm \
       -v "{{justfile_directory()}}/{{inputs_dir}}:/inputs" \
       -v "{{justfile_directory()}}/{{outputs_dir}}:/outputs" \
-      -v "{{justfile_directory()}}/{{assets_dir}}:/assets" \
+      -v "{{justfile_directory()}}/{{templates_dir}}:/templates" \
       {{image_tag}} \
-      run -i /inputs/{{filename}} -o /outputs -f {{format}}
+      run -i /inputs/{{filename}} -o /outputs -t {{template}}
 
 # Exec an arbitrary command in the Docker container
 exec cmd:
     @echo "Executing in Docker container"
     docker run --rm -it \
       -v "{{justfile_directory()}}/{{inputs_dir}}:/inputs" \
-      -v "{{justfile_directory()}}/{{assets_dir}}:/assets" \
+      -v "{{justfile_directory()}}/{{templates_dir}}:/templates" \
       {{image_tag}} \
       {{cmd}}
 
@@ -58,53 +79,72 @@ shell:
     docker run --rm -it \
       -v "{{justfile_directory()}}/{{inputs_dir}}:/inputs" \
       -v "{{justfile_directory()}}/{{outputs_dir}}:/outputs" \
-      -v "{{justfile_directory()}}/{{assets_dir}}:/assets" \
+      -v "{{justfile_directory()}}/{{templates_dir}}:/templates" \
       --entrypoint /bin/sh \
       {{image_tag}}
 
 # Clean generated outputs & inputs
 clean:
-    @echo "Cleaning up {{inputs_dir}} and {{outputs_dir}}"
+    @echo "Cleaning up {{inputs_dir}}, {{outputs_dir}}, and {{cli_output}}"
     rm -rf {{inputs_dir}} {{outputs_dir}}
+    @rm -f {{cli_output}}
 
 # Run all examples through the pipeline
-examples: init
+examples: init docker-build
     @echo "Running all example resumes"
     #!/usr/bin/env bash
     for f in {{examples_dir}}/*; do \
         filename=$(basename "$f"); \
-        just docker-run "$filename" "pdf"; \
+        just docker-run "$filename"; \
     done
 
 # Build and run a specific example
-example filename: init build
-    just docker-run {{filename}} "pdf"
+example filename: init docker-build
+    just docker-run {{filename}}
 
 # Full build and test workflow
-test: build
+test: build-cli docker-build
+    @echo "Running Go unit tests"
+    just go-test
     just init
     just example "sample-enhanced.yml"
     @echo "Build and test completed successfully!"
 
 # Generate a resume using the CLI (local Go build)
-generate input_file output_file="resume" format="html" template="modern":
+generate input_file output_file="resume" template="modern-html":
     @echo "Generating resume from {{input_file}}"
-    go run main.go run -i {{input_file}} -o {{output_file}}.{{format}} -f {{format}} -t {{template}}
+    @if [ -x "{{cli_binary}}" ]; then \
+        "{{cli_binary}}" run -i {{input_file}} -o {{output_file}}.pdf -t {{template}}; \
+    else \
+        go run main.go run -i {{input_file}} -o {{output_file}}.pdf -t {{template}}; \
+    fi
 
 # Validate a resume configuration file
 validate input_file:
     @echo "Validating resume configuration: {{input_file}}"
-    go run main.go validate {{input_file}}
+    @if [ -x "{{cli_binary}}" ]; then \
+        "{{cli_binary}}" validate {{input_file}}; \
+    else \
+        go run main.go validate {{input_file}}; \
+    fi
 
 # Preview resume configuration (no compilation)
 preview input_file:
     @echo "Previewing resume configuration: {{input_file}}"
-    go run main.go preview {{input_file}}
+    @if [ -x "{{cli_binary}}" ]; then \
+        "{{cli_binary}}" preview {{input_file}}; \
+    else \
+        go run main.go preview {{input_file}}; \
+    fi
 
 # List available templates
 templates:
     @echo "Available templates:"
-    go run main.go templates list
+    @if [ -x "{{cli_binary}}" ]; then \
+        "{{cli_binary}}" templates list; \
+    else \
+        go run main.go templates list; \
+    fi
 
 # Install Go dependencies
 deps:

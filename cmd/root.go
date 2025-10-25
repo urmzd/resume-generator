@@ -8,7 +8,6 @@ var (
 	InputFile     string
 	OutputFile    string
 	TemplateFile  string
-	ClassesFolder string
 	KeepTex       bool
 	GeneratorType string
 	LaTeXEngine   string

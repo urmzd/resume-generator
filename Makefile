@@ -12,8 +12,9 @@ APP_IMAGE_TAG   := $(ORGANIZATION)/resume-generator:$(VERSION)
 # Directories
 OUTPUTS_DIR   := outputs
 INPUTS_DIR    := inputs
-EXAMPLES_DIR  := examples
-ASSETS_DIR    := assets
+EXAMPLES_DIR  := assets/example_inputs
+TEMPLATES_DIR := templates
+TEMPLATE_NAME ?= modern-html
 
 # ────────────────────────────────────────────────────────────────────────────────
 # Build the base Docker image (TeX tooling)
@@ -49,20 +50,19 @@ run:
 	docker run --rm \
 	  -v "$(CURDIR)/$(INPUTS_DIR):/inputs" \
 	  -v "$(CURDIR)/$(OUTPUTS_DIR):/outputs" \
-	  -v "$(CURDIR)/$(ASSETS_DIR):/assets" \
-	  $(APP_IMAGE_TAG) \
+	  -v "$(CURDIR)/$(TEMPLATES_DIR):/templates" \
+	  $(APP_IMAGE_TAG) run \
 	  -i /inputs/$(FILENAME) \
 	  -o /outputs/$(basename $(FILENAME)).pdf \
 	  $(KEEPTEX_FLAG) \
-	  -c /assets/classes \
-	  -t /assets/templates
+	  -t $(TEMPLATE_NAME)
 
 # Exec an arbitrary command in the image
 exec:
 	@echo "Executing in resume-generator container..."
 	docker run --rm -it \
 	  -v "$(CURDIR)/$(INPUTS_DIR):/inputs" \
-	  -v "$(CURDIR)/$(ASSETS_DIR):/assets" \
+	  -v "$(CURDIR)/$(TEMPLATES_DIR):/templates" \
 	  $(APP_IMAGE_TAG) \
 	  $(CMD)
 
@@ -72,7 +72,7 @@ shell:
 	docker run --rm -it \
 	  -v "$(CURDIR)/$(INPUTS_DIR):/inputs" \
 	  -v "$(CURDIR)/$(OUTPUTS_DIR):/outputs" \
-	  -v "$(CURDIR)/$(ASSETS_DIR):/assets" \
+	  -v "$(CURDIR)/$(TEMPLATES_DIR):/templates" \
 	  --entrypoint /bin/bash \
 	  $(APP_IMAGE_TAG)
 

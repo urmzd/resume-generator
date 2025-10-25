@@ -17,7 +17,6 @@ import (
 
 var (
 	OutputDir string
-	Formats   string
 )
 
 var (
@@ -30,9 +29,7 @@ func initRunCmd() {
 	runCmd.Flags().StringVarP(&OutputFile, "output", "o", "", "Path to the output file (e.g., ./resume.pdf, ~/Documents/resume.pdf)")
 	runCmd.Flags().StringVarP(&OutputDir, "output-dir", "", ".", "Path to the output directory (deprecated, use --output instead)")
 	runCmd.Flags().StringVarP(&TemplateName, "template", "t", "modern-html", "Template name (e.g., modern-html, base-latex)")
-	runCmd.Flags().StringVarP(&ClassesFolder, "classes", "c", "", "Path to LaTeX classes folder (defaults to assets/classes)")
 	runCmd.Flags().StringVarP(&LaTeXEngine, "latex-engine", "e", "", "LaTeX engine to use (xelatex, pdflatex, lualatex, latex). Auto-detects if not specified.")
-	runCmd.Flags().StringVarP(&Formats, "formats", "f", "pdf", "Output format: pdf (always PDF, template determines HTML vs LaTeX)")
 
 	runCmd.MarkFlagRequired("input")
 }
@@ -71,8 +68,14 @@ var runCmd = &cobra.Command{
 		// Generate using unified template system
 		generator := generators.NewGenerator(sugar)
 
+		// Resolve template metadata once to capture additional resources
+		tmpl, err := generators.LoadTemplate(TemplateName)
+		if err != nil {
+			sugar.Fatalf("Failed to load template: %v", err)
+		}
+
 		// Generate content using template
-		content, err := generator.Generate(TemplateName, resume)
+		content, err := generator.GenerateWithTemplate(tmpl, resume)
 		if err != nil {
 			sugar.Fatalf("Failed to generate resume: %v", err)
 		}
@@ -137,26 +140,22 @@ var runCmd = &cobra.Command{
 
 		pdfOutputPath := filepath.Join(runOutputDir, pdfFileName)
 
-		// Get template type to determine if we need compilation
-		tmplType, err := generators.GetTemplateType(TemplateName)
-		if err != nil {
-			sugar.Fatalf("Failed to get template type: %v", err)
-		}
+		templateDir := filepath.Dir(tmpl.Path)
 
-		if tmplType == generators.TemplateTypeLaTeX {
+		if tmpl.Type == generators.TemplateTypeLaTeX {
 			// Compile LaTeX to PDF
-			err = compileLaTeXToPDF(sugar, content, pdfOutputPath, debugDir)
+			err = compileLaTeXToPDF(sugar, content, pdfOutputPath, debugDir, templateDir)
 			if err != nil {
 				sugar.Fatalf("Failed to compile LaTeX to PDF: %v", err)
 			}
-		} else if tmplType == generators.TemplateTypeHTML {
+		} else if tmpl.Type == generators.TemplateTypeHTML {
 			// Compile HTML to PDF
 			err = compileHTMLToPDF(sugar, content, pdfOutputPath, debugDir)
 			if err != nil {
 				sugar.Fatalf("Failed to compile HTML to PDF: %v", err)
 			}
 		} else {
-			sugar.Fatalf("Unknown template type: %s", tmplType)
+			sugar.Fatalf("Unknown template type: %s", tmpl.Type)
 		}
 
 		sugar.Infof("Successfully generated resume PDF at %s", pdfOutputPath)
@@ -164,7 +163,7 @@ var runCmd = &cobra.Command{
 	},
 }
 
-// compileHTMLToPDF compiles HTML content to PDF using chromium/wkhtmltopdf
+// compileHTMLToPDF compiles HTML content to PDF using a Chromium-based browser
 func compileHTMLToPDF(logger *zap.SugaredLogger, htmlContent, outputPath, debugDir string) error {
 	baseName := strings.TrimSuffix(filepath.Base(outputPath), filepath.Ext(outputPath))
 	if baseName == "" {
@@ -181,24 +180,16 @@ func compileHTMLToPDF(logger *zap.SugaredLogger, htmlContent, outputPath, debugD
 }
 
 // compileLaTeXToPDF compiles LaTeX content to PDF using available LaTeX engines
-func compileLaTeXToPDF(logger *zap.SugaredLogger, latexContent, outputPath, debugDir string) error {
+func compileLaTeXToPDF(logger *zap.SugaredLogger, latexContent, outputPath, debugDir, templateDir string) error {
 	baseName := strings.TrimSuffix(filepath.Base(outputPath), filepath.Ext(outputPath))
 	if baseName == "" {
 		baseName = "resume"
 	}
 
-	// Resolve classes folder path
-	classesPath := ClassesFolder
-	if classesPath == "" {
-		// Default to assets/classes
-		classesPath = "assets/classes"
-	}
-	resolvedClassesPath, err := utils.ResolveAssetPath(classesPath)
-	if err != nil {
-		return fmt.Errorf("failed to resolve classes path: %w", err)
-	}
-	if !utils.DirExists(resolvedClassesPath) {
-		logger.Warnf("Classes directory not found at %s, LaTeX compilation may fail", resolvedClassesPath)
+	resolvedTemplateDir := filepath.Clean(templateDir)
+	if resolvedTemplateDir != "" && !utils.DirExists(resolvedTemplateDir) {
+		logger.Warnf("Template directory not found at %s, LaTeX compilation may fail", resolvedTemplateDir)
+		resolvedTemplateDir = ""
 	}
 
 	// Create compiler based on engine selection
@@ -221,7 +212,9 @@ func compileLaTeXToPDF(logger *zap.SugaredLogger, latexContent, outputPath, debu
 		compiler = autoCompiler
 	}
 
-	compiler.LoadClasses(resolvedClassesPath)
+	if resolvedTemplateDir != "" {
+		compiler.LoadClasses(resolvedTemplateDir)
+	}
 	compiler.AddOutputFolder(debugDir)
 
 	compiler.Compile(latexContent, baseName)

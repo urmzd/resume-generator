@@ -28,7 +28,8 @@ var templatesListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List available templates",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Available Resume Templates:\n")
+		fmt.Println("Available Resume Templates:")
+		fmt.Println()
 
 		// Use the new template system
 		templates, err := generators.ListTemplates()
@@ -38,7 +39,7 @@ var templatesListCmd = &cobra.Command{
 		}
 
 		if len(templates) == 0 {
-			fmt.Println("No templates found in assets/templates/")
+			fmt.Println("No templates found in templates/")
 			return
 		}
 
@@ -58,7 +59,14 @@ var templatesListCmd = &cobra.Command{
 		if len(htmlTemplates) > 0 {
 			fmt.Println("HTML Templates:")
 			for _, tmpl := range htmlTemplates {
-				fmt.Printf("  📄 %s\n", tmpl.Name)
+				name := tmpl.DisplayName
+				if name == "" {
+					name = tmpl.Name
+				}
+				fmt.Printf("  📄 %s (%s)\n", name, tmpl.Name)
+				if tmpl.Description != "" {
+					fmt.Printf("      %s\n", tmpl.Description)
+				}
 			}
 			fmt.Println()
 		}
@@ -67,7 +75,14 @@ var templatesListCmd = &cobra.Command{
 		if len(latexTemplates) > 0 {
 			fmt.Println("LaTeX Templates (PDF):")
 			for _, tmpl := range latexTemplates {
-				fmt.Printf("  📝 %s\n", tmpl.Name)
+				name := tmpl.DisplayName
+				if name == "" {
+					name = tmpl.Name
+				}
+				fmt.Printf("  📝 %s (%s)\n", name, tmpl.Name)
+				if tmpl.Description != "" {
+					fmt.Printf("      %s\n", tmpl.Description)
+				}
 			}
 			fmt.Println()
 		}
@@ -144,17 +159,20 @@ var latexEnginesCmd = &cobra.Command{
 	Short: "List available LaTeX engines on the system",
 	Long:  `List all LaTeX compilation engines available on your system (xelatex, pdflatex, lualatex, latex)`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Checking for LaTeX engines...\n")
+		fmt.Println("Checking for LaTeX engines...")
+		fmt.Println()
 
 		available := compilers.GetAvailableLaTeXEngines()
 
 		if len(available) == 0 {
 			fmt.Println("❌ No LaTeX engines found on your system.")
-			fmt.Println("\nTo install LaTeX, please use one of the following:")
+			fmt.Println()
+			fmt.Println("To install LaTeX, please use one of the following:")
 			fmt.Println("  - TeX Live:   https://www.tug.org/texlive/")
 			fmt.Println("  - MiKTeX:     https://miktex.org/")
 			fmt.Println("  - MacTeX:     https://www.tug.org/mactex/ (macOS)")
-			fmt.Println("\nOr use Docker which includes LaTeX:")
+			fmt.Println()
+			fmt.Println("Or use Docker which includes LaTeX:")
 			fmt.Println("  docker run --rm -v $(pwd):/work texlive/texlive")
 			return
 		}
@@ -170,10 +188,12 @@ var latexEnginesCmd = &cobra.Command{
 			}
 		}
 
-		fmt.Println("\nUsage:")
+		fmt.Println()
+		fmt.Println("Usage:")
 		fmt.Println("  # Use default engine (auto-detected)")
 		fmt.Println("  resume-generator run -i resume.yml -t base-latex")
-		fmt.Println("\n  # Specify a particular engine")
+		fmt.Println()
+		fmt.Println("  # Specify a particular engine")
 		fmt.Printf("  resume-generator run -i resume.yml -t base-latex --latex-engine %s\n", available[0])
 	},
 }

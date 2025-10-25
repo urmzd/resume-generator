@@ -68,32 +68,38 @@ var schemaListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List available schema formats",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Available Resume Formats:\n")
+		fmt.Println("Available Resume Formats:")
+		fmt.Println()
 
 		fmt.Println("📋 Legacy Format (YAML/JSON/TOML)")
 		fmt.Println("  - Traditional resume format")
 		fmt.Println("  - Simple structure with basic fields")
 		fmt.Println("  - Backward compatible")
-		fmt.Println("  - Generate schema: resume-generator schema generate -f legacy\n")
+		fmt.Println("  - Generate schema: resume-generator schema generate -f legacy")
+		fmt.Println()
 
 		fmt.Println("✨ Enhanced Format (v2.0)")
 		fmt.Println("  - Modern format with advanced features")
 		fmt.Println("  - Supports ordering, visibility controls, metrics")
 		fmt.Println("  - Template embedding and theming")
-		fmt.Println("  - Generate schema: resume-generator schema generate -f enhanced\n")
+		fmt.Println("  - Generate schema: resume-generator schema generate -f enhanced")
+		fmt.Println()
 
 		fmt.Println("🌐 JSON Resume Format")
 		fmt.Println("  - Community standard format (jsonresume.org)")
 		fmt.Println("  - Wide tool compatibility")
 		fmt.Println("  - Standard schema format")
-		fmt.Println("  - Generate schema: resume-generator schema generate -f json-resume\n")
+		fmt.Println("  - Generate schema: resume-generator schema generate -f json-resume")
+		fmt.Println()
 
 		fmt.Println("Usage:")
 		fmt.Println("  # Generate all schemas")
 		fmt.Println("  resume-generator schema generate")
-		fmt.Println("\n  # Generate specific format")
+		fmt.Println()
+		fmt.Println("  # Generate specific format")
 		fmt.Println("  resume-generator schema generate -f enhanced")
-		fmt.Println("\n  # Save to directory")
+		fmt.Println()
+		fmt.Println("  # Save to directory")
 		fmt.Println("  resume-generator schema generate -o ./schemas")
 	},
 }
@@ -323,11 +329,11 @@ func addSchemaExamples(schema *jsonschema.Schema, format string) {
 		schema.Examples = []interface{}{
 			map[string]interface{}{
 				"basics": map[string]interface{}{
-					"name":  "Richard Hendricks",
-					"label": "Programmer",
-					"email": "richard.hendricks@example.com",
-					"phone": "+1-555-123-4567",
-					"url":   "https://richardhendricks.example.com",
+					"name":    "Richard Hendricks",
+					"label":   "Programmer",
+					"email":   "richard.hendricks@example.com",
+					"phone":   "+1-555-123-4567",
+					"url":     "https://richardhendricks.example.com",
 					"summary": "Richard is a talented developer with a strong background in compression algorithms.",
 					"location": map[string]interface{}{
 						"city":        "San Francisco",

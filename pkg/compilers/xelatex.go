@@ -155,7 +155,11 @@ func (compiler *LaTeXCompiler) AddOutputFolder(folder string) {
 // and then runs the LaTeX compiler.
 func (compiler *LaTeXCompiler) Compile(resume string, resumeName string) string {
 	// Copy the class files to the output folder
-	copyDir(compiler.classes, compiler.outputFolder)
+	if compiler.classes != "" {
+		if err := copyDir(compiler.classes, compiler.outputFolder); err != nil {
+			compiler.logger.Warnf("Failed to copy LaTeX support files from %s: %v", compiler.classes, err)
+		}
+	}
 
 	// Create and write the LaTeX document
 	outputFilePath := filepath.Join(compiler.outputFolder, fmt.Sprintf("%s.tex", resumeName))

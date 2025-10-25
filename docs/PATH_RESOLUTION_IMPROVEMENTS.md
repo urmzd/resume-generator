@@ -39,14 +39,14 @@ Created a centralized path resolution utility with the following functions:
   - Creates parent directories if needed
   - Handles both file and directory paths
 
-- **`ResolveAssetPath(relativePath string)`**: Multi-location asset resolution
+- **`ResolveAssetPath(relativePath string)`**: Multi-location template/resource resolution
   - Tries path relative to current working directory
   - Tries path relative to executable directory
-  - Ensures assets work in development and deployed scenarios
+  - Ensures templates work in development and deployed scenarios
 
 - **`GetExecutableDir()`**: Gets executable directory
   - Resolves symlinks
-  - Useful for finding bundled assets
+  - Useful for finding bundled templates
 
 - **Helper functions**:
   - `EnsureDir()`: Creates directory if missing
@@ -59,7 +59,7 @@ New directory format: `{first}_{optional_middle}_{last}_{iso8601}/`
 
 Structure:
 - `resume.pdf` (or custom name when `--output` specifies a file) saved at the root of the run directory
-- `debug/` subfolder containing generated `.tex`, `.html`, `.log`, `.aux`, and copied class files
+- `debug/` subfolder containing generated `.tex`, `.html`, `.log`, `.aux`, and any LaTeX support files copied from the template
 
 Examples:
 - `john_doe_2025-10-25T13-45-30/resume.pdf`
@@ -80,10 +80,6 @@ Benefits:
   - If path is directory, creates a per-run subfolder with sanitized name + timestamp
   - Creates parent directories automatically
 
-- `-c, --classes <path>`: Custom LaTeX classes folder
-  - Defaults to `assets/classes`
-  - Resolves from multiple locations
-
 - `--output-dir <path>`: Deprecated but still supported for backwards compatibility
 
 **Examples:**
@@ -92,37 +88,34 @@ Benefits:
 ./resume-generator run -i resume.yml -o ~/Documents/my_resume.pdf
 
 # Output to directory (creates timestamped folder)
-./resume-generator run -i resume.yml -o examples/
-# Creates: examples/john_doe_2025-10-25T13-45-30/resume.pdf
-
-# Custom classes folder
-./resume-generator run -i resume.yml -c /custom/classes -t base-latex
+./resume-generator run -i assets/example_inputs/sample-enhanced.yml -o output/
+# Creates: output/john_doe_2025-10-25T13-45-30/resume.pdf
 
 # Relative paths
-./resume-generator run -i examples/resume.yml -o output/resume.pdf
+./resume-generator run -i assets/example_inputs/sample-enhanced.yml -o output/resume.pdf
 ```
 
 ### 4. Path Resolution in All Commands
 
 All commands now properly resolve paths:
 
-- **`run`**: Input file, output file, classes folder
+- **`run`**: Input file and output path handling
 - **`preview`**: Input file with validation
 - **`validate`**: Input file with early existence check
 - **`templates validate`**: Template file resolution
 
-### 5. Asset Path Resolution
+### 5. Template Path Resolution
 
-Templates and assets are now found using intelligent multi-location search:
+Templates are now found using intelligent multi-location search:
 
-1. **Working Directory**: `./assets/templates/`
-2. **Executable Directory**: `{exe_dir}/assets/templates/`
+1. **Working Directory**: `./templates/`
+2. **Executable Directory**: `{exe_dir}/templates/`
 3. **Fallback**: Returns best-effort path for error reporting
 
 This allows the tool to:
 - Work in development (from repo root)
 - Work when installed (from any directory)
-- Work in containers (with proper asset mounting)
+- Work in containers (with template directories mounted)
 
 ## Changes by File
 
@@ -138,11 +131,11 @@ This allows the tool to:
 #### `cmd/run.go`
 - Added path utilities import
 - Added `time` import for timestamps
-- Updated CLI flags to use `OutputFile` and `ClassesFolder`
+- Updated CLI flags to use `OutputFile`
 - Added input path resolution and validation
 - Added smart output path determination
 - Added per-run output directory creation with timestamped naming
-- Updated LaTeX compilation to use custom classes path and preserve debug artifacts
+- Updated LaTeX compilation to copy template-local support files and preserve debug artifacts
 
 #### `cmd/preview.go`
 - Added path utilities import
@@ -168,7 +161,7 @@ This allows the tool to:
 
 1. **Relative Paths**
    ```bash
-   ./resume-generator run -i examples/sample.yml -o output.pdf
+   ./resume-generator run -i assets/example_inputs/sample-enhanced.yml -o output.pdf
    ```
 
 2. **Absolute Paths**
@@ -183,8 +176,8 @@ This allows the tool to:
 
 4. **Directory as Output**
    ```bash
-   ./resume-generator run -i resume.yml -o examples/
-   # Creates: examples/john_doe_2025-10-25T13-45-30/resume.pdf
+   ./resume-generator run -i assets/example_inputs/sample-enhanced.yml -o output/
+   # Creates: output/john_doe_2025-10-25T13-45-30/resume.pdf
    ```
 
 5. **Different Working Directories**
@@ -192,11 +185,6 @@ This allows the tool to:
    cd /tmp
    /path/to/resume-generator templates list
    # Still finds templates correctly
-   ```
-
-6. **Custom Classes Folder**
-   ```bash
-   ./resume-generator run -i resume.yml -c /custom/classes -t base-latex
    ```
 
 ### Verified Functionality
@@ -209,7 +197,7 @@ This allows the tool to:
 ✅ Home directory expansion works
 ✅ Per-run workspace creation works
 ✅ Output directory creation works
-✅ Custom classes folder resolution works
+✅ Template-local LaTeX support files copied automatically
 
 ## Backwards Compatibility
 
@@ -241,8 +229,8 @@ All changes are backwards compatible:
 ./resume-generator run -i resume.yml -o ~/Documents/my_resume.pdf
 
 # Custom output directory with timestamped workspace
-./resume-generator run -i resume.yml -o examples/
-# Creates: examples/john_doe_2025-10-25T13-45-30/resume.pdf
+./resume-generator run -i assets/example_inputs/sample-enhanced.yml -o output/
+# Creates: output/john_doe_2025-10-25T13-45-30/resume.pdf
 ```
 
 ### For Developers
@@ -250,10 +238,10 @@ All changes are backwards compatible:
 **Resolving paths in code:**
 ```go
 // Old way (don't do this)
-filepath.Join("assets", "templates", name)
+filepath.Join("templates", name)
 
 // New way
-utils.ResolveAssetPath(filepath.Join("assets", "templates", name))
+utils.ResolveAssetPath(filepath.Join("templates", name))
 ```
 
 **Validating input files:**
@@ -272,10 +260,10 @@ data, err := os.ReadFile(resolved)
 
 Potential improvements for future versions:
 
-1. **Environment Variable Support**: `RESUME_ASSETS_DIR`, `RESUME_OUTPUT_DIR`
+1. **Environment Variable Support**: `RESUME_TEMPLATES_DIR`, `RESUME_OUTPUT_DIR`
 2. **Config File**: `.resume-generator.yaml` for default paths
 3. **Template Discovery**: Search multiple template directories
-4. **Symlink Resolution**: Better handling of symlinked assets
+4. **Symlink Resolution**: Better handling of symlinked template directories
 5. **URL Support**: Download templates from URLs
 6. **Relative Output**: Output relative to input file location
 
@@ -286,7 +274,7 @@ These improvements make the resume-generator CLI tool significantly more flexibl
 - Use any path format they prefer
 - Run the tool from any directory
 - Get descriptive output filenames automatically
-- Customize asset locations
+- Customize template locations
 - Trust that paths will be validated early
 
 The changes maintain full backwards compatibility while adding powerful new capabilities for path handling.

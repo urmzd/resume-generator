@@ -1,0 +1,9 @@
+name: modern-html
+display_name: Modern HTML
+description: Responsive HTML resume template with balanced typography and spacing.
+format: html
+version: "1.0.0"
+author: Resume Generator Team
+tags:
+  - html
+  - modern

@@ -232,7 +232,7 @@ from langchain.output_parsers import StructuredOutputParser
 from langchain.prompts import PromptTemplate
 
 # Load schema
-with open('examples/schemas/resume-legacy.schema.json') as f:
+with open('assets/schema/resume-legacy.schema.json') as f:
     schema = json.load(f)
 
 # Create structured parser
@@ -257,7 +257,7 @@ import openai
 import json
 
 # Load schema
-with open('examples/schemas/resume-legacy.schema.json') as f:
+with open('assets/schema/resume-legacy.schema.json') as f:
     schema = json.load(f)
 
 response = openai.ChatCompletion.create(
@@ -285,7 +285,7 @@ import json
 
 client = anthropic.Anthropic()
 
-with open('examples/schemas/resume-legacy.schema.json') as f:
+with open('assets/schema/resume-legacy.schema.json') as f:
     schema = json.load(f)
 
 response = client.messages.create(
@@ -315,7 +315,7 @@ import yaml
 from jsonschema import validate, ValidationError
 
 # Load schema
-with open('examples/schemas/resume-legacy.schema.json') as f:
+with open('assets/schema/resume-legacy.schema.json') as f:
     schema = json.load(f)
 
 # Load resume
@@ -340,7 +340,7 @@ const yaml = require('js-yaml');
 const ajv = new Ajv();
 
 // Load schema
-const schema = JSON.parse(fs.readFileSync('examples/schemas/resume-legacy.schema.json'));
+const schema = JSON.parse(fs.readFileSync('assets/schema/resume-legacy.schema.json'));
 
 // Load resume
 const resume = yaml.load(fs.readFileSync('resume.yml'));
@@ -373,7 +373,7 @@ if (valid) {
 2. Add to your `resume.yml`:
 
 ```yaml
-# yaml-language-server: $schema=./examples/schemas/resume-legacy.schema.json
+# yaml-language-server: $schema=./assets/schema/resume-legacy.schema.json
 
 contact:
   name: John Doe  # Now with autocomplete!
@@ -384,7 +384,7 @@ contact:
 ```json
 {
   "yaml.schemas": {
-    "./examples/schemas/resume-legacy.schema.json": ["resume*.yml", "resume*.yaml"]
+    "./assets/schema/resume-legacy.schema.json": ["resume*.yml", "resume*.yaml"]
   }
 }
 ```
@@ -394,7 +394,7 @@ contact:
 1. Open Settings → Languages & Frameworks → Schemas and DTDs → JSON Schema Mappings
 
 2. Add mapping:
-   - Schema file: `examples/schemas/resume-legacy.schema.json`
+   - Schema file: `assets/schema/resume-legacy.schema.json`
    - File pattern: `resume*.yml`
 
 ## Advanced LLM Prompting Techniques
@@ -594,7 +594,7 @@ print("✓ Resume generated: generated-resume.pdf")
 
 - [JSON Schema Documentation](https://json-schema.org/)
 - [JSON Resume Standard](https://jsonresume.org/)
-- [Resume Generator Examples](./examples/)
+- [Resume Generator Examples](./assets/example_inputs/)
 - [Template Documentation](./README.md#templates)
 
 ## Support

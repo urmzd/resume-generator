@@ -21,7 +21,7 @@ var previewCmd = &cobra.Command{
 	Long: `Preview command loads and validates a resume configuration file,
 then displays a summary of the contents without generating any output files.
 This is useful for quickly checking if your configuration is valid.`,
-	Args:  cobra.ExactArgs(1),
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		logger, _ := zap.NewProduction()
 		sugar := logger.Sugar()
@@ -54,7 +54,8 @@ This is useful for quickly checking if your configuration is valid.`,
 		// Display preview
 		fmt.Println("┌─────────────────────────────────────────────┐")
 		fmt.Println("│         Resume Configuration Preview        │")
-		fmt.Println("└─────────────────────────────────────────────┘\n")
+		fmt.Println("└─────────────────────────────────────────────┘")
+		fmt.Println()
 
 		fmt.Printf("Format Type: %s\n", inputData.GetFormat())
 		fmt.Printf("Version: %s\n\n", resume.Meta.Version)
@@ -143,7 +144,8 @@ This is useful for quickly checking if your configuration is valid.`,
 
 		// Offer to show full JSON
 		fmt.Println("✓ Configuration is valid!")
-		fmt.Println("\nTo see the full configuration in JSON format, add --json flag")
+		fmt.Println()
+		fmt.Println("To see the full configuration in JSON format, add --json flag")
 		fmt.Println("To generate output, use: resume-generator run -i", filePath)
 
 		// If verbose or json flag is set, show full JSON (we'll add this flag later if needed)
