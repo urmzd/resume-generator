@@ -20,9 +20,9 @@ build-cli mode="dev":
     @echo "Building CLI binary (mode={{mode}}) -> {{cli_output}}"
     @mkdir -p "$(dirname {{cli_binary}})"
     @if [ "{{mode}}" = "release" ]; then \
-        CGO_ENABLED=${CGO_ENABLED:-0} go build -trimpath -ldflags "{{release_ldflags}}" -o {{cli_output}} ./...; \
+        CGO_ENABLED=${CGO_ENABLED:-0} go build -trimpath -ldflags "{{release_ldflags}}" -o {{cli_output}} .; \
     else \
-        go build -o {{cli_output}} ./...; \
+        go build -o {{cli_output}} .; \
     fi
 
 # Run Go unit tests
