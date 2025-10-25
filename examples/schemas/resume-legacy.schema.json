@@ -1,0 +1,332 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/urmzd/resume-generator/pkg/definition/resume",
+  "properties": {
+    "Contact": {
+      "properties": {
+        "Name": {
+          "type": "string"
+        },
+        "Email": {
+          "type": "string"
+        },
+        "Phone": {
+          "type": "string"
+        },
+        "Links": {
+          "items": {
+            "properties": {
+              "Text": {
+                "type": "string"
+              },
+              "Ref": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "Text",
+              "Ref"
+            ]
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "Name",
+        "Email",
+        "Phone",
+        "Links"
+      ]
+    },
+    "Skills": {
+      "items": {
+        "properties": {
+          "Category": {
+            "type": "string"
+          },
+          "Value": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "Category",
+          "Value"
+        ]
+      },
+      "type": "array"
+    },
+    "Experience": {
+      "items": {
+        "properties": {
+          "company": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "achievements": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "dates": {
+            "properties": {
+              "Start": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "End": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "Start",
+              "End"
+            ]
+          },
+          "location": {
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "postalCode": {
+                "type": "string"
+              },
+              "city": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "country": {
+                "type": "string"
+              },
+              "countryCode": {
+                "type": "string"
+              },
+              "region": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "city"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "company",
+          "title",
+          "dates"
+        ]
+      },
+      "type": "array"
+    },
+    "Projects": {
+      "items": {
+        "properties": {
+          "Name": {
+            "type": "string"
+          },
+          "Language": {
+            "type": "string"
+          },
+          "Description": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "Link": {
+            "properties": {
+              "Text": {
+                "type": "string"
+              },
+              "Ref": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "Text",
+              "Ref"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "Name",
+          "Language",
+          "Description",
+          "Link"
+        ]
+      },
+      "type": "array"
+    },
+    "Education": {
+      "items": {
+        "properties": {
+          "School": {
+            "type": "string"
+          },
+          "Degree": {
+            "type": "string"
+          },
+          "Suffixes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "Description": {
+            "items": {
+              "properties": {
+                "Category": {
+                  "type": "string"
+                },
+                "Value": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "Category",
+                "Value"
+              ]
+            },
+            "type": "array"
+          },
+          "Location": {
+            "properties": {
+              "address": {
+                "type": "string"
+              },
+              "postalCode": {
+                "type": "string"
+              },
+              "city": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "country": {
+                "type": "string"
+              },
+              "countryCode": {
+                "type": "string"
+              },
+              "region": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "city"
+            ]
+          },
+          "Dates": {
+            "properties": {
+              "Start": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "End": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "Start",
+              "End"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "School",
+          "Degree",
+          "Suffixes",
+          "Description",
+          "Location",
+          "Dates"
+        ]
+      },
+      "type": "array"
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "Contact",
+    "Skills",
+    "Experience",
+    "Projects",
+    "Education"
+  ],
+  "title": "Resume legacy Format",
+  "description": "Traditional resume format with simple structure. Supports contact information,\nexperience, education, skills, and projects. Compatible with YAML, JSON, and TOML.\n\nUse this format for:\n- Simple, straightforward resumes\n- Backward compatibility\n- Quick resume generation\n\nFields support:\n- Contact: name, email, phone, links\n- Experience: company, title, achievements/description, dates, location\n- Education: school, degree, suffixes, details, dates\n- Skills: category-value pairs\n- Projects: name, language, description, link",
+  "examples": [
+    {
+      "contact": {
+        "email": "john.doe@example.com",
+        "links": [
+          {
+            "link": "github.com/johndoe"
+          },
+          {
+            "link": "linkedin.com/in/johndoe"
+          }
+        ],
+        "name": "John Doe",
+        "phone": "+1-555-123-4567"
+      },
+      "experience": [
+        {
+          "achievements": [
+            "Developed microservices handling 1M+ requests/day",
+            "Reduced API latency by 40% through optimization"
+          ],
+          "company": "Tech Corp",
+          "dates": {
+            "end": "2023-12-31",
+            "start": "2020-01-01"
+          },
+          "title": "Software Engineer"
+        }
+      ],
+      "skills": [
+        {
+          "category": "Languages",
+          "value": "Python, Go, JavaScript, TypeScript"
+        }
+      ]
+    }
+  ]
+}

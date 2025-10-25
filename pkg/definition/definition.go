@@ -44,16 +44,22 @@ type Link struct {
 }
 
 type Location struct {
-	City  string
-	State string
+	Address     string `json:"address,omitempty" yaml:"address,omitempty" toml:"address,omitempty"`
+	PostalCode  string `json:"postalCode,omitempty" yaml:"postalCode,omitempty" toml:"postalCode,omitempty"`
+	City        string `json:"city" yaml:"city" toml:"city"`
+	State       string `json:"state,omitempty" yaml:"state,omitempty" toml:"state,omitempty"`
+	Country     string `json:"country,omitempty" yaml:"country,omitempty" toml:"country,omitempty"`
+	CountryCode string `json:"countryCode,omitempty" yaml:"countryCode,omitempty" toml:"countryCode,omitempty"`
+	Region      string `json:"region,omitempty" yaml:"region,omitempty" toml:"region,omitempty"`
 }
 
 type Experience struct {
-	Company     string
-	Title       string
-	Description []string
-	Dates       DateRange
-	Location    *Location
+	Company      string    `yaml:"company" json:"company" toml:"company"`
+	Title        string    `yaml:"title" json:"title" toml:"title"`
+	Description  []string  `yaml:"description,omitempty" json:"description,omitempty" toml:"description,omitempty"`
+	Achievements []string  `yaml:"achievements,omitempty" json:"achievements,omitempty" toml:"achievements,omitempty"`
+	Dates        DateRange `yaml:"dates" json:"dates" toml:"dates"`
+	Location     *Location `yaml:"location,omitempty" json:"location,omitempty" toml:"location,omitempty"`
 }
 
 type Project struct {

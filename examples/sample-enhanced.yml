@@ -1,0 +1,280 @@
+meta:
+  version: "2.0"
+  templates:
+    html: ""
+    css: ""
+  output:
+    formats: ["html"]
+    theme: "modern"
+
+contact:
+  order: 1
+  name: "John Doe"
+  title: "Senior Software Engineer"
+  email: "john.doe@example.com"
+  phone: "+1 (555) 123-4567"
+  website: "https://johndoe.dev"
+  location:
+    city: "San Francisco"
+    state: "CA"
+    postalCode: "94102"
+    country: "USA"
+  visibility:
+    showEmail: true
+    showPhone: true
+    showLocation: true
+    showSummary: true
+  summary: "Experienced software engineer with 8+ years developing scalable web applications and leading engineering teams. Passionate about clean code, system architecture, and mentoring junior developers."
+  links:
+    - order: 1
+      type: "github"
+      text: "github.com/johndoe"
+      url: "https://github.com/johndoe"
+    - order: 2
+      type: "linkedin"
+      text: "linkedin.com/in/johndoe"
+      url: "https://linkedin.com/in/johndoe"
+
+skills:
+  order: 2
+  title: "Technical Skills"
+  categories:
+    - name: "Programming Languages"
+      order: 1
+      items:
+        - name: "JavaScript/TypeScript"
+          level: "Advanced"
+          yearsOfExperience: 6
+        - name: "Python"
+          level: "Advanced"
+          yearsOfExperience: 5
+        - name: "Go"
+          level: "Intermediate"
+          yearsOfExperience: 3
+        - name: "Java"
+          level: "Intermediate"
+          yearsOfExperience: 4
+    - name: "Frontend Technologies"
+      order: 2
+      items:
+        - name: "React"
+          level: "Advanced"
+          yearsOfExperience: 5
+        - name: "Next.js"
+          level: "Advanced"
+          yearsOfExperience: 3
+        - name: "Vue.js"
+          level: "Intermediate"
+          yearsOfExperience: 2
+        - name: "HTML/CSS"
+          level: "Advanced"
+          yearsOfExperience: 8
+    - name: "Backend Technologies"
+      order: 3
+      items:
+        - name: "Node.js"
+          level: "Advanced"
+          yearsOfExperience: 5
+        - name: "Express.js"
+          level: "Advanced"
+          yearsOfExperience: 4
+        - name: "Django"
+          level: "Intermediate"
+          yearsOfExperience: 3
+        - name: "PostgreSQL"
+          level: "Advanced"
+          yearsOfExperience: 6
+        - name: "Redis"
+          level: "Intermediate"
+          yearsOfExperience: 3
+    - name: "Cloud & DevOps"
+      order: 4
+      items:
+        - name: "AWS"
+          level: "Advanced"
+          yearsOfExperience: 4
+        - name: "Docker"
+          level: "Advanced"
+          yearsOfExperience: 5
+        - name: "Kubernetes"
+          level: "Intermediate"
+          yearsOfExperience: 2
+        - name: "CI/CD"
+          level: "Advanced"
+          yearsOfExperience: 5
+
+experience:
+  order: 3
+  title: "Professional Experience"
+  positions:
+    - order: 1
+      company: "TechCorp Inc."
+      title: "Senior Software Engineer"
+      location:
+        city: "San Francisco"
+        state: "CA"
+      dates:
+        start: "2021-03-15T00:00:00Z"
+        end: null
+      employment_type: "Full-time"
+      description:
+        - "Led development of microservices architecture serving 10M+ users, resulting in 40% improvement in system performance"
+        - "Architected and implemented real-time data processing pipeline using Apache Kafka and Redis"
+        - "Mentored 5 junior engineers and conducted technical interviews for engineering candidates"
+        - "Collaborated with product and design teams to deliver 15+ major features on schedule"
+        - "Reduced deployment time by 60% through implementation of automated CI/CD pipelines"
+      technologies:
+        - "React"
+        - "Node.js"
+        - "PostgreSQL"
+        - "AWS"
+        - "Docker"
+        - "Kubernetes"
+      highlights:
+        - "Promoted to Senior Engineer after 18 months"
+        - "Led team of 8 engineers on critical product launch"
+        - "Received 'Innovation Award' for implementing ML-powered recommendations"
+
+    - order: 2
+      company: "StartupXYZ"
+      title: "Full Stack Developer"
+      location:
+        city: "Mountain View"
+        state: "CA"
+      dates:
+        start: "2019-01-10T00:00:00Z"
+        end: "2021-03-10T00:00:00Z"
+      employment_type: "Full-time"
+      description:
+        - "Built entire web application from scratch using React, Node.js, and PostgreSQL"
+        - "Implemented authentication system with OAuth2 and JWT tokens"
+        - "Designed and developed RESTful APIs consumed by mobile and web clients"
+        - "Set up monitoring and logging infrastructure using ELK stack"
+        - "Contributed to scaling the platform from 1K to 100K active users"
+      technologies:
+        - "React"
+        - "Node.js"
+        - "Express.js"
+        - "PostgreSQL"
+        - "MongoDB"
+        - "AWS"
+      highlights:
+        - "Employee #5 at successful startup (acquired by TechCorp)"
+        - "Led frontend architecture decisions"
+
+    - order: 3
+      company: "MegaCorp Solutions"
+      title: "Software Developer"
+      location:
+        city: "Seattle"
+        state: "WA"
+      dates:
+        start: "2017-06-01T00:00:00Z"
+        end: "2018-12-20T00:00:00Z"
+      employment_type: "Full-time"
+      description:
+        - "Developed enterprise web applications using Java Spring Boot and Angular"
+        - "Implemented automated testing suites with 90%+ code coverage"
+        - "Collaborated with QA team to identify and resolve critical bugs"
+        - "Participated in agile development processes and sprint planning"
+      technologies:
+        - "Java"
+        - "Spring Boot"
+        - "Angular"
+        - "MySQL"
+        - "Jenkins"
+
+education:
+  order: 4
+  title: "Education"
+  institutions:
+    - order: 1
+      institution: "University of California, Berkeley"
+      degree: "Bachelor of Science in Computer Science"
+      location:
+        city: "Berkeley"
+        state: "CA"
+      dates:
+        start: "2013-08-15T00:00:00Z"
+        end: "2017-05-15T00:00:00Z"
+      gpa: "3.8"
+      maxGPA: "4.0"
+      honors:
+        - "Magna Cum Laude"
+        - "Dean's List (6 semesters)"
+      description:
+        - category: "Relevant Coursework"
+          value: "Data Structures, Algorithms, Database Systems, Computer Networks, Machine Learning"
+        - category: "Senior Project"
+          value: "Built a distributed task scheduling system using Go and etcd"
+
+projects:
+  order: 5
+  title: "Notable Projects"
+  projects:
+    - order: 1
+      name: "Resume Generator"
+      category: "Open Source"
+      dates:
+        start: "2023-01-01T00:00:00Z"
+        end: null
+      description:
+        - "CLI tool and web application for generating professional resumes from YAML configurations"
+        - "Supports multiple output formats (HTML, PDF) with customizable templates"
+        - "Built with Go, React, and Docker for cross-platform deployment"
+        - "Integrated with GitHub Actions for automated testing and releases"
+      technologies:
+        - "Go"
+        - "React"
+        - "Docker"
+        - "GitHub Actions"
+      links:
+        - order: 1
+          type: "github"
+          text: "View Source"
+          url: "https://github.com/johndoe/resume-generator"
+        - order: 2
+          type: "website"
+          text: "Live Demo"
+          url: "https://resume.johndoe.dev"
+
+    - order: 2
+      name: "E-commerce Analytics Dashboard"
+      category: "Personal"
+      dates:
+        start: "2022-06-01T00:00:00Z"
+        end: "2022-08-15T00:00:00Z"
+      description:
+        - "Real-time analytics dashboard for e-commerce metrics visualization"
+        - "Processes 1M+ events per day with sub-second query response times"
+        - "Features interactive charts, customizable filters, and export capabilities"
+      technologies:
+        - "React"
+        - "D3.js"
+        - "Python"
+        - "ClickHouse"
+        - "Redis"
+      links:
+        - order: 1
+          type: "github"
+          text: "View Source"
+          url: "https://github.com/johndoe/analytics-dashboard"
+
+certifications:
+  order: 6
+  title: "Certifications"
+  certifications:
+    - order: 1
+      name: "AWS Certified Solutions Architect - Professional"
+      issuer: "Amazon Web Services"
+      issueDate: "2022-03-15T00:00:00Z"
+      expirationDate: "2025-03-15T00:00:00Z"
+      credentialId: "AWS-CSAP-12345"
+      verificationUrl: "https://aws.amazon.com/verification"
+
+    - order: 2
+      name: "Certified Kubernetes Administrator (CKA)"
+      issuer: "Cloud Native Computing Foundation"
+      issueDate: "2021-11-20T00:00:00Z"
+      expirationDate: "2024-11-20T00:00:00Z"
+      credentialId: "CKA-67890"
