@@ -2,60 +2,133 @@
 
 ## Introduction
 
-Generate Resumes is a powerful tool designed to create elegant $\LaTeX$ resumes from a single source file using a simple command. This tool leverages the flexibility of $\LaTeX$ to produce professionally styled resumes, making it an ideal solution for anyone looking to streamline their resume creation process.
+Resume Generator is a comprehensive platform designed to create elegant resumes from structured configuration files. This modern tool supports multiple output formats, provides a web-based interface, and offers both CLI and REST API access for maximum flexibility.
 
 ## Features
 
-- **Single Source**: Generate your resume from a structured file like TOML, YAML, or JSON.
-- **$\LaTeX$ Styling**: Benefit from the typographical quality of $\LaTeX$ for professional-looking resumes.
-- **Customization**: Easy to customize templates and styles to fit personal or industry-specific needs.
-- **Docker Support**: Containerized for easy and consistent usage across different environments.
-- **Automated Workflow**: Utilizes `make` commands for a simplified build and run process.
+### Core Capabilities
+- **Multiple Output Formats**: Generate resumes in PDF (LaTeX), HTML, and other formats
+- **Enhanced Configuration**: Support for YAML, JSON, and TOML with advanced ordering and template embedding
+- **Web Interface**: Next.js-based frontend for easy resume generation and preview
+- **REST API**: Full-featured API for programmatic resume generation
+- **Template System**: Flexible template system supporting both LaTeX and HTML output
+
+### Technical Features
+- **Docker Optimization**: Containerized environment with optimized build process
+- **CLI Tools**: Enhanced command-line interface with validation, preview, and generation commands
+- **JSON Resume Schema**: Full compatibility with the JSON Resume standard
+- **Responsive Design**: Web interface works seamlessly on desktop and mobile devices
+- **Real-time Preview**: Live preview of generated resumes in the web interface
 
 ## Prerequisites
 
-Before you start using the application, ensure you have the following installed:
-- Docker
-- GNU Make
+### For Docker-based Usage
+- Docker and Docker Compose
+- [just](https://github.com/casey/just) command runner
 
-These dependencies are crucial for running the tool in a containerized environment and using the automated workflow provided by the `make` commands.
+### For Local Development
+- Go 1.21+ (for API and CLI development)
+- Node.js 18+ and npm (for frontend development)
+- Docker (for containerized builds)
 
 ## Getting Started
 
-1. **Clone the Repository**
-   
-   Clone this repository to your local machine to get started with Generate Resumes.
+### Quick Start with Docker Compose
 
+1. **Clone the Repository**
    ```bash
    git clone https://github.com/urmzd/resume-generator.git
    cd resume-generator
    ```
 
-2. **Initialization**
-
-   Initialize the project, which sets up necessary directories and copies example files.
-
+2. **Start the Full Platform**
    ```bash
-   make init
+   docker-compose up
+   ```
+   This starts both the API server (port 8080) and web frontend (port 3000).
+
+3. **Access the Web Interface**
+   Open your browser and navigate to `http://localhost:3000`
+
+### Development Setup
+
+1. **Initialize the Project**
+   ```bash
+   just init
+   just deps
    ```
 
-3. **Build the Docker Image**
-
-   Compile the source code and build the Docker image.
-
+2. **Start Development Environment**
    ```bash
-   make build
+   just dev
+   ```
+   This runs both the API server and frontend in development mode.
+
+3. **Frontend Development Only**
+   ```bash
+   just frontend-install
+   just frontend
    ```
 
-4. **Run the Application**
+### CLI Usage
 
-   Generate a resume from a specified source file in the input folder (e.g. `example.yml`).
-
+1. **Build the Application**
    ```bash
-   make run FILENAME=example.yml
+   just build
    ```
 
-   This will output the generated resume in the specified output directory.
+2. **Generate Resume (Enhanced CLI)**
+   ```bash
+   # Generate HTML resume with custom output path
+   ./resume-generator run -i examples/sample-enhanced.yml -o examples/output.pdf -t modern-html
+
+   # Generate with default filename (first_last_resume_timestamp.pdf)
+   ./resume-generator run -i examples/sample-enhanced.yml -t modern-html
+
+   # Generate LaTeX PDF
+   ./resume-generator run -i examples/sample-enhanced.yml -o ~/Documents/my_resume.pdf -t base-latex
+
+   # Validate configuration
+   ./resume-generator validate examples/sample-enhanced.yml
+
+   # Preview without generation
+   ./resume-generator preview examples/sample-enhanced.yml
+
+   # List available templates
+   ./resume-generator templates list
+   ```
+
+3. **Path Resolution**
+
+   The CLI now supports flexible path resolution:
+   - **Relative paths**: `./examples/resume.yml`, `../data/resume.yml`
+   - **Absolute paths**: `/Users/name/Documents/resume.yml`
+   - **Home directory**: `~/Documents/resume.yml`
+   - **Custom output locations**: Specify any file path for output
+  - **Directory output**: Provide a directory, and a timestamped workspace will be created (with PDF + debug artifacts)
+
+   Examples:
+   ```bash
+   # Relative input, custom output
+   ./resume-generator run -i examples/sample.yml -o output/my_resume.pdf
+
+   # Absolute paths
+   ./resume-generator run -i /path/to/resume.yml -o /path/to/output.pdf
+
+   # Home directory paths
+   ./resume-generator run -i ~/resumes/resume.yml -o ~/Documents/resume.pdf
+
+   # Output to directory (creates timestamped folder)
+   ./resume-generator run -i resume.yml -o ~/Documents/
+   ```
+
+   Each run results in a directory named `first[_middle]_last_<timestamp>/` containing the generated `resume.pdf` (or your custom filename) along with a `debug/` subfolder that preserves the rendered `.tex`/`.html`, `.log`, `.aux`, and supporting class files.
+
+4. **Custom Asset Locations**
+   ```bash
+   # Custom LaTeX classes folder
+   ./resume-generator run -i resume.yml -c /path/to/classes -t base-latex
+   ```
 
 ## Showcase
 
@@ -67,6 +140,94 @@ Here are some examples of resumes generated with our tool:
 
 A clean, professional layout suitable for various industries.
 
+## Generators and Templates
+
+This tool supports different generators and templates to customize your resume.
+
+## API Usage
+
+The resume generator provides a REST API for programmatic access:
+
+### Start API Server
+```bash
+just serve 8080
+```
+
+### API Endpoints
+
+- **POST** `/api/v1/generate` - Generate resume from configuration
+- **GET** `/api/v1/health` - Health check
+- **GET** `/api/v1/formats` - List available output formats
+- **GET** `/api/v1/templates` - List available templates
+
+### Example API Usage
+```bash
+# Test all endpoints
+just api-test
+
+# Generate resume via API
+curl -X POST http://localhost:8080/api/v1/generate \
+  -F "config=@examples/sample-enhanced.yml" \
+  -F "format=html" \
+  -F "template=modern"
+```
+
+## Configuration Formats
+
+### Enhanced Configuration (v2.0)
+Supports advanced features like ordering, template embedding, and multiple output formats:
+
+```yaml
+meta:
+  version: "2.0"
+  output:
+    formats: ["pdf", "html"]
+    theme: "modern"
+
+contact:
+  order: 1
+  name: "John Doe"
+  email: "john@example.com"
+
+skills:
+  order: 2
+  categories:
+    - name: "Programming Languages"
+      order: 1
+      items: ["Python", "Go", "JavaScript"]
+
+experience:
+  order: 3
+  positions:
+    - company: "Tech Corp"
+      order: 1
+      title: "Software Engineer"
+      # ... rest of experience
+```
+
+### Legacy Configuration
+Still supports original YAML, JSON, and TOML formats for backward compatibility.
+
+### Generators and Templates
+
+#### Generators
+- `base`: Default generator with clean layout
+- `json-resume`: [JSON Resume](https://jsonresume.org/) schema support
+- `html`: Modern HTML generator with responsive design
+
+#### Templates
+- **PDF Templates**: LaTeX-based templates in `assets/templates/`
+- **HTML Templates**: Modern responsive templates in `assets/templates/html/`
+- **Custom Templates**: Create your own templates following the provided patterns
+
+```bash
+# List available templates
+just templates
+
+# Use specific template
+just generate config.yml output pdf custom-template
+```
+
 ## Customization
 
 To customize your resume, edit the source file (e.g., `example.yml`) with your personal information, experiences, and skills. The tool supports various file formats like TOML, YAML, and JSON.
@@ -77,10 +238,10 @@ For more advanced users, the following options are available for interacting wit
 
 1. **Direct CLI Interaction with Specific Commands**
 
-   Execute specific commands within the Docker container using `make exec`. This allows you to pass custom arguments and commands directly to the CLI tool. For example, to execute a command `command-name` with arguments `arg1 arg2`, use:
+   Execute specific commands within the Docker container using `just exec`. This allows you to pass custom arguments and commands directly to the CLI tool. For example, to execute a command `command-name` with arguments `arg1 arg2`, use:
 
    ```bash
-   make exec CMD="command-name arg1 arg2"
+   just exec "command-name arg1 arg2"
    ```
 
    Replace `command-name`, `arg1`, and `arg2` with your actual command and arguments. This method is useful for executing specific operations without starting an interactive shell.
@@ -90,10 +251,24 @@ For more advanced users, the following options are available for interacting wit
    Start an interactive shell session within the Docker container for a more hands-on approach:
 
    ```bash
-   make shell
+   just shell
    ```
 
    This command opens a `/bin/bash` session in the Docker container, allowing you to interact directly with the tool and the file system.
+
+3. **Quick Examples**
+
+   Run a specific example quickly with:
+
+   ```bash
+   just example example.yml
+   ```
+
+   Or run all examples at once:
+
+   ```bash
+   just examples
+   ```
 
 Use these advanced options for more control over the tool or for tasks that require direct interaction with the CLI environment. 
 

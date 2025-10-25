@@ -13,6 +13,35 @@ import (
 	"io"
 )
 
+// DetectLaTeXEngine tries to find an available LaTeX compiler in the system.
+// It checks for engines in the following order: xelatex, pdflatex, lualatex, latex
+// Returns the name of the first available engine, or an empty string if none are found.
+func DetectLaTeXEngine() string {
+	engines := []string{"xelatex", "pdflatex", "lualatex", "latex"}
+
+	for _, engine := range engines {
+		if _, err := exec.LookPath(engine); err == nil {
+			return engine
+		}
+	}
+
+	return ""
+}
+
+// GetAvailableLaTeXEngines returns a list of all available LaTeX engines on the system.
+func GetAvailableLaTeXEngines() []string {
+	engines := []string{"xelatex", "pdflatex", "lualatex", "latex"}
+	available := []string{}
+
+	for _, engine := range engines {
+		if _, err := exec.LookPath(engine); err == nil {
+			available = append(available, engine)
+		}
+	}
+
+	return available
+}
+
 // copyFile copies a single file from src to dst.
 func copyFile(src, dst string) error {
 	sourceFile, err := os.Open(src)
@@ -57,19 +86,19 @@ func copyDir(src, dst string) error {
 	return nil
 }
 
-// XelatexCompiler is an implementation of the standard.Compiler interface
-// It compiles LaTeX documents into PDFs.
-type XelatexCompiler struct {
-	command      string             // LaTeX compiler command (e.g., xelatex)
+// LaTeXCompiler is an implementation of the standard.Compiler interface
+// It compiles LaTeX documents into PDFs using various LaTeX engines.
+type LaTeXCompiler struct {
+	command      string             // LaTeX compiler command (e.g., xelatex, pdflatex, lualatex)
 	outputFolder string             // Folder to store the compiled outputs
 	classes      string             // LaTeX class files to be used
 	logger       *zap.SugaredLogger // Logger for logging information, warnings, and errors
 }
 
-// NewXelatexCompiler creates a new instance of DefaultCompiler with the specified command and logger.
-// The command is typically a LaTeX compiler like xelatex.
-func NewXelatexCompiler(command string, logger *zap.SugaredLogger) definition.Compiler {
-	return &XelatexCompiler{
+// NewLaTeXCompiler creates a new instance of LaTeXCompiler with the specified command and logger.
+// The command can be any LaTeX compiler like xelatex, pdflatex, lualatex, etc.
+func NewLaTeXCompiler(command string, logger *zap.SugaredLogger) definition.Compiler {
+	return &LaTeXCompiler{
 		command:      command,
 		outputFolder: "",
 		classes:      "",
@@ -77,15 +106,35 @@ func NewXelatexCompiler(command string, logger *zap.SugaredLogger) definition.Co
 	}
 }
 
+// NewAutoLaTeXCompiler creates a LaTeX compiler by automatically detecting the available engine.
+// Returns nil if no LaTeX engine is found.
+func NewAutoLaTeXCompiler(logger *zap.SugaredLogger) (definition.Compiler, error) {
+	engine := DetectLaTeXEngine()
+	if engine == "" {
+		return nil, fmt.Errorf("no LaTeX engine found\n\nPlease install one of the following:\n  - TeX Live:   https://www.tug.org/texlive/\n  - MiKTeX:     https://miktex.org/\n  - MacTeX:     https://www.tug.org/mactex/ (macOS)\n\nOr use Docker which includes LaTeX:\n  docker run --rm -v $(pwd):/work texlive/texlive")
+	}
+
+	logger.Infof("Auto-detected LaTeX engine: %s", engine)
+	return NewLaTeXCompiler(engine, logger), nil
+}
+
+// XelatexCompiler is deprecated. Use LaTeXCompiler instead.
+type XelatexCompiler = LaTeXCompiler
+
+// NewXelatexCompiler is deprecated. Use NewLaTeXCompiler or NewAutoLaTeXCompiler instead.
+func NewXelatexCompiler(command string, logger *zap.SugaredLogger) definition.Compiler {
+	return NewLaTeXCompiler(command, logger)
+}
+
 // LoadClasses loads LaTeX class files that will be used in the compilation.
-func (compiler *XelatexCompiler) LoadClasses(classes string) {
+func (compiler *LaTeXCompiler) LoadClasses(classes string) {
 	compiler.classes = classes
 }
 
 // AddOutputFolder sets the output folder for the compiled documents.
 // If the folder path is not absolute, it converts it to an absolute path.
 // If the folder does not exist, it creates it.
-func (compiler *XelatexCompiler) AddOutputFolder(folder string) {
+func (compiler *LaTeXCompiler) AddOutputFolder(folder string) {
 	var err error
 	if folder == "" {
 		compiler.outputFolder, err = os.MkdirTemp("", "resume-generator")
@@ -104,7 +153,7 @@ func (compiler *XelatexCompiler) AddOutputFolder(folder string) {
 // Compile compiles the LaTeX document into a PDF.
 // It copies necessary class files to the output directory, creates the .tex file,
 // and then runs the LaTeX compiler.
-func (compiler *XelatexCompiler) Compile(resume string, resumeName string) string {
+func (compiler *LaTeXCompiler) Compile(resume string, resumeName string) string {
 	// Copy the class files to the output folder
 	copyDir(compiler.classes, compiler.outputFolder)
 
@@ -122,7 +171,7 @@ func (compiler *XelatexCompiler) Compile(resume string, resumeName string) strin
 }
 
 // executeLaTeXCommand runs the LaTeX compiler on the provided file.
-func (compiler *XelatexCompiler) executeLaTeXCommand(filePath string) {
+func (compiler *LaTeXCompiler) executeLaTeXCommand(filePath string) {
 	cmd := exec.Command(compiler.command, filePath)
 	cmd.Dir = compiler.outputFolder
 
@@ -134,6 +183,8 @@ func (compiler *XelatexCompiler) executeLaTeXCommand(filePath string) {
 	err := cmd.Run()
 	if err != nil {
 		// Log the error along with the stderr output
-		compiler.logger.Fatal("LaTeX compilation error: ", err, "\nStandard Error: ", stderr.String())
+		compiler.logger.Fatalf("LaTeX compilation error with %s: %v\nStandard Error: %s", compiler.command, err, stderr.String())
 	}
+
+	compiler.logger.Infof("Successfully compiled with %s", compiler.command)
 }

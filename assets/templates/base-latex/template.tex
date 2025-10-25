@@ -16,36 +16,36 @@
     \textbar \hfill{ {{fmtLink .}} } \hfill
 {{- end }}
 \section*{experience}
-{{- range .Experience }}
+{{- range .Experience.Positions }}
 \project{{ "{" }}{{ .Title }}{{ "}" }}{{ "{" }}{{ .Company }}{{ "}" }}{{ "{" }}{{ fmtDates .Dates }}{{ "}" }}
 \begin{itemize}
-{{- range .Description }}
+{{- range .Highlights }}
 \item {{ escapeLatexChars . }}
 {{- end }}
 \end{itemize}
 {{- end }}
 \section*{education}
-{{- range .Education }}
-\project{{ "{" }}{{ .School }}{{ "}" }}{}{{ "{" }}{{ fmtDates .Dates }}{{ "}" }}
-\subproject{{ "{" }}{{ .Degree }}{{ range .Suffixes }} ({{ . }}) {{ end }}{{ "}" }}
+{{- range .Education.Institutions }}
+\project{{ "{" }}{{ .Institution }}{{ "}" }}{}{{ "{" }}{{ fmtDates .Dates }}{{ "}" }}
+\subproject{{ "{" }}{{ .Degree }}{{ "}" }}
 \begin{description}
-{{- range .Description }}
-\item[{{ .Category }}:]{{ "{" }}{{ escapeLatexChars .Value }}{{ "}" }}
+{{- if .GPA }}
+\item[GPA:]{{ "{" }}{{ .GPA }}{{ "}" }}
 {{- end }}
 \end{description}
 {{- end }}
 \section*{skills}
 \begin{description}
-{{- range .Skills }}
-\item[{{ .Category | escapeLatexChars }}:]{{ "{" }}{{ escapeLatexChars .Value }}{{ "}" }}
+{{- range .Skills.Categories }}
+\item[{{ .Name | escapeLatexChars }}:]{{ "{" }}{{ skillNames .Items | join ", " | escapeLatexChars }}{{ "}" }}
 {{- end }}
 \end{description}
-{{- if .Projects }}
+{{- if .Projects.Projects }}
 \section*{projects}
-{{- range .Projects }}
-\project{{ "{" }}{{ .Name }}{{ "}" }}{{ "{" }}{{ .Language }}{{ "}" }}{{ "{" }}{{ fmtLink .Link }}{{ "}" }}
+{{- range .Projects.Projects }}
+\project{{ "{" }}{{ .Name }}{{ "}" }}{{ "{" }}{{ join ", " .Technologies }}{{ "}" }}{{ "{" }}{{ if .URL }}{{ .URL }}{{ end }}{{ "}" }}
 \begin{itemize}
-{{- range .Description }}
+{{- range .Highlights }}
 \item {{ escapeLatexChars . }}
 {{- end }}
 \end{itemize}

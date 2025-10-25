@@ -1,57 +1,106 @@
-# ┌─────────────── Stage 1: Build Go binary ───────────────┐
-FROM golang:1.22-rc-bookworm AS builder
+# ================================
+# Resume Generator - Multistage Dockerfile
+# ================================
+# Builds a minimal resume generator with LaTeX support
+# ================================
 
-WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-
-COPY pkg/ pkg/
-COPY cmd/ cmd/
-COPY main.go .
-RUN go build -o resume-generator main.go
-
+# ┌─────────────────────────────────────────────────────────┐
+# │ Stage 1: Go Builder                                      │
 # └─────────────────────────────────────────────────────────┘
+FROM golang:1.24-alpine AS builder
 
+# Install build dependencies
+RUN apk add --no-cache git ca-certificates
 
-# ┌─────────────── Stage 2: Install TeX Live ───────────────┐
-FROM debian:bookworm-slim AS tex
+WORKDIR /build
 
-ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-      libfontconfig1 \
-      fonts-dejavu-core \
-      wget \
-      perl \
-      xz-utils \
- && rm -rf /var/lib/apt/lists/*
+# Cache Go modules for faster builds
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
 
-WORKDIR /tmp
-RUN wget https://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz \
- && tar -xzf install-tl-unx.tar.gz \
- && cd install-tl-*/ \
- && perl install-tl --no-interaction --scheme=small \
- && rm -rf /tmp/install-tl-*
+# Copy source and build optimized binary
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags="-w -s" \
+    -a -installsuffix cgo \
+    -o resume-generator \
+    main.go
 
-# Add TeX Live binaries to PATH
-ENV PATH=/usr/local/texlive/2024/bin/x86_64-linux:$PATH
+# Verify binary works
+RUN ./resume-generator --help
 
-# Install extra packages via tlmgr
-RUN tlmgr install enumitem titlesec \
- && tlmgr option autobackup 0
+# ┌─────────────────────────────────────────────────────────┐
+# │ Stage 2: Final Runtime Image                            │
+# └─────────────────────────────────────────────────────────┘
+FROM alpine:3.19
 
-# Clean up package manager caches again
-RUN apt-get purge -y --auto-remove wget perl xz-utils \
- && rm -rf /var/lib/apt/lists/*
+LABEL maintainer="urmzd"
+LABEL description="Resume Generator - Generate professional resumes from YAML/JSON/TOML"
+LABEL version="2.0"
 
-# └──────────────────────────────────────────────────────────┘
+# Install runtime dependencies
+# - texlive: Full TeX distribution for LaTeX PDF generation
+# - chromium: For HTML to PDF conversion
+# - curl: For healthchecks
+RUN apk add --no-cache \
+    texlive \
+    texlive-xetex \
+    texlive-luatex \
+    texmf-dist-latexextra \
+    texmf-dist-fontsextra \
+    chromium \
+    curl \
+    ca-certificates \
+    && rm -rf /var/cache/apk/*
 
-
-# ┌─────────────── Stage 3: Final runtime image ───────────────┐
-FROM tex
+# Set Chromium path for HTML to PDF conversion
+ENV CHROME_BIN=/usr/bin/chromium-browser \
+    CHROME_PATH=/usr/lib/chromium/
 
 WORKDIR /app
-COPY --from=builder /app/resume-generator .
 
-ENTRYPOINT ["./resume-generator"]
-# └────────────────────────────────────────────────────────────┘
+# Copy binary from builder
+COPY --from=builder /build/resume-generator /usr/local/bin/resume-generator
+
+# Ensure binary is executable
+RUN chmod +x /usr/local/bin/resume-generator
+
+# Create directories for volumes
+RUN mkdir -p /assets /examples /inputs /outputs /tmp/uploads /tmp/downloads
+
+# Copy default assets
+COPY assets /assets/
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD resume-generator --help > /dev/null || exit 1
+
+# Environment variables
+ENV PATH="/usr/local/bin:${PATH}" \
+    GIN_MODE=release \
+    PORT=8080
+
+# Default entrypoint
+ENTRYPOINT ["resume-generator"]
+CMD ["--help"]
+
+# ┌─────────────────────────────────────────────────────────┐
+# │ Usage Examples                                           │
+# └─────────────────────────────────────────────────────────┘
+# Build:
+#   docker build -t resume-generator .
+#
+# Generate HTML:
+#   docker run --rm -v $(pwd):/work resume-generator run -i /work/resume.yml -f html -o /work
+#
+# Generate PDF:
+#   docker run --rm -v $(pwd):/work resume-generator run -i /work/resume.yml -f pdf -o /work
+#
+# Start API server:
+#   docker run -p 8080:8080 -v $(pwd)/assets:/assets resume-generator serve -p 8080
+#
+# Validate:
+#   docker run --rm -v $(pwd):/work resume-generator validate /work/resume.yml
+#
+# Preview:
+#   docker run --rm -v $(pwd):/work resume-generator preview /work/resume.yml
