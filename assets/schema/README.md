@@ -14,10 +14,10 @@ This directory contains JSON Schema definitions for all supported resume formats
 
 ```bash
 # Regenerate all schemas
-resume-generator schema generate -o examples/schemas
+resume-generator schema generate -o assets/schema
 
 # Generate specific format
-resume-generator schema generate -f legacy -o examples/schemas
+resume-generator schema generate -f legacy -o assets/schema
 ```
 
 ### Use in IDE
@@ -25,7 +25,7 @@ resume-generator schema generate -f legacy -o examples/schemas
 **VSCode** - Add to your resume YAML:
 
 ```yaml
-# yaml-language-server: $schema=examples/schemas/resume-legacy.schema.json
+# yaml-language-server: $schema=assets/schema/resume-legacy.schema.json
 
 contact:
   name: Your Name
@@ -36,11 +36,11 @@ contact:
 
 ```bash
 # Get schema for Claude/GPT
-cat examples/schemas/resume-legacy.schema.json | pbcopy
+cat assets/schema/resume-legacy.schema.json | pbcopy
 
 # Or in your code
 import json
-with open('examples/schemas/resume-legacy.schema.json') as f:
+with open('assets/schema/resume-legacy.schema.json') as f:
     schema = json.load(f)
     # Use with LLM API
 ```
@@ -53,7 +53,7 @@ import yaml
 from jsonschema import validate
 
 # Load schema
-with open('examples/schemas/resume-legacy.schema.json') as f:
+with open('assets/schema/resume-legacy.schema.json') as f:
     schema = json.load(f)
 
 # Load resume
@@ -97,7 +97,7 @@ import json
 client = anthropic.Anthropic()
 
 # Load schema
-with open('examples/schemas/resume-legacy.schema.json') as f:
+with open('assets/schema/resume-legacy.schema.json') as f:
     schema = json.load(f)
 
 # Generate resume with structured output
@@ -154,7 +154,7 @@ Schemas should be regenerated when:
 ```bash
 # Always generate from project root
 cd /path/to/resume-generator
-./resume-generator schema generate -o examples/schemas
+./resume-generator schema generate -o assets/schema
 ```
 
 ## Schema Standards

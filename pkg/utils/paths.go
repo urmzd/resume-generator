@@ -3,6 +3,7 @@ package utils
 import (
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // ResolvePath resolves a path to an absolute path.
@@ -79,10 +80,18 @@ func GetExecutableDir() (string, error) {
 }
 
 // ResolveAssetPath tries to resolve an asset path by checking multiple locations:
-// 1. The path as provided (if absolute or relative to cwd)
-// 2. Relative to the executable directory
-// 3. Relative to the current working directory
+// 1. Absolute path as provided
+// 2. RESUME_TEMPLATES_DIR environment variable (if set, falls back to legacy RESUME_ASSETS_DIR)
+// 3. Current working directory and its parents
+// 4. Executable directory and its parents
+// 5. Falls back to the cwd-relative path for clearer error messages
 func ResolveAssetPath(relativePath string) (string, error) {
+	if relativePath == "" {
+		return "", nil
+	}
+
+	relativePath = filepath.Clean(relativePath)
+
 	// Try as-is first
 	if filepath.IsAbs(relativePath) {
 		if _, err := os.Stat(relativePath); err == nil {
@@ -90,21 +99,58 @@ func ResolveAssetPath(relativePath string) (string, error) {
 		}
 	}
 
+	var candidates []string
+
+	// Allow users to override resource root via environment variable
+	if assetsRoot := strings.TrimSpace(os.Getenv("RESUME_TEMPLATES_DIR")); assetsRoot != "" {
+		if resolvedRoot, err := ResolvePath(assetsRoot); err == nil && resolvedRoot != "" {
+			candidates = append(candidates, filepath.Join(resolvedRoot, relativePath))
+		}
+	} else if legacyRoot := strings.TrimSpace(os.Getenv("RESUME_ASSETS_DIR")); legacyRoot != "" {
+		if resolvedRoot, err := ResolvePath(legacyRoot); err == nil && resolvedRoot != "" {
+			candidates = append(candidates, filepath.Join(resolvedRoot, relativePath))
+		}
+	}
+
 	// Try relative to current working directory
 	cwd, err := os.Getwd()
 	if err == nil {
-		cwdPath := filepath.Join(cwd, relativePath)
-		if _, err := os.Stat(cwdPath); err == nil {
-			return filepath.Clean(cwdPath), nil
+		for dir := cwd; dir != ""; dir = filepath.Dir(dir) {
+			cwdPath := filepath.Join(dir, relativePath)
+			candidates = append(candidates, cwdPath)
+
+			parent := filepath.Dir(dir)
+			if parent == dir {
+				break
+			}
 		}
 	}
 
 	// Try relative to executable
 	exDir, err := GetExecutableDir()
 	if err == nil {
-		exPath := filepath.Join(exDir, relativePath)
-		if _, err := os.Stat(exPath); err == nil {
-			return filepath.Clean(exPath), nil
+		for dir := exDir; dir != ""; dir = filepath.Dir(dir) {
+			exPath := filepath.Join(dir, relativePath)
+			candidates = append(candidates, exPath)
+
+			parent := filepath.Dir(dir)
+			if parent == dir {
+				break
+			}
+		}
+	}
+
+	// Deduplicate and return the first path that exists
+	seen := make(map[string]struct{})
+	for _, candidate := range candidates {
+		cleanCandidate := filepath.Clean(candidate)
+		if _, ok := seen[cleanCandidate]; ok {
+			continue
+		}
+		seen[cleanCandidate] = struct{}{}
+
+		if _, err := os.Stat(cleanCandidate); err == nil {
+			return cleanCandidate, nil
 		}
 	}
 

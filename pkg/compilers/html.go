@@ -12,7 +12,7 @@ import (
 // HTMLToPDFCompiler converts HTML to PDF using available tools
 type HTMLToPDFCompiler struct {
 	logger *zap.SugaredLogger
-	tool   string // "chromium", "wkhtmltopdf", or "chrome"
+	tool   string // Selected Chromium-based executable
 }
 
 // NewHTMLToPDFCompiler creates a new HTML to PDF compiler
@@ -24,11 +24,12 @@ func NewHTMLToPDFCompiler(logger *zap.SugaredLogger) *HTMLToPDFCompiler {
 
 	// Try to find available tools
 	tools := []string{
+		"ungoogled-chromium",
+		"ungoogled-chromium-browser",
 		"chromium",
 		"chromium-browser",
 		"google-chrome",
 		"chrome",
-		"wkhtmltopdf",
 	}
 
 	for _, tool := range tools {
@@ -39,7 +40,7 @@ func NewHTMLToPDFCompiler(logger *zap.SugaredLogger) *HTMLToPDFCompiler {
 		}
 	}
 
-	logger.Warn("No HTML to PDF tool found (tried chromium, chrome, wkhtmltopdf)")
+	logger.Warn("No HTML to PDF tool found (tried ungoogled-chromium, chromium, chrome)")
 	return compiler
 }
 
@@ -49,14 +50,11 @@ func (c *HTMLToPDFCompiler) Compile(htmlContent, outputPath string) error {
 		return fmt.Errorf(`no HTML to PDF conversion tool found
 
 Please install one of the following:
-  - Chromium:     brew install chromium     (macOS)
-                  apt install chromium      (Debian/Ubuntu)
-                  apk add chromium          (Alpine/Docker)
+  - ungoogled-chromium: brew install ungoogled-chromium (macOS)
+                        apt install ungoogled-chromium  (Debian/Ubuntu)
+  - chromium:           apk add chromium               (Alpine/Docker)
 
   - Chrome:       brew install google-chrome (macOS)
-
-  - wkhtmltopdf:  brew install wkhtmltopdf   (macOS)
-                  apt install wkhtmltopdf   (Debian/Ubuntu)
 
 Or use Docker which includes all dependencies:
   docker run --rm -v $(pwd):/work resume-generator run -i /work/resume.yml -t modern-html`)
@@ -82,17 +80,15 @@ Or use Docker which includes all dependencies:
 
 	// Convert based on available tool
 	switch {
-	case contains(c.tool, []string{"chromium", "chromium-browser", "google-chrome", "chrome"}):
-		return c.compileWithChrome(tmpFile.Name(), outputPath)
-	case c.tool == "wkhtmltopdf":
-		return c.compileWithWkhtmltopdf(tmpFile.Name(), outputPath)
+	case contains(c.tool, []string{"ungoogled-chromium", "ungoogled-chromium-browser", "chromium", "chromium-browser", "google-chrome", "chrome"}):
+		return c.compileWithChromium(tmpFile.Name(), outputPath)
 	default:
 		return fmt.Errorf("unsupported tool: %s", c.tool)
 	}
 }
 
-// compileWithChrome uses Chromium/Chrome headless to convert HTML to PDF
-func (c *HTMLToPDFCompiler) compileWithChrome(htmlPath, outputPath string) error {
+// compileWithChromium uses a Chromium-based browser in headless mode to convert HTML to PDF
+func (c *HTMLToPDFCompiler) compileWithChromium(htmlPath, outputPath string) error {
 	c.logger.Infof("Converting HTML to PDF using %s", c.tool)
 
 	// Make paths absolute
@@ -106,7 +102,7 @@ func (c *HTMLToPDFCompiler) compileWithChrome(htmlPath, outputPath string) error
 		return fmt.Errorf("failed to get absolute output path: %w", err)
 	}
 
-	// Chrome headless command
+	// Headless browser command
 	cmd := exec.Command(c.tool,
 		"--headless",
 		"--disable-gpu",
@@ -118,34 +114,13 @@ func (c *HTMLToPDFCompiler) compileWithChrome(htmlPath, outputPath string) error
 	// Capture output
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		c.logger.Errorf("Chrome output: %s", string(output))
-		return fmt.Errorf("chrome failed: %w", err)
+		c.logger.Errorf("%s output: %s", c.tool, string(output))
+		return fmt.Errorf("%s failed: %w", c.tool, err)
 	}
 
 	// Verify PDF was created
 	if _, err := os.Stat(absOutputPath); os.IsNotExist(err) {
 		return fmt.Errorf("PDF was not created at %s", absOutputPath)
-	}
-
-	c.logger.Infof("Successfully converted HTML to PDF: %s", outputPath)
-	return nil
-}
-
-// compileWithWkhtmltopdf uses wkhtmltopdf to convert HTML to PDF
-func (c *HTMLToPDFCompiler) compileWithWkhtmltopdf(htmlPath, outputPath string) error {
-	c.logger.Info("Converting HTML to PDF using wkhtmltopdf")
-
-	cmd := exec.Command("wkhtmltopdf",
-		"--quiet",
-		"--enable-local-file-access",
-		htmlPath,
-		outputPath,
-	)
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		c.logger.Errorf("wkhtmltopdf output: %s", string(output))
-		return fmt.Errorf("wkhtmltopdf failed: %w", err)
 	}
 
 	c.logger.Infof("Successfully converted HTML to PDF: %s", outputPath)

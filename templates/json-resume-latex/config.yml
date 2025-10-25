@@ -1,0 +1,9 @@
+name: json-resume-latex
+display_name: JSON Resume LaTeX
+description: LaTeX template aligned with the JSON Resume schema fields and structure.
+format: latex
+version: "1.0.0"
+author: Resume Generator Team
+tags:
+  - latex
+  - json-resume

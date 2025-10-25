@@ -2,38 +2,36 @@
 
 ## Introduction
 
-Resume Generator is a comprehensive platform designed to create elegant resumes from structured configuration files. This modern tool supports multiple output formats, provides a web-based interface, and offers both CLI and REST API access for maximum flexibility.
+Resume Generator is a CLI-focused toolkit for turning structured configuration files into polished resumes. It supports multiple output formats and ships with a flexible template system so you can generate professional PDFs or HTML resumes from YAML, JSON, or TOML data.
 
 ## Features
 
 ### Core Capabilities
-- **Multiple Output Formats**: Generate resumes in PDF (LaTeX), HTML, and other formats
+- **Multiple Output Formats**: Generate resumes in PDF (LaTeX) or HTML with the same template system
 - **Enhanced Configuration**: Support for YAML, JSON, and TOML with advanced ordering and template embedding
-- **Web Interface**: Next.js-based frontend for easy resume generation and preview
-- **REST API**: Full-featured API for programmatic resume generation
-- **Template System**: Flexible template system supporting both LaTeX and HTML output
+- **Template System**: Modular templates with embedded assets; customize or create new templates per project
+- **Robust Path Resolution**: Works from any directory, supports `~`, relative paths, and timestamped output workspaces
+- **Docker Support**: Containerized build that includes LaTeX and Chromium tooling for consistent output
 
 ### Technical Features
-- **Docker Optimization**: Containerized environment with optimized build process
-- **CLI Tools**: Enhanced command-line interface with validation, preview, and generation commands
+- **Docker Workflow**: Build the Go binary and supporting toolchain in a single container
+- **CLI Commands**: Validate inputs, preview data, list templates, and generate outputs from the terminal
 - **JSON Resume Schema**: Full compatibility with the JSON Resume standard
-- **Responsive Design**: Web interface works seamlessly on desktop and mobile devices
-- **Real-time Preview**: Live preview of generated resumes in the web interface
 
 ## Prerequisites
 
-### For Docker-based Usage
-- Docker and Docker Compose
-- [just](https://github.com/casey/just) command runner
+### For CLI Usage
+- Go 1.21+
+- Chromium/Chrome (for HTML → PDF conversion)
+- TeX Live or compatible LaTeX engine (for LaTeX → PDF conversion)
 
-### For Local Development
-- Go 1.21+ (for API and CLI development)
-- Node.js 18+ and npm (for frontend development)
-- Docker (for containerized builds)
+### Optional
+- Docker (to run the bundled image)
+- [just](https://github.com/casey/just) for helper commands
 
 ## Getting Started
 
-### Quick Start with Docker Compose
+### Quick Start
 
 1. **Clone the Repository**
    ```bash
@@ -41,58 +39,46 @@ Resume Generator is a comprehensive platform designed to create elegant resumes 
    cd resume-generator
    ```
 
-2. **Start the Full Platform**
+2. **Build the CLI**
    ```bash
-   docker-compose up
-   ```
-   This starts both the API server (port 8080) and web frontend (port 3000).
-
-3. **Access the Web Interface**
-   Open your browser and navigate to `http://localhost:3000`
-
-### Development Setup
-
-1. **Initialize the Project**
-   ```bash
-   just init
-   just deps
+   go build -o resume-generator ./...
    ```
 
-2. **Start Development Environment**
+3. **Generate a Resume**
    ```bash
-   just dev
+   ./resume-generator run -i assets/example_inputs/sample-enhanced.yml -t modern-html
    ```
-   This runs both the API server and frontend in development mode.
 
-3. **Frontend Development Only**
-   ```bash
-   just frontend-install
-   just frontend
-   ```
+If you prefer Docker, build the bundled image and run commands inside the container:
+
+```bash
+docker build -t resume-generator .
+docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_inputs/sample-enhanced.yml -t modern-html
+```
 
 ### CLI Usage
 
 1. **Build the Application**
    ```bash
-   just build
+   go build -o resume-generator ./...
    ```
 
 2. **Generate Resume (Enhanced CLI)**
    ```bash
    # Generate HTML resume with custom output path
-   ./resume-generator run -i examples/sample-enhanced.yml -o examples/output.pdf -t modern-html
+   ./resume-generator run -i assets/example_inputs/sample-enhanced.yml -o outputs/sample.pdf -t modern-html
 
    # Generate with default filename (first_last_resume_timestamp.pdf)
-   ./resume-generator run -i examples/sample-enhanced.yml -t modern-html
+   ./resume-generator run -i assets/example_inputs/sample-enhanced.yml -t modern-html
 
    # Generate LaTeX PDF
-   ./resume-generator run -i examples/sample-enhanced.yml -o ~/Documents/my_resume.pdf -t base-latex
+   ./resume-generator run -i assets/example_inputs/sample-enhanced.yml -o ~/Documents/my_resume.pdf -t base-latex
 
    # Validate configuration
-   ./resume-generator validate examples/sample-enhanced.yml
+   ./resume-generator validate assets/example_inputs/sample-enhanced.yml
 
    # Preview without generation
-   ./resume-generator preview examples/sample-enhanced.yml
+   ./resume-generator preview assets/example_inputs/sample-enhanced.yml
 
    # List available templates
    ./resume-generator templates list
@@ -101,7 +87,7 @@ Resume Generator is a comprehensive platform designed to create elegant resumes 
 3. **Path Resolution**
 
    The CLI now supports flexible path resolution:
-   - **Relative paths**: `./examples/resume.yml`, `../data/resume.yml`
+   - **Relative paths**: `./assets/example_inputs/sample-enhanced.yml`, `../data/resume.yml`
    - **Absolute paths**: `/Users/name/Documents/resume.yml`
    - **Home directory**: `~/Documents/resume.yml`
    - **Custom output locations**: Specify any file path for output
@@ -110,7 +96,7 @@ Resume Generator is a comprehensive platform designed to create elegant resumes 
    Examples:
    ```bash
    # Relative input, custom output
-   ./resume-generator run -i examples/sample.yml -o output/my_resume.pdf
+   ./resume-generator run -i assets/example_inputs/sample-enhanced.yml -o output/my_resume.pdf
 
    # Absolute paths
    ./resume-generator run -i /path/to/resume.yml -o /path/to/output.pdf
@@ -123,12 +109,6 @@ Resume Generator is a comprehensive platform designed to create elegant resumes 
    ```
 
    Each run results in a directory named `first[_middle]_last_<timestamp>/` containing the generated `resume.pdf` (or your custom filename) along with a `debug/` subfolder that preserves the rendered `.tex`/`.html`, `.log`, `.aux`, and supporting class files.
-
-4. **Custom Asset Locations**
-   ```bash
-   # Custom LaTeX classes folder
-   ./resume-generator run -i resume.yml -c /path/to/classes -t base-latex
-   ```
 
 ## Showcase
 
@@ -143,34 +123,6 @@ A clean, professional layout suitable for various industries.
 ## Generators and Templates
 
 This tool supports different generators and templates to customize your resume.
-
-## API Usage
-
-The resume generator provides a REST API for programmatic access:
-
-### Start API Server
-```bash
-just serve 8080
-```
-
-### API Endpoints
-
-- **POST** `/api/v1/generate` - Generate resume from configuration
-- **GET** `/api/v1/health` - Health check
-- **GET** `/api/v1/formats` - List available output formats
-- **GET** `/api/v1/templates` - List available templates
-
-### Example API Usage
-```bash
-# Test all endpoints
-just api-test
-
-# Generate resume via API
-curl -X POST http://localhost:8080/api/v1/generate \
-  -F "config=@examples/sample-enhanced.yml" \
-  -F "format=html" \
-  -F "template=modern"
-```
 
 ## Configuration Formats
 
@@ -216,8 +168,8 @@ Still supports original YAML, JSON, and TOML formats for backward compatibility.
 - `html`: Modern HTML generator with responsive design
 
 #### Templates
-- **PDF Templates**: LaTeX-based templates in `assets/templates/`
-- **HTML Templates**: Modern responsive templates in `assets/templates/html/`
+- **PDF Templates**: LaTeX-based templates in `templates/*-latex/`
+- **HTML Templates**: Modern responsive templates in `templates/*-html/`
 - **Custom Templates**: Create your own templates following the provided patterns
 
 ```bash
@@ -225,7 +177,7 @@ Still supports original YAML, JSON, and TOML formats for backward compatibility.
 just templates
 
 # Use specific template
-just generate config.yml output pdf custom-template
+just generate config.yml output custom-template
 ```
 
 ## Customization
@@ -272,19 +224,9 @@ For more advanced users, the following options are available for interacting wit
 
 Use these advanced options for more control over the tool or for tasks that require direct interaction with the CLI environment. 
 
-## Assets/Helpers Directory
+## Templates
 
-This directory is specifically designed to assist you in creating a more effective and professional resume. Here's what you can expect to find inside:
-
-### Key Features of the `assets` Folder:
-
-1. **Keywords and Phrases**: This section contains a curated list of powerful keywords and phrases relevant to various industries and job roles. Incorporating these into your resume can significantly enhance its impact and help in catching the attention of recruiters and resume screening software.
-
-2. **Formatting Templates**: We provide a selection of formatting templates to give your resume a polished and professional look. These templates are designed to be easily customizable to fit your personal style and the requirements of your industry.
-
-3. **Action Verbs**: A comprehensive list of action verbs is included to help you describe your experiences and achievements in a dynamic and compelling way. These verbs are crucial for making your resume more engaging and effective.
-
-4. **Examples and Samples**: To give you a better idea of how to craft your resume, we've included examples and sample resumes. These can serve as a great starting point or source of inspiration for your own resume.
+Built-in templates live in the `templates/` directory, one folder per template (for example, `templates/modern-html/template.html` or `templates/base-latex/template.tex`). Each template ships with a `config.yml` describing its format (`html` or `latex`) and any supporting metadata. LaTeX templates bundle their required `.cls` or helper files directly alongside the template, so no additional classes directory is needed.
 
 ## Contributing
 
