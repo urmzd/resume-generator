@@ -1,6 +1,7 @@
 package compilers
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -8,6 +9,7 @@ import (
 	"runtime"
 	"strings"
 	"syscall"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -163,6 +165,9 @@ func (c *HTMLToPDFCompiler) compileWithChromium(htmlPath, outputPath string) err
 		"--headless=new",
 		"--disable-gpu",
 		"--disable-dev-shm-usage",
+		// Always skip Chrome's first-run and default browser flows — we spin up a fresh profile each run.
+		"--no-first-run",
+		"--no-default-browser-check",
 		"--print-to-pdf=" + absOutputPath,
 	}
 
@@ -187,22 +192,87 @@ func (c *HTMLToPDFCompiler) compileWithChromium(htmlPath, outputPath string) err
 
 	cmd := exec.Command(c.toolPath, args...)
 
-	// Capture output
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		c.logger.Errorf("%s output: %s", c.toolName, string(output))
+	var outputBuf bytes.Buffer
+	cmd.Stdout = &outputBuf
+	cmd.Stderr = &outputBuf
 
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok && status.Signaled() {
-				msg := fmt.Sprintf("%s exited with signal %s", c.toolName, status.Signal())
-				if runtime.GOOS == "darwin" {
-					msg += ". Headless Chromium from macOS app bundles often fails due to sandbox restrictions. Install wkhtmltopdf (brew install wkhtmltopdf) or run via Docker for reliable HTML→PDF conversion."
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("%s failed to start: %w", c.toolName, err)
+	}
+
+	done := make(chan error, 1)
+	go func() {
+		done <- cmd.Wait()
+	}()
+
+	pdfReady := false
+	pdfReadyAt := time.Time{}
+	termSent := false
+	killSent := false
+
+	ticker := time.NewTicker(200 * time.Millisecond)
+	defer ticker.Stop()
+
+	timeout := time.NewTimer(2 * time.Minute)
+	defer timeout.Stop()
+
+waitLoop:
+	for {
+		select {
+		case err := <-done:
+			if err != nil {
+				// If we already produced a PDF and had to terminate Chromium manually, treat the run as success
+				if pdfReady && (termSent || killSent) {
+					c.logger.Warnf("%s did not exit cleanly (terminated after PDF was ready): %v", c.toolName, err)
+					break waitLoop
 				}
-				return fmt.Errorf("%s", msg)
-			}
-		}
 
-		return fmt.Errorf("%s failed: %w", c.toolName, err)
+				c.logger.Errorf("%s output: %s", c.toolName, outputBuf.String())
+
+				if exitErr, ok := err.(*exec.ExitError); ok {
+					if status, ok := exitErr.Sys().(syscall.WaitStatus); ok && status.Signaled() {
+						msg := fmt.Sprintf("%s exited with signal %s", c.toolName, status.Signal())
+						if runtime.GOOS == "darwin" {
+							msg += ". Headless Chromium from macOS app bundles often fails due to sandbox restrictions. Install wkhtmltopdf (brew install wkhtmltopdf) or run via Docker for reliable HTML→PDF conversion."
+						}
+						return fmt.Errorf("%s", msg)
+					}
+				}
+
+				return fmt.Errorf("%s failed: %w", c.toolName, err)
+			}
+
+			break waitLoop
+
+		case <-ticker.C:
+			if !pdfReady {
+				if info, err := os.Stat(absOutputPath); err == nil && info.Size() > 0 {
+					pdfReady = true
+					pdfReadyAt = time.Now()
+				}
+				continue
+			}
+
+			if runtime.GOOS == "darwin" {
+				now := time.Now()
+				if !termSent && now.Sub(pdfReadyAt) > time.Second {
+					if err := cmd.Process.Signal(syscall.SIGTERM); err != nil {
+						c.logger.Debugf("failed to signal %s for shutdown: %v", c.toolName, err)
+					}
+					termSent = true
+				} else if termSent && !killSent && now.Sub(pdfReadyAt) > 3*time.Second {
+					if err := cmd.Process.Kill(); err != nil {
+						c.logger.Debugf("failed to kill %s after PDF generation: %v", c.toolName, err)
+					}
+					killSent = true
+				}
+			}
+
+		case <-timeout.C:
+			_ = cmd.Process.Kill()
+			c.logger.Errorf("%s output before timeout: %s", c.toolName, outputBuf.String())
+			return fmt.Errorf("%s timed out while converting HTML to PDF", c.toolName)
+		}
 	}
 
 	// Verify PDF was created
