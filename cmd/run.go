@@ -24,8 +24,8 @@ var (
 func initRunCmd() {
 	rootCmd.AddCommand(runCmd)
 	runCmd.Flags().StringVarP(&InputFile, "input", "i", "", "Path to the resume data file (e.g., resume.yml)")
-	runCmd.Flags().StringVarP(&OutputFile, "output", "o", "", "Path to the output file (e.g., ./resume.pdf, ~/Documents/resume.pdf)")
-	runCmd.Flags().StringVarP(&OutputDir, "output-dir", "", "outputs", "Path to the output directory (deprecated, use --output instead)")
+	runCmd.Flags().StringVarP(&OutputDir, "output-dir", "o", "outputs", "Root directory where generated resumes will be stored")
+	runCmd.Flags().StringVar(&OutputDir, "output-root", "outputs", "Alias for --output-dir")
 	runCmd.Flags().StringSliceVarP(&TemplateNames, "template", "t", nil, "Template name(s). Repeat the flag or use comma-separated values. Defaults to all available templates.")
 	runCmd.Flags().StringVarP(&LaTeXEngine, "latex-engine", "e", "", "LaTeX engine to use (xelatex, pdflatex, lualatex, latex). Auto-detects if not specified.")
 
@@ -81,67 +81,23 @@ var runCmd = &cobra.Command{
 		currentTime := time.Now()
 		dateFolder := currentTime.Format("2006-01-02")
 
-		var baseOutputDir string
-		var desiredPDFBase string
+		rootDirInput := strings.TrimSpace(OutputDir)
+		resolvedDir, err := utils.ResolvePath(rootDirInput)
+		if err != nil {
+			sugar.Fatalf("Error resolving output directory: %s", err)
+		}
+		if resolvedDir == "" {
+			if resolvedDir, err = os.Getwd(); err != nil {
+				sugar.Fatalf("Failed to determine working directory: %s", err)
+			}
+		}
+		if err := utils.EnsureDir(resolvedDir); err != nil {
+			sugar.Fatalf("Error creating output directory: %s", err)
+		}
+
+		baseOutputDir := resolvedDir
+		desiredPDFBase := defaultResumeBaseName(resumeSlug)
 		pdfExt := ".pdf"
-
-		if OutputFile != "" {
-			resolvedOutput, err := utils.ResolveOutputPath(OutputFile, true)
-			if err != nil {
-				sugar.Fatalf("Error resolving output path: %s", err)
-			}
-			if resolvedOutput == "" {
-				sugar.Fatalf("Invalid output path provided")
-			}
-
-			original := OutputFile
-			if utils.DirExists(resolvedOutput) || strings.HasSuffix(original, string(os.PathSeparator)) || filepath.Ext(original) == "" {
-				if err := utils.EnsureDir(resolvedOutput); err != nil {
-					sugar.Fatalf("Error ensuring output directory: %s", err)
-				}
-				baseOutputDir = resolvedOutput
-				desiredPDFBase = defaultResumeBaseName(resumeSlug)
-			} else {
-				baseOutputDir = filepath.Dir(resolvedOutput)
-				if err := utils.EnsureDir(baseOutputDir); err != nil {
-					sugar.Fatalf("Error creating output directory: %s", err)
-				}
-				ext := filepath.Ext(resolvedOutput)
-				if ext == "" {
-					ext = ".pdf"
-				}
-				pdfExt = ext
-				desiredPDFBase = strings.TrimSuffix(filepath.Base(resolvedOutput), ext)
-				if desiredPDFBase == "" {
-					desiredPDFBase = defaultResumeBaseName(resumeSlug)
-				}
-			}
-		} else {
-			resolvedDir, err := utils.ResolvePath(OutputDir)
-			if err != nil {
-				sugar.Fatalf("Error resolving output directory: %s", err)
-			}
-			if resolvedDir == "" {
-				if resolvedDir, err = os.Getwd(); err != nil {
-					sugar.Fatalf("Failed to determine working directory: %s", err)
-				}
-			}
-			if err := utils.EnsureDir(resolvedDir); err != nil {
-				sugar.Fatalf("Error creating output directory: %s", err)
-			}
-			baseOutputDir = resolvedDir
-			desiredPDFBase = defaultResumeBaseName(resumeSlug)
-		}
-
-		if desiredPDFBase == "" {
-			desiredPDFBase = defaultResumeBaseName(resumeSlug)
-		}
-		if pdfExt == "" {
-			pdfExt = ".pdf"
-		}
-		if !strings.HasPrefix(pdfExt, ".") {
-			pdfExt = "." + pdfExt
-		}
 
 		runBaseDir := filepath.Join(baseOutputDir, resumeSlug, dateFolder)
 		if err := utils.EnsureDir(runBaseDir); err != nil {

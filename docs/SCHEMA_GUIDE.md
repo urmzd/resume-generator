@@ -357,7 +357,7 @@ if (valid) {
 
 ```bash
 # The tool automatically validates on generation
-./resume-generator run -i resume.yml -o output.pdf
+./resume-generator run -i resume.yml -o output-directory
 
 # Explicit validation
 ./resume-generator validate resume.yml
@@ -533,7 +533,7 @@ You can extend the schemas for custom use cases:
 ./resume-generator validate resume-data.yml
 
 # 4. Generate PDF
-./resume-generator run -i resume-data.yml -o resume.pdf -t modern-latex
+./resume-generator run -i resume-data.yml -o resume-exports -t modern-latex
 
 # 5. If validation fails, fix and repeat
 ```

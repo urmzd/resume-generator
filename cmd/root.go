@@ -6,9 +6,6 @@ import (
 
 var (
 	InputFile     string
-	OutputFile    string
-	TemplateFile  string
-	KeepTex       bool
 	GeneratorType string
 	LaTeXEngine   string
 )

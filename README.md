@@ -25,6 +25,16 @@ Resume Generator is a CLI-focused toolkit for turning structured configuration f
 - Chromium/Chrome (for HTML → PDF conversion)
 - TeX Live or compatible LaTeX engine (for LaTeX → PDF conversion)
 
+#### HTML → PDF Tool Selection
+The generator auto-detects common converters (`wkhtmltopdf`, ungoogled-chromium, Chromium, Google Chrome). You can override the detection with the `RESUME_HTML_TO_PDF_TOOL` environment variable and point at a specific binary or `.app` bundle:
+
+```bash
+export RESUME_HTML_TO_PDF_TOOL="/Applications/ungoogled-chromium.app"
+just generate
+```
+
+Per-run flags for Chromium-based browsers can still be appended via `RESUME_CHROMIUM_FLAGS` (for example, to add `--no-first-run`).
+
 ### Optional
 - Docker (to run the bundled image)
 - [just](https://github.com/casey/just) for helper commands
@@ -77,8 +87,8 @@ docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_i
    # Use comma-separated template names
    ./resume-generator run -i assets/example_inputs/example.yml -t modern-html,modern-latex
 
-   # Custom output path with multiple templates
-   ./resume-generator run -i assets/example_inputs/example.yml -o outputs/ -t modern-html -t modern-latex
+   # Custom output root with multiple templates
+   ./resume-generator run -i assets/example_inputs/example.yml -o outputs/custom-run -t modern-html -t modern-latex
 
    # Validate configuration
    ./resume-generator validate assets/example_inputs/example.yml
@@ -99,22 +109,23 @@ docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_i
    - **Relative paths**: `./assets/example_inputs/example.yml`, `../data/resume.yml`
    - **Absolute paths**: `/Users/name/Documents/resume.yml`
    - **Home directory**: `~/Documents/resume.yml`
-   - **Custom output locations**: Specify any file path for output
+   - **Custom output locations**: Specify any directory path for generated artifacts
    - **Directory output**: Provide a directory, and a dated workspace will be created (with PDF + debug artifacts)
+   - **Aliases**: Use `-o`/`--output-dir` (alias `--output-root`) to control the root output folder
 
    Examples:
    ```bash
-   # Relative input, custom output
-   ./resume-generator run -i assets/example_inputs/example.yml -o output/my_resume.pdf
+   # Relative input, custom output root
+   ./resume-generator run -i assets/example_inputs/example.yml -o outputs/my_resume
 
    # Absolute paths
-   ./resume-generator run -i /path/to/resume.yml -o /path/to/output.pdf
+   ./resume-generator run -i /path/to/resume.yml -o /path/to/output-directory
 
    # Home directory paths
-   ./resume-generator run -i ~/resumes/resume.yml -o ~/Documents/resume.pdf
+   ./resume-generator run -i ~/resumes/resume.yml -o ~/Documents/resumes
 
    # Output to directory (creates dated workspace)
-   ./resume-generator run -i resume.yml -o ~/Documents/
+   ./resume-generator run -i resume.yml -o ~/Documents/resume-exports
    ```
 
    Each run results in structured directories:
@@ -239,9 +250,14 @@ just preview config.yml
 # List templates
 just templates
 
+# Convert PDF output into a README preview image (first page)
+just pdf-to-jpeg outputs/john_doe/2024-01-01/modern-html/john_doe_resume.pdf docs/readme-preview.jpg
+
 # Clean outputs
 just clean
 ```
+
+> The `pdf-to-jpeg` helper looks for `magick`, `convert`, or `pdftoppm`. Install ImageMagick or poppler-utils to enable the conversion.
 
 ### Docker Usage
 

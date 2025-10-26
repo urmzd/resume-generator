@@ -201,7 +201,7 @@ just preview assets/example_inputs/example.yml
 #### Available Commands
 ```bash
 # Core commands
-resume-generator run -i config.yml -o output.pdf     # Generate resume (stores results in dated directory)
+resume-generator run -i config.yml -o output-directory  # Generate resume (stores results in dated directory)
 resume-generator validate config.yml                 # Validate config
 resume-generator preview config.yml                  # Preview config
 

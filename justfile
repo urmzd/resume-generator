@@ -102,6 +102,24 @@ examples: init docker-build
 example filename: init docker-build
     just docker-run {{filename}}
 
+# Convert a generated PDF into a README-friendly JPEG preview
+pdf-to-jpeg pdf output="docs/readme-preview.jpg":
+    @echo "Converting {{pdf}} -> {{output}}"
+    @pdf_path="{{pdf}}"; \
+     output_path="{{output}}"; \
+     mkdir -p "$(dirname "$output_path")"; \
+     if command -v magick >/dev/null 2>&1; then \
+        magick -density 300 "${pdf_path}[0]" -quality 85 "$output_path"; \
+     elif command -v convert >/dev/null 2>&1; then \
+        convert -density 300 "${pdf_path}[0]" -quality 85 "$output_path"; \
+     elif command -v pdftoppm >/dev/null 2>&1; then \
+        output_base="${output_path%.*}"; \
+        pdftoppm -jpeg -singlefile -r 300 "$pdf_path" "$output_base"; \
+     else \
+        echo "Error: install ImageMagick (magick/convert) or poppler-utils (pdftoppm) for PDF → JPEG conversion." >&2; \
+        exit 1; \
+     fi
+
 # Full build and test workflow
 test: build-cli docker-build
     @echo "Running Go unit tests"
@@ -111,12 +129,12 @@ test: build-cli docker-build
     @echo "Build and test completed successfully!"
 
 # Generate a resume using the CLI (local Go build)
-generate input_file output_file="resume" template="modern-html":
-    @echo "Generating resume from {{input_file}}"
+generate input_file="./assets/example_inputs/example.yml" output_dir="outputs" template="modern-html":
+    @echo "Generating resume from {{input_file}} into {{output_dir}}"
     @if [ -x "{{cli_binary}}" ]; then \
-        "{{cli_binary}}" run -i {{input_file}} -o {{output_file}}.pdf -t {{template}}; \
+        "{{cli_binary}}" run -i {{input_file}} -o {{output_dir}} -t {{template}}; \
     else \
-        go run main.go run -i {{input_file}} -o {{output_file}}.pdf -t {{template}}; \
+        go run main.go run -i {{input_file}} -o {{output_dir}} -t {{template}}; \
     fi
 
 # Validate a resume configuration file
