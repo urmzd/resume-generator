@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/urmzd/resume-generator/pkg/definition/enhanced-resume",
+  "$id": "https://github.com/urmzd/resume-generator/pkg/definition/resume",
   "properties": {
     "meta": {
       "properties": {
@@ -768,18 +768,18 @@
               "description": {
                 "items": {
                   "properties": {
-                    "Category": {
+                    "category": {
                       "type": "string"
                     },
-                    "Value": {
+                    "value": {
                       "type": "string"
                     }
                   },
                   "additionalProperties": false,
                   "type": "object",
                   "required": [
-                    "Category",
-                    "Value"
+                    "category",
+                    "value"
                   ]
                 },
                 "type": "array"
@@ -1021,8 +1021,8 @@
     "projects",
     "education"
   ],
-  "title": "Resume enhanced Format",
-  "description": "Modern resume format (v2.0) with advanced features including ordering,\nvisibility controls, metrics, and template embedding.\n\nUse this format for:\n- Complex, detailed resumes\n- Custom ordering of sections\n- Visibility control over individual fields\n- Quantifiable achievements with metrics\n- Multi-language support\n- Theme customization\n\nAdvanced features:\n- Section ordering and visibility\n- Achievement metrics and quantification\n- Template embedding\n- Multiple output formats\n- Custom themes\n- Location and date range validation",
+  "title": "Resume Format (v2.0)",
+  "description": "Modern resume format with advanced features including ordering,\nvisibility controls, metrics, and comprehensive professional information.\n\nSupported serialization formats:\n- YAML (.yml, .yaml)\n- JSON (.json)\n- TOML (.toml)\n\nKey features:\n- Section ordering and visibility controls\n- Quantifiable achievements with metrics\n- Certifications, publications, and languages support\n- Date range validation\n- Location information with multiple levels of detail\n- Template embedding and theming",
   "examples": [
     {
       "contact": {
@@ -1035,15 +1035,32 @@
             "url": "https://github.com/janesmith"
           }
         ],
+        "location": {
+          "city": "San Francisco",
+          "country": "USA",
+          "state": "CA"
+        },
         "name": "Jane Smith",
         "order": 1,
         "phone": "+1-555-987-6543",
-        "title": "Senior Software Engineer",
-        "visibility": {
-          "showEmail": true,
-          "showLocation": true,
-          "showPhone": true
-        }
+        "summary": "Experienced software engineer specializing in distributed systems and cloud architecture.",
+        "title": "Senior Software Engineer"
+      },
+      "education": {
+        "institutions": [
+          {
+            "dates": {
+              "end": "2017-05-15T00:00:00Z",
+              "start": "2013-08-01T00:00:00Z"
+            },
+            "degree": "Bachelor of Science in Computer Science",
+            "gpa": "3.8",
+            "institution": "University of California, Berkeley",
+            "order": 1
+          }
+        ],
+        "order": 4,
+        "title": "Education"
       },
       "experience": {
         "order": 2,
@@ -1061,7 +1078,7 @@
                 "order": 1
               }
             ],
-            "company": "Innovative Solutions Inc",
+            "company": "Tech Innovations Inc",
             "dates": {
               "current": true,
               "start": "2021-06-01T00:00:00Z"
@@ -1070,6 +1087,10 @@
               "Led team of 5 engineers in building microservices architecture",
               "Improved system performance by 60% through optimization"
             ],
+            "location": {
+              "city": "San Francisco",
+              "state": "CA"
+            },
             "order": 1,
             "title": "Senior Software Engineer"
           }
@@ -1077,14 +1098,29 @@
         "title": "Professional Experience"
       },
       "meta": {
-        "output": {
-          "formats": [
-            "pdf",
-            "html"
-          ]
-        },
-        "theme": "modern",
         "version": "2.0"
+      },
+      "skills": {
+        "categories": [
+          {
+            "items": [
+              {
+                "level": "Expert",
+                "name": "Go",
+                "yearsOfExperience": 5
+              },
+              {
+                "level": "Advanced",
+                "name": "Python",
+                "yearsOfExperience": 7
+              }
+            ],
+            "name": "Programming Languages",
+            "order": 1
+          }
+        ],
+        "order": 3,
+        "title": "Technical Skills"
       }
     }
   ]

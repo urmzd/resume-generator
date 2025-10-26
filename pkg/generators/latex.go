@@ -20,7 +20,7 @@ func NewLaTeXGenerator(logger *zap.SugaredLogger) *LaTeXGenerator {
 }
 
 // Generate renders a LaTeX template with resume data
-func (g *LaTeXGenerator) Generate(templateContent string, resume *definition.EnhancedResume) (string, error) {
+func (g *LaTeXGenerator) Generate(templateContent string, resume *definition.Resume) (string, error) {
 	g.logger.Info("Rendering LaTeX template")
 
 	// Create template with helper functions
@@ -64,7 +64,7 @@ func (g *LaTeXGenerator) templateFuncs() template.FuncMap {
 		"escapeLatexChars": escapeFunc, // Alias
 
 		// Format date ranges
-		"fmtDateRange": func(dates definition.EnhancedDateRange) string {
+		"fmtDateRange": func(dates definition.DateRange) string {
 			start := dates.Start.Format("Jan 2006")
 			if dates.End != nil {
 				return fmt.Sprintf("%s - %s", start, dates.End.Format("Jan 2006"))
@@ -98,8 +98,8 @@ func (g *LaTeXGenerator) templateFuncs() template.FuncMap {
 			return strings.Join(items, sep)
 		},
 
-		// Extract skill names from EnhancedSkillItem slice
-		"skillNames": func(items []definition.EnhancedSkillItem) []string {
+		// Extract skill names from SkillItem slice
+		"skillNames": func(items []definition.SkillItem) []string {
 			names := make([]string, len(items))
 			for i, item := range items {
 				names[i] = item.Name
@@ -107,15 +107,12 @@ func (g *LaTeXGenerator) templateFuncs() template.FuncMap {
 			return names
 		},
 
-		// Format link for LaTeX (handles both Link and EnhancedLink types)
+		// Format link for LaTeX
 		"fmtLink": func(link interface{}) string {
 			var url, text string
 
 			switch v := link.(type) {
 			case definition.Link:
-				url = v.Ref
-				text = v.Text
-			case definition.EnhancedLink:
 				url = v.URL
 				text = v.Text
 			default:
@@ -138,7 +135,7 @@ func (g *LaTeXGenerator) templateFuncs() template.FuncMap {
 			switch v := dates.(type) {
 			case string:
 				return v
-			case definition.EnhancedDateRange:
+			case definition.DateRange:
 				start := v.Start.Format("Jan 2006")
 				if v.End != nil {
 					return fmt.Sprintf("%s - %s", start, v.End.Format("Jan 2006"))

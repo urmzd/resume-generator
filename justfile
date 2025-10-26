@@ -107,7 +107,7 @@ test: build-cli docker-build
     @echo "Running Go unit tests"
     just go-test
     just init
-    just example "sample-enhanced.yml"
+    just example "example.yml"
     @echo "Build and test completed successfully!"
 
 # Generate a resume using the CLI (local Go build)
@@ -144,6 +144,46 @@ templates:
         "{{cli_binary}}" templates list; \
     else \
         go run main.go templates list; \
+    fi
+
+# Check available LaTeX engines
+latex-engines:
+    @echo "Checking available LaTeX engines:"
+    @if [ -x "{{cli_binary}}" ]; then \
+        "{{cli_binary}}" templates engines; \
+    else \
+        go run main.go templates engines; \
+    fi
+
+# Generate JSON schema for resume format
+schema output_file="":
+    @echo "Generating JSON schema"
+    @if [ -z "{{output_file}}" ]; then \
+        if [ -x "{{cli_binary}}" ]; then \
+            "{{cli_binary}}" schema; \
+        else \
+            go run main.go schema; \
+        fi; \
+    else \
+        if [ -x "{{cli_binary}}" ]; then \
+            "{{cli_binary}}" schema -o {{output_file}}; \
+        else \
+            go run main.go schema -o {{output_file}}; \
+        fi; \
+    fi
+
+# Format Go code
+fmt:
+    @echo "Formatting Go code"
+    gofmt -w .
+
+# Run Go linter
+lint:
+    @echo "Running Go linter"
+    @if command -v golangci-lint &> /dev/null; then \
+        golangci-lint run; \
+    else \
+        echo "golangci-lint not installed. Install with: brew install golangci-lint"; \
     fi
 
 # Install Go dependencies
