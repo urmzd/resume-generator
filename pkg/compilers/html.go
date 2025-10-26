@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
+	"syscall"
 
 	"go.uber.org/zap"
 )
@@ -24,8 +26,16 @@ func NewHTMLToPDFCompiler(logger *zap.SugaredLogger) *HTMLToPDFCompiler {
 		logger: logger,
 	}
 
+	if overridePath, overrideName := resolveToolOverride(logger, os.Getenv("RESUME_HTML_TO_PDF_TOOL")); overridePath != "" {
+		compiler.toolPath = overridePath
+		compiler.toolName = overrideName
+		logger.Infof("Using override HTML to PDF tool: %s", overrideName)
+		return compiler
+	}
+
 	// Try to find available tools
 	tools := []string{
+		"wkhtmltopdf",
 		"ungoogled-chromium",
 		"ungoogled-chromium-browser",
 		"chromium",
@@ -50,10 +60,16 @@ func NewHTMLToPDFCompiler(logger *zap.SugaredLogger) *HTMLToPDFCompiler {
 				filepath.Join(os.Getenv("HOME"), "Applications", "Chromium.app", "Contents", "MacOS", "Chromium"),
 			},
 			"ungoogled-chromium": {
+				"/Applications/ungoogled-chromium.app/Contents/MacOS/ungoogled-chromium",
+				filepath.Join(os.Getenv("HOME"), "Applications", "ungoogled-chromium.app", "Contents", "MacOS", "ungoogled-chromium"),
+				"/Applications/ungoogled-chromium.app/Contents/MacOS/Chromium",
+				filepath.Join(os.Getenv("HOME"), "Applications", "ungoogled-chromium.app", "Contents", "MacOS", "Chromium"),
+				"/Applications/Eloston-Ungoogled-Chromium.app/Contents/MacOS/Chromium",
+				filepath.Join(os.Getenv("HOME"), "Applications", "Eloston-Ungoogled-Chromium.app", "Contents", "MacOS", "Chromium"),
+				"/Applications/Eloston Ungoogled Chromium.app/Contents/MacOS/Chromium",
+				filepath.Join(os.Getenv("HOME"), "Applications", "Eloston Ungoogled Chromium.app", "Contents", "MacOS", "Chromium"),
 				"/Applications/Chromium.app/Contents/MacOS/Chromium",
 				filepath.Join(os.Getenv("HOME"), "Applications", "Chromium.app", "Contents", "MacOS", "Chromium"),
-				"/Applications/Ungoogled Chromium.app/Contents/MacOS/Chromium",
-				filepath.Join(os.Getenv("HOME"), "Applications", "Ungoogled Chromium.app", "Contents", "MacOS", "Chromium"),
 			},
 			"google-chrome": {
 				"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -120,6 +136,8 @@ Or use Docker which includes all dependencies:
 	switch {
 	case contains(c.toolName, []string{"ungoogled-chromium", "chromium", "google-chrome"}):
 		return c.compileWithChromium(tmpFile.Name(), outputPath)
+	case c.toolName == "wkhtmltopdf":
+		return c.compileWithWKHTMLToPDF(tmpFile.Name(), outputPath)
 	default:
 		return fmt.Errorf("unsupported tool: %s", c.toolName)
 	}
@@ -141,22 +159,92 @@ func (c *HTMLToPDFCompiler) compileWithChromium(htmlPath, outputPath string) err
 	}
 
 	// Headless browser command
-	cmd := exec.Command(c.toolPath,
-		"--headless",
+	args := []string{
+		"--headless=new",
 		"--disable-gpu",
-		"--no-sandbox",
-		"--print-to-pdf="+absOutputPath,
-		"file://"+absHTMLPath,
-	)
+		"--disable-dev-shm-usage",
+		"--print-to-pdf=" + absOutputPath,
+	}
+
+	// Use a temporary user data directory to avoid touching default profiles (prevents crashes on some Chromium builds)
+	userDataDir, err := os.MkdirTemp("", "resume-chromium-profile-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temp user data dir: %w", err)
+	}
+	defer os.RemoveAll(userDataDir)
+	args = append(args, "--user-data-dir="+userDataDir)
+
+	if os.Geteuid() == 0 {
+		args = append(args, "--no-sandbox")
+	}
+
+	// Allow users to inject custom flags for troubleshooting
+	if extra := os.Getenv("RESUME_CHROMIUM_FLAGS"); extra != "" {
+		args = append(args, splitArgs(extra)...)
+	}
+
+	args = append(args, "file://"+absHTMLPath)
+
+	cmd := exec.Command(c.toolPath, args...)
 
 	// Capture output
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		c.logger.Errorf("%s output: %s", c.toolName, string(output))
+
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok && status.Signaled() {
+				msg := fmt.Sprintf("%s exited with signal %s", c.toolName, status.Signal())
+				if runtime.GOOS == "darwin" {
+					msg += ". Headless Chromium from macOS app bundles often fails due to sandbox restrictions. Install wkhtmltopdf (brew install wkhtmltopdf) or run via Docker for reliable HTML→PDF conversion."
+				}
+				return fmt.Errorf("%s", msg)
+			}
+		}
+
 		return fmt.Errorf("%s failed: %w", c.toolName, err)
 	}
 
 	// Verify PDF was created
+	if _, err := os.Stat(absOutputPath); os.IsNotExist(err) {
+		return fmt.Errorf("PDF was not created at %s", absOutputPath)
+	}
+
+	c.logger.Infof("Successfully converted HTML to PDF: %s", outputPath)
+	return nil
+}
+
+func (c *HTMLToPDFCompiler) compileWithWKHTMLToPDF(htmlPath, outputPath string) error {
+	c.logger.Infof("Converting HTML to PDF using wkhtmltopdf")
+
+	absHTMLPath, err := filepath.Abs(htmlPath)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path: %w", err)
+	}
+
+	absOutputPath, err := filepath.Abs(outputPath)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute output path: %w", err)
+	}
+
+	args := []string{
+		"--enable-local-file-access",
+		"--quiet",
+		absHTMLPath,
+		absOutputPath,
+	}
+
+	if extra := os.Getenv("RESUME_WKHTMLTOPDF_FLAGS"); extra != "" {
+		args = append(splitArgs(extra), args...)
+	}
+
+	cmd := exec.Command(c.toolPath, args...)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		c.logger.Errorf("wkhtmltopdf output: %s", string(output))
+		return fmt.Errorf("wkhtmltopdf failed: %w", err)
+	}
+
 	if _, err := os.Stat(absOutputPath); os.IsNotExist(err) {
 		return fmt.Errorf("PDF was not created at %s", absOutputPath)
 	}
@@ -177,14 +265,101 @@ func contains(str string, slice []string) bool {
 
 // canonicalToolName normalizes tool names to a small canonical set
 func canonicalToolName(tool string) string {
-	switch tool {
+	normalized := strings.ToLower(tool)
+	normalized = strings.TrimSuffix(normalized, ".app")
+	normalized = strings.ReplaceAll(normalized, "_", "-")
+	normalized = strings.ReplaceAll(normalized, " ", "-")
+
+	switch normalized {
 	case "ungoogled-chromium-browser":
 		return "ungoogled-chromium"
 	case "chromium-browser":
 		return "chromium"
-	case "chrome":
+	case "chrome", "google-chrome.app", "google-chrome-stable", "google-chrome-mac":
+		return "google-chrome"
+	case "eloston-ungoogled-chromium", "eloston-ungoogled-chromium-mac":
+		return "ungoogled-chromium"
+	default:
+		return normalized
+	}
+}
+
+func splitArgs(value string) []string {
+	fields := strings.Fields(value)
+	if len(fields) == 0 {
+		return nil
+	}
+	return fields
+}
+
+func resolveToolOverride(logger *zap.SugaredLogger, override string) (string, string) {
+	override = strings.TrimSpace(override)
+	if override == "" {
+		return "", ""
+	}
+
+	// Attempt to resolve named executables on PATH first
+	if !strings.Contains(override, "/") {
+		if resolved, err := exec.LookPath(override); err == nil {
+			name := canonicalToolName(filepath.Base(resolved))
+			return resolved, name
+		}
+	}
+
+	candidate := override
+	if !filepath.IsAbs(candidate) {
+		if abs, err := filepath.Abs(candidate); err == nil {
+			candidate = abs
+		}
+	}
+
+	if info, err := os.Stat(candidate); err == nil {
+		if info.IsDir() {
+			if strings.HasSuffix(strings.ToLower(candidate), ".app") {
+				if execPath := findMacAppExecutable(candidate); execPath != "" {
+					return execPath, detectToolName(execPath)
+				}
+			}
+			logger.Warnf("RESUME_HTML_TO_PDF_TOOL points to a directory without a known executable: %s", candidate)
+			return "", ""
+		}
+		return candidate, detectToolName(candidate)
+	}
+
+	return "", ""
+}
+
+func findMacAppExecutable(appPath string) string {
+	binaryHints := []string{
+		filepath.Base(strings.TrimSuffix(appPath, ".app")),
+		"Chromium",
+		"Google Chrome",
+		"chrome",
+		"chromium",
+		"ungoogled-chromium",
+	}
+
+	for _, hint := range binaryHints {
+		path := filepath.Join(appPath, "Contents", "MacOS", hint)
+		if info, err := os.Stat(path); err == nil && !info.IsDir() {
+			return path
+		}
+	}
+	return ""
+}
+
+func detectToolName(path string) string {
+	lowerPath := strings.ToLower(path)
+	switch {
+	case strings.Contains(lowerPath, "wkhtmlto"):
+		return "wkhtmltopdf"
+	case strings.Contains(lowerPath, "ungoogled"):
+		return "ungoogled-chromium"
+	case strings.Contains(lowerPath, "chromium"):
+		return "chromium"
+	case strings.Contains(lowerPath, "chrome"):
 		return "google-chrome"
 	default:
-		return tool
+		return canonicalToolName(filepath.Base(path))
 	}
 }

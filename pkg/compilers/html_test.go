@@ -51,8 +51,8 @@ func TestHTMLToPDFCompilerCompileNoTool(t *testing.T) {
 func TestHTMLToPDFCompilerCompileWithChromium(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	scriptPath := filepath.Join(tmpDir, "chromium-mock.sh")
-	script := `#!/bin/sh
+	chromiumPath := filepath.Join(tmpDir, "chromium-mock.sh")
+	chromiumScript := `#!/bin/sh
 output=""
 for arg in "$@"; do
   case "$arg" in
@@ -74,7 +74,7 @@ fi
 touch "$output"
 exit 0
 `
-	if err := os.WriteFile(scriptPath, []byte(script), 0755); err != nil {
+	if err := os.WriteFile(chromiumPath, []byte(chromiumScript), 0755); err != nil {
 		t.Fatalf("failed to write mock script: %v", err)
 	}
 
@@ -83,7 +83,7 @@ exit 0
 
 	compiler := &HTMLToPDFCompiler{
 		logger:   zap.NewNop().Sugar(),
-		toolPath: scriptPath,
+		toolPath: chromiumPath,
 		toolName: "chromium",
 	}
 
@@ -101,7 +101,63 @@ exit 0
 	if err != nil {
 		t.Fatalf("failed to read log file: %v", err)
 	}
-	if !strings.Contains(string(logData), "--headless") || !strings.Contains(string(logData), "--print-to-pdf="+outputPath) {
-		t.Errorf("chromium command missing expected flags: %s", string(logData))
+	logContent := string(logData)
+	if !strings.Contains(logContent, "--headless=new") {
+		t.Errorf("chromium command missing headless flag: %s", logContent)
+	}
+	if !strings.Contains(logContent, "--print-to-pdf="+outputPath) {
+		t.Errorf("chromium command missing print-to-pdf flag: %s", logContent)
+	}
+	if !strings.Contains(logContent, "--user-data-dir=") {
+		t.Errorf("chromium command missing user-data-dir flag: %s", logContent)
+	}
+}
+
+func TestHTMLToPDFCompilerCompileWithWKHTMLToPDF(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	mockPath := filepath.Join(tmpDir, "wkhtmltopdf-mock.sh")
+	mockScript := `#!/bin/sh
+output=$4
+if [ -z "$output" ]; then
+  echo "missing output" >&2
+  exit 1
+fi
+touch "$output"
+if [ -n "$MOCK_WKHTMLTOPDF_LOG" ]; then
+  printf "%s" "$@" > "$MOCK_WKHTMLTOPDF_LOG"
+fi
+exit 0
+`
+	if err := os.WriteFile(mockPath, []byte(mockScript), 0755); err != nil {
+		t.Fatalf("failed to write mock wkhtmltopdf script: %v", err)
+	}
+
+	logPath := filepath.Join(tmpDir, "wkhtml.log")
+	t.Setenv("MOCK_WKHTMLTOPDF_LOG", logPath)
+
+	compiler := &HTMLToPDFCompiler{
+		logger:   zap.NewNop().Sugar(),
+		toolPath: mockPath,
+		toolName: "wkhtmltopdf",
+	}
+
+	outputPath := filepath.Join(tmpDir, "resume.pdf")
+	err := compiler.Compile("<html><body>test</body></html>", outputPath)
+	if err != nil {
+		t.Fatalf("Compile() error = %v", err)
+	}
+
+	if _, err := os.Stat(outputPath); err != nil {
+		t.Fatalf("expected PDF at %s, got error: %v", outputPath, err)
+	}
+
+	data, err := os.ReadFile(logPath)
+	if err != nil {
+		t.Fatalf("failed to read log file: %v", err)
+	}
+	logContent := string(data)
+	if !strings.Contains(logContent, "--enable-local-file-access") {
+		t.Errorf("wkhtmltopdf command missing enable-local-file-access flag: %s", logContent)
 	}
 }
