@@ -5,14 +5,16 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 
 	"go.uber.org/zap"
 )
 
 // HTMLToPDFCompiler converts HTML to PDF using available tools
 type HTMLToPDFCompiler struct {
-	logger *zap.SugaredLogger
-	tool   string // Selected Chromium-based executable
+	logger   *zap.SugaredLogger
+	toolPath string // Selected Chromium-based executable (resolved path)
+	toolName string // Canonical tool name
 }
 
 // NewHTMLToPDFCompiler creates a new HTML to PDF compiler
@@ -33,10 +35,46 @@ func NewHTMLToPDFCompiler(logger *zap.SugaredLogger) *HTMLToPDFCompiler {
 	}
 
 	for _, tool := range tools {
-		if _, err := exec.LookPath(tool); err == nil {
-			compiler.tool = tool
-			logger.Infof("Using %s for HTML to PDF conversion", tool)
+		if path, err := exec.LookPath(tool); err == nil {
+			compiler.toolPath = path
+			compiler.toolName = canonicalToolName(tool)
+			logger.Infof("Using %s for HTML to PDF conversion", compiler.toolName)
 			return compiler
+		}
+	}
+
+	if runtime.GOOS == "darwin" {
+		macAppPaths := map[string][]string{
+			"chromium": {
+				"/Applications/Chromium.app/Contents/MacOS/Chromium",
+				filepath.Join(os.Getenv("HOME"), "Applications", "Chromium.app", "Contents", "MacOS", "Chromium"),
+			},
+			"ungoogled-chromium": {
+				"/Applications/Chromium.app/Contents/MacOS/Chromium",
+				filepath.Join(os.Getenv("HOME"), "Applications", "Chromium.app", "Contents", "MacOS", "Chromium"),
+				"/Applications/Ungoogled Chromium.app/Contents/MacOS/Chromium",
+				filepath.Join(os.Getenv("HOME"), "Applications", "Ungoogled Chromium.app", "Contents", "MacOS", "Chromium"),
+			},
+			"google-chrome": {
+				"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+				filepath.Join(os.Getenv("HOME"), "Applications", "Google Chrome.app", "Contents", "MacOS", "Google Chrome"),
+			},
+		}
+
+		for _, tool := range tools {
+			canonical := canonicalToolName(tool)
+			paths, ok := macAppPaths[canonical]
+			if !ok {
+				continue
+			}
+			for _, appPath := range paths {
+				if _, err := os.Stat(appPath); err == nil {
+					compiler.toolPath = appPath
+					compiler.toolName = canonical
+					logger.Infof("Using %s app bundle for HTML to PDF conversion", compiler.toolName)
+					return compiler
+				}
+			}
 		}
 	}
 
@@ -46,7 +84,7 @@ func NewHTMLToPDFCompiler(logger *zap.SugaredLogger) *HTMLToPDFCompiler {
 
 // Compile converts HTML content to PDF
 func (c *HTMLToPDFCompiler) Compile(htmlContent, outputPath string) error {
-	if c.tool == "" {
+	if c.toolPath == "" {
 		return fmt.Errorf(`no HTML to PDF conversion tool found
 
 Please install one of the following:
@@ -80,16 +118,16 @@ Or use Docker which includes all dependencies:
 
 	// Convert based on available tool
 	switch {
-	case contains(c.tool, []string{"ungoogled-chromium", "ungoogled-chromium-browser", "chromium", "chromium-browser", "google-chrome", "chrome"}):
+	case contains(c.toolName, []string{"ungoogled-chromium", "chromium", "google-chrome"}):
 		return c.compileWithChromium(tmpFile.Name(), outputPath)
 	default:
-		return fmt.Errorf("unsupported tool: %s", c.tool)
+		return fmt.Errorf("unsupported tool: %s", c.toolName)
 	}
 }
 
 // compileWithChromium uses a Chromium-based browser in headless mode to convert HTML to PDF
 func (c *HTMLToPDFCompiler) compileWithChromium(htmlPath, outputPath string) error {
-	c.logger.Infof("Converting HTML to PDF using %s", c.tool)
+	c.logger.Infof("Converting HTML to PDF using %s", c.toolName)
 
 	// Make paths absolute
 	absHTMLPath, err := filepath.Abs(htmlPath)
@@ -103,7 +141,7 @@ func (c *HTMLToPDFCompiler) compileWithChromium(htmlPath, outputPath string) err
 	}
 
 	// Headless browser command
-	cmd := exec.Command(c.tool,
+	cmd := exec.Command(c.toolPath,
 		"--headless",
 		"--disable-gpu",
 		"--no-sandbox",
@@ -114,8 +152,8 @@ func (c *HTMLToPDFCompiler) compileWithChromium(htmlPath, outputPath string) err
 	// Capture output
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		c.logger.Errorf("%s output: %s", c.tool, string(output))
-		return fmt.Errorf("%s failed: %w", c.tool, err)
+		c.logger.Errorf("%s output: %s", c.toolName, string(output))
+		return fmt.Errorf("%s failed: %w", c.toolName, err)
 	}
 
 	// Verify PDF was created
@@ -135,4 +173,18 @@ func contains(str string, slice []string) bool {
 		}
 	}
 	return false
+}
+
+// canonicalToolName normalizes tool names to a small canonical set
+func canonicalToolName(tool string) string {
+	switch tool {
+	case "ungoogled-chromium-browser":
+		return "ungoogled-chromium"
+	case "chromium-browser":
+		return "chromium"
+	case "chrome":
+		return "google-chrome"
+	default:
+		return tool
+	}
 }

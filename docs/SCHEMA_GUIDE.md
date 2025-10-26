@@ -55,7 +55,7 @@ projects:
     description: array of strings
 ```
 
-### 2. Enhanced Format (`resume-enhanced.schema.json`)
+### 2. Resume Format (`resume.schema.json`)
 
 **Best for**: Detailed resumes, advanced features, customization
 
@@ -180,8 +180,7 @@ resume-generator schema generate -o ./schemas
 
 # Generate specific format
 resume-generator schema generate -f legacy -o ./schemas
-resume-generator schema generate -f enhanced -o ./schemas
-resume-generator schema generate -f json-resume -o ./schemas
+resume-generator schema generate -f resume -o ./schemas
 
 # List available formats
 resume-generator schema list
@@ -216,7 +215,7 @@ Example tasks:
 
 ```bash
 # Get schema
-./resume-generator schema generate -f enhanced > schema.json
+./resume-generator schema generate -f resume > schema.json
 
 # Use in LLM prompt
 cat schema.json | pbcopy  # Copy to clipboard (macOS)
@@ -413,18 +412,18 @@ Please enhance the resume by:
 4. Adding missing but inferable information
 5. Improving clarity and impact of descriptions
 
-Return the enhanced resume in the same format.
+Return the resume resume in the same format.
 ```
 
 ### 2. Format Conversion
 
 ```markdown
 Source Format: [paste legacy schema]
-Target Format: [paste enhanced schema]
+Target Format: [paste resume schema]
 
 Current Resume: [paste current data]
 
-Please convert this resume from the legacy format to the enhanced format,
+Please convert this resume from the legacy format to the resume format,
 preserving all information and adding appropriate default values for new
 fields (order: sequential, visibility: all true).
 ```
@@ -449,7 +448,7 @@ Ensure:
 ### 4. Multi-Language Resume
 
 ```markdown
-Schema: [paste enhanced schema]
+Schema: [paste resume schema]
 Current Resume: [English resume]
 
 Please create a Spanish version of this resume, translating all fields
@@ -462,7 +461,7 @@ You can extend the schemas for custom use cases:
 
 ```bash
 # Generate base schema
-./resume-generator schema generate -f enhanced -o ./schemas
+./resume-generator schema generate -f resume -o ./schemas
 
 # Edit and add custom fields
 # Add to your resume with custom fields
@@ -534,7 +533,7 @@ You can extend the schemas for custom use cases:
 ./resume-generator validate resume-data.yml
 
 # 4. Generate PDF
-./resume-generator run -i resume-data.yml -o resume.pdf -t base-latex
+./resume-generator run -i resume-data.yml -o resume.pdf -t modern-latex
 
 # 5. If validation fails, fix and repeat
 ```
@@ -584,7 +583,7 @@ subprocess.run([
     './resume-generator', 'run',
     '-i', 'generated-resume.yml',
     '-o', 'generated-resume.pdf',
-    '-t', 'base-latex'
+    '-t', 'modern-latex'
 ])
 
 print("✓ Resume generated: generated-resume.pdf")

@@ -107,7 +107,7 @@ func NewLaTeXCompiler(command string, logger *zap.SugaredLogger) definition.Comp
 }
 
 // NewAutoLaTeXCompiler creates a LaTeX compiler by automatically detecting the available engine.
-// Returns nil if no LaTeX engine is found.
+// Returns an error if no LaTeX engine is found.
 func NewAutoLaTeXCompiler(logger *zap.SugaredLogger) (definition.Compiler, error) {
 	engine := DetectLaTeXEngine()
 	if engine == "" {
@@ -116,14 +116,6 @@ func NewAutoLaTeXCompiler(logger *zap.SugaredLogger) (definition.Compiler, error
 
 	logger.Infof("Auto-detected LaTeX engine: %s", engine)
 	return NewLaTeXCompiler(engine, logger), nil
-}
-
-// XelatexCompiler is deprecated. Use LaTeXCompiler instead.
-type XelatexCompiler = LaTeXCompiler
-
-// NewXelatexCompiler is deprecated. Use NewLaTeXCompiler or NewAutoLaTeXCompiler instead.
-func NewXelatexCompiler(command string, logger *zap.SugaredLogger) definition.Compiler {
-	return NewLaTeXCompiler(command, logger)
 }
 
 // LoadClasses loads LaTeX class files that will be used in the compilation.

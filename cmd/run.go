@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -16,19 +17,16 @@ import (
 )
 
 var (
-	OutputDir string
-)
-
-var (
-	TemplateName string
+	OutputDir     string
+	TemplateNames []string
 )
 
 func initRunCmd() {
 	rootCmd.AddCommand(runCmd)
 	runCmd.Flags().StringVarP(&InputFile, "input", "i", "", "Path to the resume data file (e.g., resume.yml)")
 	runCmd.Flags().StringVarP(&OutputFile, "output", "o", "", "Path to the output file (e.g., ./resume.pdf, ~/Documents/resume.pdf)")
-	runCmd.Flags().StringVarP(&OutputDir, "output-dir", "", ".", "Path to the output directory (deprecated, use --output instead)")
-	runCmd.Flags().StringVarP(&TemplateName, "template", "t", "modern-html", "Template name (e.g., modern-html, base-latex)")
+	runCmd.Flags().StringVarP(&OutputDir, "output-dir", "", "outputs", "Path to the output directory (deprecated, use --output instead)")
+	runCmd.Flags().StringSliceVarP(&TemplateNames, "template", "t", nil, "Template name(s). Repeat the flag or use comma-separated values. Defaults to all available templates.")
 	runCmd.Flags().StringVarP(&LaTeXEngine, "latex-engine", "e", "", "LaTeX engine to use (xelatex, pdflatex, lualatex, latex). Auto-detects if not specified.")
 
 	runCmd.MarkFlagRequired("input")
@@ -61,30 +59,31 @@ var runCmd = &cobra.Command{
 			sugar.Fatalf("Validation error: %s", err)
 		}
 
-		// Convert to enhanced format for generation
-		resume := inputData.ToEnhanced()
+		// Convert to the runtime resume structure for generation
+		resume := inputData.ToResume()
 		sugar.Infof("Loaded resume for %s (format: %s)", resume.Contact.Name, inputData.GetFormat())
 
 		// Generate using unified template system
 		generator := generators.NewGenerator(sugar)
 
-		// Resolve template metadata once to capture additional resources
-		tmpl, err := generators.LoadTemplate(TemplateName)
+		normalizedTemplateNames := sanitizeTemplateNames(TemplateNames)
+		selectedTemplates, err := loadSelectedTemplates(normalizedTemplateNames)
 		if err != nil {
-			sugar.Fatalf("Failed to load template: %v", err)
+			sugar.Fatalf("Failed to resolve templates: %v", err)
 		}
-
-		// Generate content using template
-		content, err := generator.GenerateWithTemplate(tmpl, resume)
-		if err != nil {
-			sugar.Fatalf("Failed to generate resume: %v", err)
+		if len(selectedTemplates) == 0 {
+			sugar.Fatalf("No templates available for generation")
 		}
+		sugar.Infof("Generating resumes for %d template(s)", len(selectedTemplates))
 
 		// Determine output folder and filenames
-		outputFolderName := generateOutputFolderName(resume)
+		resumeSlug := generateResumeSlug(resume)
+		currentTime := time.Now()
+		dateFolder := currentTime.Format("2006-01-02")
 
 		var baseOutputDir string
-		pdfFileName := "resume.pdf"
+		var desiredPDFBase string
+		pdfExt := ".pdf"
 
 		if OutputFile != "" {
 			resolvedOutput, err := utils.ResolveOutputPath(OutputFile, true)
@@ -101,12 +100,21 @@ var runCmd = &cobra.Command{
 					sugar.Fatalf("Error ensuring output directory: %s", err)
 				}
 				baseOutputDir = resolvedOutput
+				desiredPDFBase = defaultResumeBaseName(resumeSlug)
 			} else {
 				baseOutputDir = filepath.Dir(resolvedOutput)
 				if err := utils.EnsureDir(baseOutputDir); err != nil {
 					sugar.Fatalf("Error creating output directory: %s", err)
 				}
-				pdfFileName = filepath.Base(resolvedOutput)
+				ext := filepath.Ext(resolvedOutput)
+				if ext == "" {
+					ext = ".pdf"
+				}
+				pdfExt = ext
+				desiredPDFBase = strings.TrimSuffix(filepath.Base(resolvedOutput), ext)
+				if desiredPDFBase == "" {
+					desiredPDFBase = defaultResumeBaseName(resumeSlug)
+				}
 			}
 		} else {
 			resolvedDir, err := utils.ResolvePath(OutputDir)
@@ -122,44 +130,85 @@ var runCmd = &cobra.Command{
 				sugar.Fatalf("Error creating output directory: %s", err)
 			}
 			baseOutputDir = resolvedDir
+			desiredPDFBase = defaultResumeBaseName(resumeSlug)
 		}
 
-		if filepath.Ext(pdfFileName) == "" {
-			pdfFileName += ".pdf"
+		if desiredPDFBase == "" {
+			desiredPDFBase = defaultResumeBaseName(resumeSlug)
+		}
+		if pdfExt == "" {
+			pdfExt = ".pdf"
+		}
+		if !strings.HasPrefix(pdfExt, ".") {
+			pdfExt = "." + pdfExt
 		}
 
-		runOutputDir := filepath.Join(baseOutputDir, outputFolderName)
-		if err := utils.EnsureDir(runOutputDir); err != nil {
+		runBaseDir := filepath.Join(baseOutputDir, resumeSlug, dateFolder)
+		if err := utils.EnsureDir(runBaseDir); err != nil {
 			sugar.Fatalf("Error creating run output directory: %s", err)
 		}
 
-		debugDir := filepath.Join(runOutputDir, "debug")
-		if err := utils.EnsureDir(debugDir); err != nil {
-			sugar.Fatalf("Error creating debug directory: %s", err)
+		type generationResult struct {
+			template string
+			tType    generators.TemplateType
+			pdfPath  string
+			debugDir string
 		}
 
-		pdfOutputPath := filepath.Join(runOutputDir, pdfFileName)
+		var results []generationResult
 
-		templateDir := filepath.Dir(tmpl.Path)
+		for _, tmpl := range selectedTemplates {
+			content, err := generator.GenerateWithTemplate(tmpl, resume)
+			if err != nil {
+				sugar.Fatalf("Failed to generate resume with template %s: %v", tmpl.Name, err)
+			}
 
-		if tmpl.Type == generators.TemplateTypeLaTeX {
-			// Compile LaTeX to PDF
-			err = compileLaTeXToPDF(sugar, content, pdfOutputPath, debugDir, templateDir)
+			templateRunDir, err := resolveTemplateOutputDir(runBaseDir, tmpl)
 			if err != nil {
-				sugar.Fatalf("Failed to compile LaTeX to PDF: %v", err)
+				sugar.Fatalf("Failed to prepare output path for template %s: %v", tmpl.Name, err)
 			}
-		} else if tmpl.Type == generators.TemplateTypeHTML {
-			// Compile HTML to PDF
-			err = compileHTMLToPDF(sugar, content, pdfOutputPath, debugDir)
+
+			if err := utils.EnsureDir(templateRunDir); err != nil {
+				sugar.Fatalf("Error creating template output directory %s: %v", templateRunDir, err)
+			}
+
+			pdfOutputPath, debugDir, err := ensureUniqueOutputPaths(templateRunDir, desiredPDFBase, pdfExt)
 			if err != nil {
-				sugar.Fatalf("Failed to compile HTML to PDF: %v", err)
+				sugar.Fatalf("Error determining output filename for template %s: %v", tmpl.Name, err)
 			}
-		} else {
-			sugar.Fatalf("Unknown template type: %s", tmpl.Type)
+
+			if err := utils.EnsureDir(debugDir); err != nil {
+				sugar.Fatalf("Error creating debug directory for template %s: %v", tmpl.Name, err)
+			}
+
+			templateDir := filepath.Dir(tmpl.Path)
+
+			var compileErr error
+			switch tmpl.Type {
+			case generators.TemplateTypeLaTeX:
+				compileErr = compileLaTeXToPDF(sugar, content, pdfOutputPath, debugDir, templateDir)
+			case generators.TemplateTypeHTML:
+				compileErr = compileHTMLToPDF(sugar, content, pdfOutputPath, debugDir)
+			default:
+				sugar.Fatalf("Unknown template type: %s", tmpl.Type)
+			}
+
+			if compileErr != nil {
+				sugar.Fatalf("Failed to compile template %s: %v", tmpl.Name, compileErr)
+			}
+
+			results = append(results, generationResult{
+				template: tmpl.Name,
+				tType:    tmpl.Type,
+				pdfPath:  pdfOutputPath,
+				debugDir: debugDir,
+			})
 		}
 
-		sugar.Infof("Successfully generated resume PDF at %s", pdfOutputPath)
-		sugar.Infof("Render artifacts available in %s", debugDir)
+		for _, result := range results {
+			sugar.Infof("Successfully generated resume (%s) using %s at %s", result.tType, result.template, result.pdfPath)
+			sugar.Infof("Render artifacts for %s available in %s", result.template, result.debugDir)
+		}
 	},
 }
 
@@ -232,59 +281,153 @@ func compileLaTeXToPDF(logger *zap.SugaredLogger, latexContent, outputPath, debu
 	return nil
 }
 
-// generateOutputFolderName creates a folder name in the format:
-// {first}_{optional_middle}_{last}_{iso8601}
-func generateOutputFolderName(resume *definition.EnhancedResume) string {
-	// Sanitize name parts (replace spaces and special chars with underscores)
-	sanitize := func(s string) string {
-		s = strings.ToLower(s)
-		s = strings.ReplaceAll(s, " ", "_")
-		// Remove any non-alphanumeric characters except underscores
-		var result strings.Builder
-		for _, r := range s {
-			if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '_' {
-				result.WriteRune(r)
-			}
-		}
-		return result.String()
-	}
-
-	// Extract name parts from the full name
+func generateResumeSlug(resume *definition.Resume) string {
 	nameParts := strings.Fields(resume.Contact.Name)
-	var first, middle, last string
 
+	var components []string
 	if len(nameParts) >= 1 {
-		first = sanitize(nameParts[0])
+		if first := sanitizeNameComponent(nameParts[0]); first != "" {
+			components = append(components, first)
+		}
 	}
 	if len(nameParts) >= 3 {
-		// Has middle name
-		middle = sanitize(nameParts[1])
-		last = sanitize(strings.Join(nameParts[2:], "_"))
+		if middle := sanitizeNameComponent(nameParts[1]); middle != "" {
+			components = append(components, middle)
+		}
+		remaining := sanitizeNameComponent(strings.Join(nameParts[2:], "_"))
+		if remaining != "" {
+			components = append(components, remaining)
+		}
 	} else if len(nameParts) >= 2 {
-		// No middle name
-		last = sanitize(strings.Join(nameParts[1:], "_"))
+		remaining := sanitizeNameComponent(strings.Join(nameParts[1:], "_"))
+		if remaining != "" {
+			components = append(components, remaining)
+		}
 	}
 
-	// Build filename
-	var parts []string
-	if first != "" {
-		parts = append(parts, first)
-	}
-	if middle != "" {
-		parts = append(parts, middle)
-	}
-	if last != "" {
-		parts = append(parts, last)
+	if len(components) == 0 {
+		return "resume"
 	}
 
-	// Add ISO8601 timestamp
-	timestamp := time.Now().Format("2006-01-02T15-04-05")
-	parts = append(parts, timestamp)
+	return strings.Join(components, "_")
+}
 
-	if len(parts) == 1 {
-		// No name information, fallback to resume timestamp
-		return "resume_" + timestamp
+func defaultResumeBaseName(resumeSlug string) string {
+	slug := strings.TrimSpace(resumeSlug)
+	if slug == "" || slug == "resume" {
+		return "resume"
+	}
+	return slug + "_resume"
+}
+
+func sanitizeNameComponent(value string) string {
+	value = strings.ToLower(value)
+	value = strings.ReplaceAll(value, " ", "_")
+
+	var builder strings.Builder
+	for _, r := range value {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '_' {
+			builder.WriteRune(r)
+		}
 	}
 
-	return strings.Join(parts, "_")
+	return builder.String()
+}
+
+// sanitizeTemplateNames cleans and normalizes template names
+func sanitizeTemplateNames(names []string) []string {
+	var result []string
+	seen := make(map[string]bool)
+
+	for _, name := range names {
+		cleaned := strings.TrimSpace(name)
+		if cleaned != "" && !seen[cleaned] {
+			result = append(result, cleaned)
+			seen[cleaned] = true
+		}
+	}
+
+	// Sort for consistent ordering
+	sort.Strings(result)
+	return result
+}
+
+// loadSelectedTemplates loads the specified templates or all available templates if none specified
+func loadSelectedTemplates(templateNames []string) ([]*generators.Template, error) {
+	if len(templateNames) == 0 {
+		// Load all available templates
+		allTemplates, err := generators.ListTemplates()
+		if err != nil {
+			return nil, fmt.Errorf("failed to list templates: %w", err)
+		}
+
+		// Convert to pointers
+		var result []*generators.Template
+		for i := range allTemplates {
+			result = append(result, &allTemplates[i])
+		}
+
+		// Sort by name for consistent ordering
+		sort.Slice(result, func(i, j int) bool {
+			return result[i].Name < result[j].Name
+		})
+
+		return result, nil
+	}
+
+	// Load specified templates
+	var templates []*generators.Template
+	for _, name := range templateNames {
+		tmpl, err := generators.LoadTemplate(name)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load template %s: %w", name, err)
+		}
+		templates = append(templates, tmpl)
+	}
+
+	return templates, nil
+}
+
+// resolveTemplateOutputDir computes the output directory for a template
+// It creates a subdirectory based on the template name to keep outputs organized
+func resolveTemplateOutputDir(runBaseDir string, tmpl *generators.Template) (string, error) {
+	// Use the template name as the subdirectory
+	templateSubdir := sanitizeNameComponent(tmpl.Name)
+	if templateSubdir == "" {
+		templateSubdir = "template"
+	}
+
+	return filepath.Join(runBaseDir, templateSubdir), nil
+}
+
+func ensureUniqueOutputPaths(runDir, desiredBase, extension string) (string, string, error) {
+	base := strings.TrimSpace(desiredBase)
+	if base == "" {
+		base = "resume"
+	}
+
+	ext := extension
+	if ext == "" {
+		ext = ".pdf"
+	}
+	if !strings.HasPrefix(ext, ".") {
+		ext = "." + ext
+	}
+
+	for attempt := 1; attempt <= 9999; attempt++ {
+		suffix := ""
+		if attempt > 1 {
+			suffix = fmt.Sprintf("_%d", attempt)
+		}
+
+		candidateBase := base + suffix
+		pdfPath := filepath.Join(runDir, candidateBase+ext)
+		debugDir := filepath.Join(runDir, candidateBase+"_debug")
+
+		if !utils.FileExists(pdfPath) && !utils.DirExists(debugDir) {
+			return pdfPath, debugDir, nil
+		}
+	}
+
+	return "", "", fmt.Errorf("failed to find unique output filename in %s", runDir)
 }

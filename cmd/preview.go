@@ -48,8 +48,8 @@ This is useful for quickly checking if your configuration is valid.`,
 			sugar.Fatalf("Validation error: %v", err)
 		}
 
-		// Convert to enhanced format for preview
-		resume := inputData.ToEnhanced()
+		// Convert to the runtime resume structure for preview
+		resume := inputData.ToResume()
 
 		// Display preview
 		fmt.Println("┌─────────────────────────────────────────────┐")

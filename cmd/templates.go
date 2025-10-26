@@ -89,7 +89,7 @@ var templatesListCmd = &cobra.Command{
 
 		fmt.Println("Usage:")
 		fmt.Println("  resume-generator run -i resume.yml -t modern-html")
-		fmt.Println("  resume-generator run -i resume.yml -t base-latex")
+		fmt.Println("  resume-generator run -i resume.yml -t modern-latex")
 	},
 }
 
@@ -191,9 +191,9 @@ var latexEnginesCmd = &cobra.Command{
 		fmt.Println()
 		fmt.Println("Usage:")
 		fmt.Println("  # Use default engine (auto-detected)")
-		fmt.Println("  resume-generator run -i resume.yml -t base-latex")
+		fmt.Println("  resume-generator run -i resume.yml -t modern-latex")
 		fmt.Println()
 		fmt.Println("  # Specify a particular engine")
-		fmt.Printf("  resume-generator run -i resume.yml -t base-latex --latex-engine %s\n", available[0])
+		fmt.Printf("  resume-generator run -i resume.yml -t modern-latex --latex-engine %s\n", available[0])
 	},
 }

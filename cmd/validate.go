@@ -36,7 +36,7 @@ var validateCmd = &cobra.Command{
 			sugar.Fatalf("failed to read file: %v", err)
 		}
 
-		var resume definition.EnhancedResume
+		var resume definition.Resume
 		if err := yaml.Unmarshal(content, &resume); err != nil {
 			sugar.Fatalf("failed to unmarshal YAML: %v", err)
 		}
@@ -45,7 +45,7 @@ var validateCmd = &cobra.Command{
 			StrictMode: true,
 		}
 
-		errors := validator.ValidateEnhancedResume(&resume)
+		errors := validator.ValidateResume(&resume)
 		if len(errors) > 0 {
 			sugar.Errorf("Validation failed with %d errors:", len(errors))
 			for _, e := range errors {

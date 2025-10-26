@@ -31,14 +31,14 @@ A CLI-focused toolkit for generating professional resumes from structured config
 
 3. **Generate a resume**
    ```bash
-   ./resume-generator run -i assets/example_inputs/sample-enhanced.yml -t modern-html
+   ./resume-generator run -i assets/example_inputs/example.yml -t modern-html
    ```
 
 Prefer Docker? Build the bundled image and run the CLI inside it:
 
 ```bash
 docker build -t resume-generator .
-docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_inputs/sample-enhanced.yml -t modern-html
+docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_inputs/example.yml -t modern-html
 ```
 
 ---
@@ -59,7 +59,7 @@ go build -o resume-generator ./...
 docker build -t resume-generator .
 
 # Run CLI inside container
-docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_inputs/sample-enhanced.yml -t base-latex
+docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_inputs/example.yml -t modern-latex
 ```
 
 ### Optional Helpers
@@ -84,7 +84,7 @@ just --list
 
 ## Configuration Guide
 
-### Enhanced Configuration Format (v2.0)
+### Resume Configuration Format (v2.0)
 
 The new format supports ordering, multiple output formats, and template embedding:
 
@@ -168,13 +168,13 @@ experience:
 
 ```bash
 # Validate configuration file
-just validate assets/example_inputs/sample-enhanced.yml
+just validate assets/example_inputs/example.yml
 
 # Or using Go directly
 go run main.go validate config.yml
 
 # Preview configuration (no generation)
-just preview assets/example_inputs/sample-enhanced.yml
+just preview assets/example_inputs/example.yml
 ```
 
 ---
@@ -185,17 +185,23 @@ just preview assets/example_inputs/sample-enhanced.yml
 
 #### Basic Generation
 ```bash
-# Generate resume with Modern HTML template (renders to PDF)
-just generate config.yml output modern-html
+# Generate resume with a specific template
+./resume-generator run -i config.yml -t modern-html
 
-# Generate resume with Base LaTeX template
-just generate config.yml output base-latex
+# Generate with multiple templates (creates separate outputs for each)
+./resume-generator run -i config.yml -t modern-html -t modern-latex
+
+# Generate with all available templates (omit -t flag)
+./resume-generator run -i config.yml
+
+# Use comma-separated template names
+./resume-generator run -i config.yml -t modern-html,modern-latex
 ```
 
 #### Available Commands
 ```bash
 # Core commands
-resume-generator run -i config.yml -o output.pdf     # Generate resume (stores results in timestamped directory)
+resume-generator run -i config.yml -o output.pdf     # Generate resume (stores results in dated directory)
 resume-generator validate config.yml                 # Validate config
 resume-generator preview config.yml                  # Preview config
 
@@ -203,13 +209,34 @@ resume-generator preview config.yml                  # Preview config
 resume-generator templates list                      # List templates
 go run main.go templates list                       # Alternative
 
-# Using just shortcuts
-just generate config.yml resume modern-html         # Generate with template
-just validate config.yml                           # Validate
-just templates                                     # List templates
+# Using helper scripts
+./resume-generator run -i config.yml -t modern-html   # Generate with template
+./resume-generator validate config.yml                # Validate
+./resume-generator templates list                     # List templates
 ```
 
-Each CLI run creates a dedicated output directory named after the contact (`first[_middle]_last_<timestamp>`). The main PDF (or custom filename from `--output`) resides at the root of that folder, and supporting artifacts such as rendered `.tex`/`.html`, `.log`, and `.aux` files are stored under the `debug/` subdirectory.
+Each CLI run creates a dedicated output directory structure:
+- Base path: `outputs/first[_middle]_last/<ISO8601-date>/`
+- Each template gets its own subdirectory: `<template_name>/`
+- PDF output: `first[_middle]_last_resume.pdf` (or custom filename with automatic `_n` suffix for duplicates)
+- Debug artifacts: `<resume_basename>_debug/` subdirectory containing rendered `.tex`/`.html`, `.log`, `.aux`, and other compilation artifacts
+
+Example output structure when using multiple templates:
+```
+outputs/
+└── john_doe/
+    └── 2025-10-25/
+        ├── modern_html/
+        │   ├── john_doe_resume.pdf
+        │   └── john_doe_resume_debug/
+        │       └── john_doe_resume.html
+        └── modern_latex/
+            ├── john_doe_resume.pdf
+            └── john_doe_resume_debug/
+                ├── john_doe_resume.tex
+                ├── john_doe_resume.log
+                └── john_doe_resume.aux
+```
 
 ### 2. Docker Usage
 
@@ -252,7 +279,7 @@ just shell
 just templates
 
 # Available templates:
-# - base-latex: Clean, professional layout
+# - modern-latex: Clean, professional layout
 # - json-resume-latex: JSON Resume schema compatible
 ```
 
@@ -264,14 +291,36 @@ just templates
 
 ### Template Selection
 
+#### Single Template
 ```bash
-# CLI: Specify template with -t flag
-go run main.go run -i config.yml -t modern-html
+# Specify one template with -t flag
+./resume-generator run -i config.yml -t modern-html
+```
 
-# Config: Set in configuration file
-meta:
-  output:
-    theme: "modern"
+#### Multiple Templates
+The CLI now supports generating resumes with multiple templates in a single run:
+
+```bash
+# Multiple templates via repeated flags
+./resume-generator run -i config.yml -t modern-html -t modern-latex
+
+# Multiple templates via comma-separated values
+./resume-generator run -i config.yml -t modern-html,modern-latex
+
+# Generate with all available templates (omit -t flag)
+./resume-generator run -i config.yml
+```
+
+Benefits of multi-template generation:
+- **Single command**: Generate multiple formats at once
+- **Organized outputs**: Each template creates its own subdirectory
+- **Consistent data**: All outputs use the same resume data
+- **Time-saving**: No need to run the command multiple times
+
+#### Configuration File
+```bash
+# Note: Template selection via config file is deprecated
+# Use the -t flag instead for better flexibility
 ```
 
 ### Template Metadata
@@ -337,8 +386,8 @@ tags:
 # generate_all.sh
 for config in configs/*.yml; do
     basename=$(basename "$config" .yml)
-    just generate "$config" "output/$basename" modern-html
-    just generate "$config" "output/$basename" base-latex
+    ./resume-generator run -i "$config" -t modern-html
+    ./resume-generator run -i "$config" -t modern-latex
 done
 ```
 
@@ -402,7 +451,7 @@ just validate config.yml
 
 # Issue: Missing required fields
 # Solution: Check against example configurations
-cp assets/example_inputs/sample-enhanced.yml my-config.yml
+cp assets/example_inputs/example.yml my-config.yml
 ```
 
 ### Performance Optimization
@@ -439,15 +488,17 @@ ls -R output_directory/debug
 
 #### Common Commands Reference
 ```bash
-# Quick reference for just commands
-just --list
+# Essential CLI commands
+./resume-generator run -i config.yml -t modern-html    # Generate resume
+./resume-generator validate config.yml                 # Validate configuration
+./resume-generator preview config.yml                  # Preview configuration
+./resume-generator templates list                      # List templates
 
-# Essential commands:
-just init          # Initialize project
-just build         # Build Docker images
-just generate      # Generate resume
-just validate      # Validate configuration
-just test          # Run tests
+# Helpful just recipes
+just --list
+just init          # Initialize sample inputs/outputs
+just build-cli     # Build CLI binary
+just docker-run    # Run inside Docker
 just clean         # Clean outputs
 ```
 

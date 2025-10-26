@@ -1,4 +1,4 @@
-name: base-latex
+name: modern-latex
 display_name: Base LaTeX
 description: Clean LaTeX template that produces a professional PDF resume.
 format: latex

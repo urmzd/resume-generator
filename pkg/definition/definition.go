@@ -1,48 +1,14 @@
 package definition
 
-import (
-	"time"
-)
-
+// Compiler interface for LaTeX compilation.
+// Used by compilers package to compile LaTeX documents to PDF.
 type Compiler interface {
 	LoadClasses(string)
 	AddOutputFolder(string)
 	Compile(string, string) string
 }
 
-type Resume struct {
-	Contact    Contact
-	Skills     []CategoryValuePair
-	Experience []Experience
-	Projects   []Project
-	Education  []Education
-}
-
-type Generator interface {
-	Generate(string, *Resume) string
-}
-
-type Education struct {
-	School      string
-	Degree      string
-	Suffixes    []string
-	Description []CategoryValuePair
-	Location    Location
-	Dates       DateRange
-}
-
-type Contact struct {
-	Name  string
-	Email string
-	Phone string
-	Links []Link
-}
-
-type Link struct {
-	Text string
-	Ref  string
-}
-
+// Location represents a physical location with various levels of detail
 type Location struct {
 	Address     string `json:"address,omitempty" yaml:"address,omitempty" toml:"address,omitempty"`
 	PostalCode  string `json:"postalCode,omitempty" yaml:"postalCode,omitempty" toml:"postalCode,omitempty"`
@@ -53,28 +19,8 @@ type Location struct {
 	Region      string `json:"region,omitempty" yaml:"region,omitempty" toml:"region,omitempty"`
 }
 
-type Experience struct {
-	Company      string    `yaml:"company" json:"company" toml:"company"`
-	Title        string    `yaml:"title" json:"title" toml:"title"`
-	Description  []string  `yaml:"description,omitempty" json:"description,omitempty" toml:"description,omitempty"`
-	Achievements []string  `yaml:"achievements,omitempty" json:"achievements,omitempty" toml:"achievements,omitempty"`
-	Dates        DateRange `yaml:"dates" json:"dates" toml:"dates"`
-	Location     *Location `yaml:"location,omitempty" json:"location,omitempty" toml:"location,omitempty"`
-}
-
-type Project struct {
-	Name        string
-	Language    string
-	Description []string
-	Link        Link
-}
-
+// CategoryValuePair represents a key-value pair for structured data
 type CategoryValuePair struct {
-	Category string
-	Value    string
-}
-
-type DateRange struct {
-	Start time.Time
-	End   *time.Time
+	Category string `json:"category" yaml:"category" toml:"category"`
+	Value    string `json:"value" yaml:"value" toml:"value"`
 }
