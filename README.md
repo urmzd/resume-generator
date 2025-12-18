@@ -8,7 +8,7 @@ Resume Generator is a CLI-focused toolkit for turning structured configuration f
 
 ### Core Capabilities
 - **Multiple Output Formats**: Generate resumes in PDF (LaTeX) or HTML with the same template system
-- **Single Resume Format**: Unified v2.0 format with YAML, JSON, and TOML serialization support
+- **Data-Only Inputs**: Provide resume content as YAML, JSON, or TOML; the CLI selects templates and output targets
 - **Template System**: Modular templates with embedded assets; customize or create new templates per project
 - **Robust Path Resolution**: Works from any directory, supports `~`, relative paths, and dated output workspaces
 - **Docker Support**: Containerized build that includes LaTeX and Chromium tooling for consistent output
@@ -160,50 +160,13 @@ Here are some examples of resumes generated with our tool:
 
 A clean, professional layout suitable for various industries.
 
-## Configuration Formats
+## Templates and Data
 
-### Resume Configuration (v2.0)
-Supports advanced features like ordering, template embedding, and multiple output formats:
-
-```yaml
-meta:
-  version: "2.0"
-  output:
-    formats: ["pdf", "html"]
-    theme: "modern"
-
-contact:
-  order: 1
-  name: "John Doe"
-  email: "john@example.com"
-
-skills:
-  order: 2
-  categories:
-    - name: "Programming Languages"
-      order: 1
-      items: ["Python", "Go", "JavaScript"]
-
-experience:
-  order: 3
-  positions:
-    - company: "Tech Corp"
-      order: 1
-      title: "Software Engineer"
-      # ... rest of experience
-```
-
-### Serialization Formats
-
-The Resume format (v2.0) supports multiple serialization options:
-- **YAML** (.yml, .yaml) - Recommended for readability
-- **JSON** (.json) - Great for programmatic generation
-- **TOML** (.toml) - Alternative structured format
-
-### Templates
 - **PDF Templates**: LaTeX-based templates in `templates/*-latex/`
 - **HTML Templates**: Modern responsive templates in `templates/*-html/`
 - **Custom Templates**: Create your own templates following the provided patterns
+
+Resume inputs should contain only the data you want to render—template selection, output formats, and destination paths are handled entirely by the CLI or the consuming system.
 
 Use the CLI to explore or apply templates:
 
@@ -212,12 +175,12 @@ Use the CLI to explore or apply templates:
 ./resume-generator templates list
 
 # Generate a resume with a specific template
-./resume-generator run -i config.yml -t custom-template
+./resume-generator run -i resume.yml -t custom-template
 ```
 
 ## Customization
 
-To customize your resume, edit the source file (e.g., `example.yml`) with your personal information, experiences, and skills. The tool supports various file formats like TOML, YAML, and JSON.
+To customize your resume, edit the source data file (e.g., `example.yml`) with your personal information, experiences, and skills. The tool supports YAML, JSON, and TOML inputs.
 
 ## Advanced Usage
 

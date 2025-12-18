@@ -168,18 +168,28 @@ func (compiler *LaTeXCompiler) Compile(resume string, resumeName string) string 
 
 // executeLaTeXCommand runs the LaTeX compiler on the provided file.
 func (compiler *LaTeXCompiler) executeLaTeXCommand(filePath string) {
-	cmd := exec.Command(compiler.command, filePath)
+	// Use -interaction=nonstopmode to prevent LaTeX from hanging on errors
+	cmd := exec.Command(compiler.command, "-interaction=nonstopmode", filePath)
 	cmd.Dir = compiler.outputFolder
 
-	// Create a buffer to capture standard error
-	var stderr bytes.Buffer
+	// Create buffers to capture both stdout and stderr
+	// LaTeX writes most output (including errors) to stdout, not stderr
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
 	// Run the command
 	err := cmd.Run()
 	if err != nil {
-		// Log the error along with the stderr output
-		compiler.logger.Fatalf("LaTeX compilation error with %s: %v\nStandard Error: %s", compiler.command, err, stderr.String())
+		// Construct the log file path for detailed error information
+		baseFileName := filepath.Base(filePath)
+		logFileName := baseFileName[:len(baseFileName)-len(filepath.Ext(baseFileName))] + ".log"
+		logFilePath := filepath.Join(compiler.outputFolder, logFileName)
+
+		// Log the error with both stdout and stderr
+		errorMsg := fmt.Sprintf("LaTeX compilation failed with %s: %v\n\nStdout:\n%s\n\nStderr:\n%s\n\nFor detailed error information, check the log file at: %s",
+			compiler.command, err, stdout.String(), stderr.String(), logFilePath)
+		compiler.logger.Fatal(errorMsg)
 	}
 
 	compiler.logger.Infof("Successfully compiled with %s", compiler.command)

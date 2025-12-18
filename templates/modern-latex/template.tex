@@ -1,54 +1,117 @@
 \documentclass{default}
-\usepackage{geometry}
-\usepackage{titlesec}
-\usepackage[allcolors=blue]{hyperref}
-\usepackage{helvet}
-\geometry{a4paper,left=0.5in,right=0.5in,bottom=0.5in,top=0.5in}
-\hypersetup{colorlinks=true,linkcolor=blue}
-\titleformat{\section}{\normalfont\Large\scshape\fontsize{12}{15}}{\thesection}{1em}{}[{\titlerule[0.8pt]}]
-\setlist[itemize]{itemsep=0pt, topsep=3pt}
-\setlist[description]{itemsep=0pt, topsep=3pt}
+
 \begin{document}
-\pagestyle{empty}
-\name{ {{ .Contact.Name }} }
-\hfill {\href{mailto:{{ .Contact.Email }}}{ {{ .Contact.Email }} }} \hfill \textbar \hfill {\href{tel:{{ .Contact.Phone }}}{ {{ .Contact.Phone }} }} \hfill
-{{- range .Contact.Links }}
-    \textbar \hfill{ {{fmtLink .}} } \hfill
+
+% ============================================================================
+% HEADER
+% ============================================================================
+\resumename{ {{- .Contact.Name -}} }
+
+{{- if .Contact.Title }}
+\resumetitle{ {{- .Contact.Title -}} }
 {{- end }}
-\section*{experience}
+
+\resumecontact{%
+    \email{ {{- .Contact.Email -}} }%
+    \sep%
+    \phone{ {{- .Contact.Phone -}} }%
+{{- if .Contact.Location }}
+    \sep%
+    {{ fmtLocation .Contact.Location }}%
+{{- end }}
+{{- range .Contact.Links }}
+    \sep%
+    {{ fmtLink . }}%
+{{- end }}
+}
+
+{{- if .Contact.Summary }}
+\resumesummary{ {{- .Contact.Summary -}} }
+{{- end }}
+
+% ============================================================================
+% EXPERIENCE
+% ============================================================================
+{{- if .Experience.Positions }}
+\section*{{ "{" }}{{ .Experience.Title | lower }}{{ "}" }}
 {{- range .Experience.Positions }}
-\project{{ "{" }}{{ .Title }}{{ "}" }}{{ "{" }}{{ .Company }}{{ "}" }}{{ "{" }}{{ fmtDates .Dates }}{{ "}" }}
+{{- if .Location }}
+\resumeentryloc{ {{- .Title -}} }{ {{- .Company -}} }{ {{- fmtDates .Dates -}} }{ {{- fmtLocation .Location -}} }
+{{- else }}
+\resumeentry{ {{- .Title -}} }{ {{- .Company -}} }{ {{- fmtDates .Dates -}} }
+{{- end }}
+{{- if .Highlights }}
 \begin{itemize}
 {{- range .Highlights }}
-\item {{ escapeLatexChars . }}
+    \item {{ escapeLatexChars . }}
 {{- end }}
 \end{itemize}
 {{- end }}
-\section*{education}
+{{- end }}
+{{- end }}
+
+% ============================================================================
+% EDUCATION
+% ============================================================================
+{{- if .Education.Institutions }}
+\section*{{ "{" }}{{ .Education.Title | lower }}{{ "}" }}
 {{- range .Education.Institutions }}
-\project{{ "{" }}{{ .Institution }}{{ "}" }}{}{{ "{" }}{{ fmtDates .Dates }}{{ "}" }}
-\subproject{{ "{" }}{{ .Degree }}{{ "}" }}
+{{- if .Location }}
+\resumeentryloc{ {{- .Institution -}} }{ {{- .Degree -}} }{ {{- fmtDates .Dates -}} }{ {{- fmtLocation .Location -}} }
+{{- else }}
+\resumeentry{ {{- .Institution -}} }{ {{- .Degree -}} }{ {{- fmtDates .Dates -}} }
+{{- end }}
+{{- if or .GPA .Honors }}
 \begin{description}
 {{- if .GPA }}
-\item[GPA:]{{ "{" }}{{ .GPA }}{{ "}" }}
+    \item[GPA:] {{ .GPA }}
+{{- end }}
+{{- if .Honors }}
+    \item[Honors:] {{ join ", " .Honors | escapeLatexChars }}
 {{- end }}
 \end{description}
 {{- end }}
-\section*{skills}
+{{- if .Description }}
+\begin{description}
+{{- range .Description }}
+    \item[{{ .Category | escapeLatexChars }}:] {{ .Value | escapeLatexChars }}
+{{- end }}
+\end{description}
+{{- end }}
+{{- end }}
+{{- end }}
+
+% ============================================================================
+% SKILLS
+% ============================================================================
+{{- if .Skills.Categories }}
+\section*{{ "{" }}{{ .Skills.Title | lower }}{{ "}" }}
 \begin{description}
 {{- range .Skills.Categories }}
-\item[{{ .Name | escapeLatexChars }}:]{{ "{" }}{{ skillNames .Items | join ", " | escapeLatexChars }}{{ "}" }}
+    \item[{{ .Name | escapeLatexChars }}:] {{ skillNames .Items | join ", " | escapeLatexChars }}
 {{- end }}
 \end{description}
+{{- end }}
+
+% ============================================================================
+% PROJECTS
+% ============================================================================
 {{- if .Projects.Projects }}
-\section*{projects}
+\section*{{ "{" }}{{ .Projects.Title | lower }}{{ "}" }}
 {{- range .Projects.Projects }}
-\project{{ "{" }}{{ .Name }}{{ "}" }}{{ "{" }}{{ join ", " .Technologies }}{{ "}" }}{{ "{" }}{{ if .URL }}{{ .URL }}{{ end }}{{ "}" }}
+{{- if .URL }}
+\resumeentry{ {{- .Name -}} }{ {{- join ", " .Technologies -}} }{\url{ {{- .URL -}} }}
+{{- else }}
+\resumeentry{ {{- .Name -}} }{ {{- join ", " .Technologies -}} }{}
+{{- end }}
+{{- if .Highlights }}
 \begin{itemize}
 {{- range .Highlights }}
-\item {{ escapeLatexChars . }}
+    \item {{ escapeLatexChars . }}
 {{- end }}
 \end{itemize}
 {{- end }}
 {{- end }}
+{{- end }}
+
 \end{document}

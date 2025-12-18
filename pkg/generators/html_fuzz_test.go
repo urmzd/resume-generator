@@ -15,8 +15,10 @@ func FuzzSanitizePhone(f *testing.F) {
 		f.Add(seed)
 	}
 
+	formatter := newHTMLFormatter()
+
 	f.Fuzz(func(t *testing.T, input string) {
-		output := sanitizePhone(input)
+		output := formatter.SanitizePhone(input)
 
 		for i, r := range output {
 			if r != '+' && (r < '0' || r > '9') {
