@@ -1,6 +1,8 @@
 package definition
 
 import (
+	"sort"
+	"strings"
 	"time"
 )
 
@@ -185,6 +187,31 @@ type Project struct {
 	Achievements []Achievement `json:"achievements,omitempty" yaml:"achievements,omitempty" toml:"achievements,omitempty"`
 	Keywords     []string      `json:"keywords,omitempty" yaml:"keywords,omitempty" toml:"keywords,omitempty"`
 	Images       []string      `json:"images,omitempty" yaml:"images,omitempty" toml:"images,omitempty"`
+}
+
+// URL returns the primary link URL for the project, ordered by the link's order value.
+func (p Project) URL() string {
+	if len(p.Links) == 0 {
+		return ""
+	}
+
+	ordered := make([]Link, len(p.Links))
+	copy(ordered, p.Links)
+
+	sort.SliceStable(ordered, func(i, j int) bool {
+		if ordered[i].Order == ordered[j].Order {
+			return i < j
+		}
+		return ordered[i].Order < ordered[j].Order
+	})
+
+	for _, link := range ordered {
+		if url := strings.TrimSpace(link.URL); url != "" {
+			return url
+		}
+	}
+
+	return ""
 }
 
 // ProjectCategory for grouping projects

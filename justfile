@@ -129,12 +129,12 @@ test: build-cli docker-build
     @echo "Build and test completed successfully!"
 
 # Generate a resume using the CLI (local Go build)
-generate input_file="./assets/example_inputs/example.yml" output_dir="outputs" template="modern-html":
+generate input_file="./assets/example_inputs/example.yml" output_dir="outputs":
     @echo "Generating resume from {{input_file}} into {{output_dir}}"
     @if [ -x "{{cli_binary}}" ]; then \
-        "{{cli_binary}}" run -i {{input_file}} -o {{output_dir}} -t {{template}}; \
+        "{{cli_binary}}" run -i {{input_file}} -o {{output_dir}}; \
     else \
-        go run main.go run -i {{input_file}} -o {{output_dir}} -t {{template}}; \
+        go run main.go run -i {{input_file}} -o {{output_dir}}; \
     fi
 
 # Validate a resume configuration file

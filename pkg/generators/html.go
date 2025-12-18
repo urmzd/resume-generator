@@ -16,6 +16,7 @@ import (
 type HTMLGenerator struct {
 	logger *zap.SugaredLogger
 	funcs  template.FuncMap
+	format Formatter
 }
 
 type htmlTemplatePayload struct {
@@ -114,167 +115,14 @@ type htmlCertificationEntry struct {
 
 // NewHTMLGenerator creates a new HTML resume generator
 func NewHTMLGenerator(logger *zap.SugaredLogger) *HTMLGenerator {
-	generator := &HTMLGenerator{
+	formatter := newHTMLFormatter()
+	return &HTMLGenerator{
 		logger: logger,
-	}
-	generator.setupTemplateFunctions()
-	return generator
-}
-
-// setupTemplateFunctions initializes template helper functions
-func (g *HTMLGenerator) setupTemplateFunctions() {
-	g.funcs = template.FuncMap{
-		"formatDate": func(t time.Time) string {
-			return t.Format("January 2006")
-		},
-		"formatDateShort": func(t time.Time) string {
-			return t.Format("Jan 2006")
-		},
-		"formatDateRange": func(start time.Time, end *time.Time) string {
-			startStr := start.Format("Jan 2006")
-			if end == nil {
-				return startStr + " - Present"
-			}
-			endStr := end.Format("Jan 2006")
-			if startStr == endStr {
-				return startStr
-			}
-			return startStr + " - " + endStr
-		},
-		"calculateDuration": func(start time.Time, end *time.Time) string {
-			var endTime time.Time
-			if end == nil {
-				endTime = time.Now()
-			} else {
-				endTime = *end
-			}
-
-			diff := endTime.Sub(start)
-			years := int(diff.Hours() / 24 / 365)
-			months := int((diff.Hours() / 24 / 30)) % 12
-
-			if years > 0 && months > 0 {
-				return fmt.Sprintf("%d yr %d mo", years, months)
-			} else if years > 0 {
-				return fmt.Sprintf("%d yr", years)
-			} else if months > 0 {
-				return fmt.Sprintf("%d mo", months)
-			}
-			return "< 1 mo"
-		},
-		"join": func(sep string, items []string) string {
-			return strings.Join(items, sep)
-		},
-		"escape": func(s string) string {
-			return template.HTMLEscapeString(s)
-		},
-		"safeHTML": func(s string) template.HTML {
-			return template.HTML(s)
-		},
-		"lower": strings.ToLower,
-		"upper": strings.ToUpper,
-		"title": strings.Title,
-		"replace": func(old, new, s string) string {
-			return strings.ReplaceAll(s, old, new)
-		},
-		"hasPrefix": strings.HasPrefix,
-		"hasSuffix": strings.HasSuffix,
-		"contains":  strings.Contains,
-		"sortSkillsByOrder": func(skills []definition.SkillCategory) []definition.SkillCategory {
-			sorted := make([]definition.SkillCategory, len(skills))
-			copy(sorted, skills)
-			sort.Slice(sorted, func(i, j int) bool {
-				return sorted[i].Order < sorted[j].Order
-			})
-			return sorted
-		},
-		"sortExperienceByOrder": func(experiences []definition.Experience) []definition.Experience {
-			sorted := make([]definition.Experience, len(experiences))
-			copy(sorted, experiences)
-			sort.Slice(sorted, func(i, j int) bool {
-				return sorted[i].Order < sorted[j].Order
-			})
-			return sorted
-		},
-		"sortProjectsByOrder": func(projects []definition.Project) []definition.Project {
-			sorted := make([]definition.Project, len(projects))
-			copy(sorted, projects)
-			sort.Slice(sorted, func(i, j int) bool {
-				return sorted[i].Order < sorted[j].Order
-			})
-			return sorted
-		},
-		"sortEducationByOrder": func(education []definition.Education) []definition.Education {
-			sorted := make([]definition.Education, len(education))
-			copy(sorted, education)
-			sort.Slice(sorted, func(i, j int) bool {
-				return sorted[i].Order < sorted[j].Order
-			})
-			return sorted
-		},
-		"sortLinksByOrder": func(links []definition.Link) []definition.Link {
-			sorted := make([]definition.Link, len(links))
-			copy(sorted, links)
-			sort.Slice(sorted, func(i, j int) bool {
-				return sorted[i].Order < sorted[j].Order
-			})
-			return sorted
-		},
-		"sortCertificationsByOrder": func(certs []definition.Certification) []definition.Certification {
-			sorted := make([]definition.Certification, len(certs))
-			copy(sorted, certs)
-			sort.Slice(sorted, func(i, j int) bool {
-				return sorted[i].Order < sorted[j].Order
-			})
-			return sorted
-		},
-		"getIconClass": func(linkType string) string {
-			icons := map[string]string{
-				"github":    "fab fa-github",
-				"linkedin":  "fab fa-linkedin",
-				"twitter":   "fab fa-twitter",
-				"website":   "fas fa-globe",
-				"portfolio": "fas fa-briefcase",
-				"email":     "fas fa-envelope",
-				"phone":     "fas fa-phone",
-			}
-			if icon, exists := icons[strings.ToLower(linkType)]; exists {
-				return icon
-			}
-			return "fas fa-link"
-		},
-		"formatGPA": func(gpa, maxGPA string) string {
-			if gpa == "" {
-				return ""
-			}
-			if maxGPA != "" && maxGPA != "4.0" {
-				return fmt.Sprintf("%s/%s", gpa, maxGPA)
-			}
-			return gpa
-		},
-		"add": func(a, b int) int {
-			return a + b
-		},
-		"subtract": func(a, b int) int {
-			return a - b
-		},
-		"multiply": func(a, b int) int {
-			return a * b
-		},
-		"divide": func(a, b int) int {
-			if b == 0 {
-				return 0
-			}
-			return a / b
-		},
-		"isEven": func(n int) bool {
-			return n%2 == 0
-		},
-		"isOdd": func(n int) bool {
-			return n%2 != 0
-		},
+		funcs:  formatter.TemplateFuncs(),
+		format: formatter,
 	}
 }
+
 
 // Generate creates an HTML resume from the resume data and template
 func (g *HTMLGenerator) Generate(templateContent string, resume *definition.Resume) (string, error) {
@@ -334,35 +182,35 @@ func (g *HTMLGenerator) buildTemplatePayload(resume *definition.Resume, css stri
 func (g *HTMLGenerator) buildHTMLView(resume *definition.Resume) *htmlResumeView {
 	view := &htmlResumeView{}
 
-	view.Header = buildHeaderView(resume)
+	view.Header = buildHeaderView(resume, g.format)
 	if resume.Contact.Visibility.ShowSummary && strings.TrimSpace(resume.Contact.Summary) != "" {
 		view.Summary = strings.TrimSpace(resume.Contact.Summary)
 	}
 
-	if skillsView := buildSkillsView(resume); skillsView != nil {
+	if skillsView := buildSkillsView(resume, g.format); skillsView != nil {
 		view.Skills = skillsView
 	}
 
-	if experienceView := buildExperienceView(resume); experienceView != nil {
+	if experienceView := buildExperienceView(resume, g.format); experienceView != nil {
 		view.Experience = experienceView
 	}
 
-	if projectsView := buildProjectsView(resume); projectsView != nil {
+	if projectsView := buildProjectsView(resume, g.format); projectsView != nil {
 		view.Projects = projectsView
 	}
 
-	if educationView := buildEducationView(resume); educationView != nil {
+	if educationView := buildEducationView(resume, g.format); educationView != nil {
 		view.Education = educationView
 	}
 
-	if certificationsView := buildCertificationsView(resume); certificationsView != nil {
+	if certificationsView := buildCertificationsView(resume, g.format); certificationsView != nil {
 		view.Certifications = certificationsView
 	}
 
 	return view
 }
 
-func buildHeaderView(resume *definition.Resume) htmlHeaderView {
+func buildHeaderView(resume *definition.Resume, formatter Formatter) htmlHeaderView {
 	header := htmlHeaderView{
 		Name:  strings.TrimSpace(resume.Contact.Name),
 		Title: strings.TrimSpace(resume.Contact.Title),
@@ -380,12 +228,12 @@ func buildHeaderView(resume *definition.Resume) htmlHeaderView {
 		phone := strings.TrimSpace(resume.Contact.Phone)
 		header.ContactItems = append(header.ContactItems, htmlInlineItem{
 			Text: phone,
-			URL:  "tel:" + sanitizePhone(phone),
+			URL:  "tel:" + formatter.SanitizePhone(phone),
 		})
 	}
 
 	if resume.Contact.Visibility.ShowLocation && resume.Contact.Location != nil {
-		if location := formatLocation(resume.Contact.Location); location != "" {
+		if location := formatter.FormatLocation(resume.Contact.Location); location != "" {
 			header.ContactItems = append(header.ContactItems, htmlInlineItem{
 				Text: location,
 			})
@@ -429,7 +277,7 @@ func buildHeaderView(resume *definition.Resume) htmlHeaderView {
 	return header
 }
 
-func buildSkillsView(resume *definition.Resume) *htmlSkillsView {
+func buildSkillsView(resume *definition.Resume, formatter Formatter) *htmlSkillsView {
 	if len(resume.Skills.Categories) == 0 {
 		return nil
 	}
@@ -463,9 +311,10 @@ func buildSkillsView(resume *definition.Resume) *htmlSkillsView {
 			continue
 		}
 
+		display := formatter.FormatList(names)
 		view.Categories = append(view.Categories, htmlSkillCategoryView{
 			Name:    strings.TrimSpace(category.Name),
-			Display: strings.Join(names, ", "),
+			Display: display,
 		})
 	}
 
@@ -476,7 +325,7 @@ func buildSkillsView(resume *definition.Resume) *htmlSkillsView {
 	return view
 }
 
-func buildExperienceView(resume *definition.Resume) *htmlExperienceView {
+func buildExperienceView(resume *definition.Resume, formatter Formatter) *htmlExperienceView {
 	if len(resume.Experience.Positions) == 0 {
 		return nil
 	}
@@ -495,8 +344,8 @@ func buildExperienceView(resume *definition.Resume) *htmlExperienceView {
 		entry := htmlExperienceEntry{
 			Title:      strings.TrimSpace(pos.Title),
 			Company:    strings.TrimSpace(pos.Company),
-			Location:   formatLocation(pos.Location),
-			DateRange:  formatDateRange(pos.Dates.Start, pos.Dates.End, pos.Dates.Current),
+			Location:   formatter.FormatLocation(pos.Location),
+			DateRange:  formatter.FormatDateRange(pos.Dates),
 			Highlights: filterStrings(pos.Description),
 		}
 
@@ -526,7 +375,7 @@ func buildExperienceView(resume *definition.Resume) *htmlExperienceView {
 	return view
 }
 
-func buildProjectsView(resume *definition.Resume) *htmlProjectsView {
+func buildProjectsView(resume *definition.Resume, formatter Formatter) *htmlProjectsView {
 	if len(resume.Projects.Projects) == 0 {
 		return nil
 	}
@@ -545,9 +394,9 @@ func buildProjectsView(resume *definition.Resume) *htmlProjectsView {
 		entry := htmlProjectEntry{
 			Name:         strings.TrimSpace(project.Name),
 			Category:     strings.TrimSpace(project.Category),
-			DateRange:    formatOptionalDateRange(project.Dates),
+			DateRange:    formatter.FormatOptionalDateRange(project.Dates),
 			Description:  filterStrings(project.Description),
-			Technologies: formatList(project.Technologies),
+			Technologies: formatter.FormatList(project.Technologies),
 		}
 
 		if len(entry.Description) == 0 && len(project.Achievements) > 0 {
@@ -593,7 +442,7 @@ func buildProjectsView(resume *definition.Resume) *htmlProjectsView {
 	return view
 }
 
-func buildEducationView(resume *definition.Resume) *htmlEducationView {
+func buildEducationView(resume *definition.Resume, formatter Formatter) *htmlEducationView {
 	if len(resume.Education.Institutions) == 0 {
 		return nil
 	}
@@ -613,10 +462,10 @@ func buildEducationView(resume *definition.Resume) *htmlEducationView {
 			Institution: strings.TrimSpace(institution.Institution),
 			Degree:      strings.TrimSpace(institution.Degree),
 			Field:       strings.TrimSpace(institution.Field),
-			Location:    formatLocation(institution.Location),
-			DateRange:   formatDateRange(institution.Dates.Start, institution.Dates.End, institution.Dates.Current),
-			GPA:         formatGPAValue(institution.GPA, institution.MaxGPA),
-			Honors:      formatList(institution.Honors),
+			Location:    formatter.FormatLocation(institution.Location),
+			DateRange:   formatter.FormatDateRange(institution.Dates),
+			GPA:         formatter.FormatGPA(institution.GPA, institution.MaxGPA),
+			Honors:      formatter.FormatList(institution.Honors),
 		}
 
 		if len(institution.Description) > 0 {
@@ -667,7 +516,7 @@ func buildEducationView(resume *definition.Resume) *htmlEducationView {
 	return view
 }
 
-func buildCertificationsView(resume *definition.Resume) *htmlCertificationsView {
+func buildCertificationsView(resume *definition.Resume, formatter Formatter) *htmlCertificationsView {
 	if len(resume.Certifications.Certifications) == 0 {
 		return nil
 	}
@@ -686,7 +535,7 @@ func buildCertificationsView(resume *definition.Resume) *htmlCertificationsView 
 		entry := htmlCertificationEntry{
 			Name:            strings.TrimSpace(cert.Name),
 			Issuer:          strings.TrimSpace(cert.Issuer),
-			DateRange:       formatCertificationDate(cert.IssueDate, cert.ExpirationDate),
+			DateRange:       formatter.FormatCertificationDate(cert.IssueDate, cert.ExpirationDate),
 			CredentialID:    strings.TrimSpace(cert.CredentialID),
 			VerificationURL: strings.TrimSpace(cert.VerificationURL),
 		}
@@ -707,139 +556,6 @@ func defaultString(value, fallback string) string {
 		return fallback
 	}
 	return value
-}
-
-func sanitizePhone(phone string) string {
-	var b strings.Builder
-	for _, r := range phone {
-		if (r >= '0' && r <= '9') || r == '+' {
-			b.WriteRune(r)
-		}
-	}
-	return b.String()
-}
-
-func formatLocation(loc *definition.Location) string {
-	if loc == nil {
-		return ""
-	}
-
-	parts := make([]string, 0, 3)
-	if strings.TrimSpace(loc.City) != "" {
-		parts = append(parts, strings.TrimSpace(loc.City))
-	}
-	if strings.TrimSpace(loc.State) != "" {
-		parts = append(parts, strings.TrimSpace(loc.State))
-	} else if strings.TrimSpace(loc.Region) != "" {
-		parts = append(parts, strings.TrimSpace(loc.Region))
-	}
-	if strings.TrimSpace(loc.Country) != "" && !containsIgnoreCase(parts, loc.Country) {
-		parts = append(parts, strings.TrimSpace(loc.Country))
-	}
-
-	parts = filterStrings(parts)
-	return strings.Join(parts, ", ")
-}
-
-func containsIgnoreCase(list []string, value string) bool {
-	value = strings.ToLower(strings.TrimSpace(value))
-	for _, item := range list {
-		if strings.ToLower(strings.TrimSpace(item)) == value {
-			return true
-		}
-	}
-	return false
-}
-
-func formatDateRange(start time.Time, end *time.Time, current bool) string {
-	if start.IsZero() && (end == nil || (end != nil && end.IsZero())) {
-		return ""
-	}
-
-	startStr := formatMonthYear(start)
-	var endStr string
-
-	switch {
-	case current:
-		endStr = "Present"
-	case end == nil || end.IsZero():
-		endStr = "Present"
-	default:
-		endStr = formatMonthYear(*end)
-	}
-
-	if startStr == "" {
-		return endStr
-	}
-	if endStr == "" || startStr == endStr {
-		return startStr
-	}
-	return fmt.Sprintf("%s – %s", startStr, endStr)
-}
-
-func formatOptionalDateRange(dr *definition.DateRange) string {
-	if dr == nil {
-		return ""
-	}
-	return formatDateRange(dr.Start, dr.End, dr.Current)
-}
-
-func formatCertificationDate(issue, expiration *time.Time) string {
-	if (issue == nil || issue.IsZero()) && (expiration == nil || expiration.IsZero()) {
-		return ""
-	}
-
-	issueStr := ""
-	if issue != nil && !issue.IsZero() {
-		issueStr = formatMonthYear(*issue)
-	}
-
-	expStr := ""
-	if expiration != nil && !expiration.IsZero() {
-		expStr = formatMonthYear(*expiration)
-	}
-
-	if issueStr == "" {
-		return expStr
-	}
-	if expStr == "" {
-		return issueStr
-	}
-	return fmt.Sprintf("%s – %s", issueStr, expStr)
-}
-
-func formatMonthYear(t time.Time) string {
-	if t.IsZero() {
-		return ""
-	}
-	return t.Format("Jan 2006")
-}
-
-func filterStrings(values []string) []string {
-	result := make([]string, 0, len(values))
-	for _, val := range values {
-		if trimmed := strings.TrimSpace(val); trimmed != "" {
-			result = append(result, trimmed)
-		}
-	}
-	return result
-}
-
-func formatList(values []string) string {
-	filtered := filterStrings(values)
-	return strings.Join(filtered, ", ")
-}
-
-func formatGPAValue(gpa, max string) string {
-	gpa = strings.TrimSpace(gpa)
-	max = strings.TrimSpace(max)
-	if gpa == "" {
-		return ""
-	}
-	if max == "" || max == "4.0" {
-		return gpa
-	}
-	return fmt.Sprintf("%s / %s", gpa, max)
 }
 
 // GenerateStandalone creates a complete HTML document with all dependencies

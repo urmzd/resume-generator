@@ -10,6 +10,8 @@ import (
 )
 
 func TestBuildHeaderView(t *testing.T) {
+	formatter := newHTMLFormatter()
+
 	resume := &definition.Resume{
 		Contact: definition.Contact{
 			Name:     " Alice Example ",
@@ -30,7 +32,7 @@ func TestBuildHeaderView(t *testing.T) {
 		},
 	}
 
-	header := buildHeaderView(resume)
+	header := buildHeaderView(resume, formatter)
 
 	if header.Name != "Alice Example" {
 		t.Fatalf("Name = %q, want %q", header.Name, "Alice Example")
@@ -64,6 +66,8 @@ func TestBuildHeaderView(t *testing.T) {
 }
 
 func TestBuildSkillsView(t *testing.T) {
+	formatter := newHTMLFormatter()
+
 	resume := &definition.Resume{
 		Skills: definition.Skills{
 			Title: "Capabilities",
@@ -89,7 +93,7 @@ func TestBuildSkillsView(t *testing.T) {
 		},
 	}
 
-	view := buildSkillsView(resume)
+	view := buildSkillsView(resume, formatter)
 	if view == nil {
 		t.Fatal("buildSkillsView returned nil, want view")
 	}
@@ -112,6 +116,7 @@ func TestBuildSkillsView(t *testing.T) {
 }
 
 func TestBuildExperienceView(t *testing.T) {
+	formatter := newHTMLFormatter()
 	start := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC)
 
@@ -144,7 +149,7 @@ func TestBuildExperienceView(t *testing.T) {
 		},
 	}
 
-	view := buildExperienceView(resume)
+	view := buildExperienceView(resume, formatter)
 	if view == nil {
 		t.Fatal("buildExperienceView returned nil, want view")
 	}
@@ -181,6 +186,7 @@ func TestBuildExperienceView(t *testing.T) {
 }
 
 func TestFormatDateRange(t *testing.T) {
+	formatter := newHTMLFormatter()
 	start := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
 	mid := time.Date(2021, time.March, 1, 0, 0, 0, 0, time.UTC)
 
@@ -201,7 +207,7 @@ func TestFormatDateRange(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := formatDateRange(tt.start, tt.end, tt.current)
+			got := formatter.formatDateRange(tt.start, tt.end, tt.current)
 			if got != tt.want {
 				t.Errorf("formatDateRange() = %q, want %q", got, tt.want)
 			}
@@ -249,6 +255,8 @@ func TestHTMLGeneratorGenerateStandalone(t *testing.T) {
 }
 
 func TestFormatGPAValue(t *testing.T) {
+	formatter := newHTMLFormatter()
+
 	tests := []struct {
 		name string
 		gpa  string
@@ -263,7 +271,7 @@ func TestFormatGPAValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := formatGPAValue(tt.gpa, tt.max)
+			got := formatter.FormatGPA(tt.gpa, tt.max)
 			if got != tt.want {
 				t.Errorf("formatGPAValue(%q, %q) = %q, want %q", tt.gpa, tt.max, got, tt.want)
 			}
