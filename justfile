@@ -214,3 +214,8 @@ clean-all: clean
     @echo "Removing Docker image"
     @-docker rmi {{image_tag}}
     docker system prune -f
+
+check-latest-template output_path="./outputs" template="modern-latex":
+    @echo "Checking latest template: {{template}}"
+    @ls -t {{output_path}}/**/{{template}}/**/*.pdf | head -n 1
+    @open $(ls -t {{output_path}}/**/{{template}}/**/*.pdf | head -n 1)

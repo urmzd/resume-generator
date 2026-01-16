@@ -3,7 +3,6 @@ package generators
 import (
 	"fmt"
 	"html/template"
-	"sort"
 	"strings"
 	"time"
 
@@ -173,47 +172,13 @@ func (f *htmlFormatter) TemplateFuncs() template.FuncMap {
 		"hasPrefix":         strings.HasPrefix,
 		"hasSuffix":         strings.HasSuffix,
 		"contains":          strings.Contains,
-		"sortSkillsByOrder": f.sortSkillCategories,
-		"sortExperienceByOrder": func(experiences []definition.Experience) []definition.Experience {
-			sorted := make([]definition.Experience, len(experiences))
-			copy(sorted, experiences)
-			sort.Slice(sorted, func(i, j int) bool {
-				return sorted[i].Order < sorted[j].Order
-			})
-			return sorted
-		},
-		"sortProjectsByOrder": func(projects []definition.Project) []definition.Project {
-			sorted := make([]definition.Project, len(projects))
-			copy(sorted, projects)
-			sort.Slice(sorted, func(i, j int) bool {
-				return sorted[i].Order < sorted[j].Order
-			})
-			return sorted
-		},
-		"sortEducationByOrder": func(education []definition.Education) []definition.Education {
-			sorted := make([]definition.Education, len(education))
-			copy(sorted, education)
-			sort.Slice(sorted, func(i, j int) bool {
-				return sorted[i].Order < sorted[j].Order
-			})
-			return sorted
-		},
-		"sortLinksByOrder": func(links []definition.Link) []definition.Link {
-			sorted := make([]definition.Link, len(links))
-			copy(sorted, links)
-			sort.Slice(sorted, func(i, j int) bool {
-				return sorted[i].Order < sorted[j].Order
-			})
-			return sorted
-		},
-		"sortCertificationsByOrder": func(certs []definition.Certification) []definition.Certification {
-			sorted := make([]definition.Certification, len(certs))
-			copy(sorted, certs)
-			sort.Slice(sorted, func(i, j int) bool {
-				return sorted[i].Order < sorted[j].Order
-			})
-			return sorted
-		},
+		// Sort functions preserved for template compatibility - they now return input unchanged (list order is source of truth)
+		"sortSkillsByOrder":        func(categories []definition.SkillCategory) []definition.SkillCategory { return categories },
+		"sortExperienceByOrder":    func(experiences []definition.Experience) []definition.Experience { return experiences },
+		"sortProjectsByOrder":      func(projects []definition.Project) []definition.Project { return projects },
+		"sortEducationByOrder":     func(education []definition.Education) []definition.Education { return education },
+		"sortLinksByOrder":         func(links []definition.Link) []definition.Link { return links },
+		"sortCertificationsByOrder": func(certs []definition.Certification) []definition.Certification { return certs },
 		"getIconClass": f.getIconClass,
 		"formatGPA":    f.FormatGPA,
 		"add":          func(a, b int) int { return a + b },
@@ -303,12 +268,7 @@ func (f *htmlFormatter) containsIgnoreCase(list []string, value string) bool {
 }
 
 func (f *htmlFormatter) sortSkillCategories(skills []definition.SkillCategory) []definition.SkillCategory {
-	sorted := make([]definition.SkillCategory, len(skills))
-	copy(sorted, skills)
-	sort.Slice(sorted, func(i, j int) bool {
-		return sorted[i].Order < sorted[j].Order
-	})
-	return sorted
+	return skills
 }
 
 func (f *htmlFormatter) getIconClass(linkType string) string {

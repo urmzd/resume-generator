@@ -2,7 +2,6 @@ package generators
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 	"text/template"
 
@@ -88,6 +87,7 @@ type latexEducation struct {
 	GPA         string
 	Honors      []string
 	Description []definition.CategoryValuePair
+	Thesis      *definition.Thesis
 }
 
 type latexSkills struct {
@@ -132,25 +132,14 @@ func (g *LaTeXGenerator) sanitiseContact(contact definition.Contact) latexContac
 		Summary:  g.formatter.EscapeText(strings.TrimSpace(contact.Summary)),
 	}
 
-	if len(contact.Links) == 0 {
-		return sanitised
-	}
-
-	links := make([]definition.Link, len(contact.Links))
-	copy(links, contact.Links)
-	sort.SliceStable(links, func(i, j int) bool {
-		return links[i].Order < links[j].Order
-	})
-
-	sanitisedLinks := make([]definition.Link, 0, len(links))
-	for _, link := range links {
+	sanitisedLinks := make([]definition.Link, 0, len(contact.Links))
+	for _, link := range contact.Links {
 		url := strings.TrimSpace(link.URL)
 		if url == "" {
 			continue
 		}
 		text := strings.TrimSpace(link.Text)
 		sanitisedLinks = append(sanitisedLinks, definition.Link{
-			Order:       link.Order,
 			Text:        text,
 			URL:         url,
 			Type:        link.Type,
@@ -168,17 +157,7 @@ func (g *LaTeXGenerator) sanitiseExperience(list definition.ExperienceList) late
 		Title: g.formatter.EscapeText(strings.TrimSpace(list.Title)),
 	}
 
-	if len(list.Positions) == 0 {
-		return sanitised
-	}
-
-	positions := make([]definition.Experience, len(list.Positions))
-	copy(positions, list.Positions)
-	sort.SliceStable(positions, func(i, j int) bool {
-		return positions[i].Order < positions[j].Order
-	})
-
-	for _, position := range positions {
+	for _, position := range list.Positions {
 		entry := latexExperience{
 			Title:      g.formatter.EscapeText(strings.TrimSpace(position.Title)),
 			Company:    g.formatter.EscapeText(strings.TrimSpace(position.Company)),
@@ -197,17 +176,7 @@ func (g *LaTeXGenerator) sanitiseEducation(list definition.EducationList) latexE
 		Title: g.formatter.EscapeText(strings.TrimSpace(list.Title)),
 	}
 
-	if len(list.Institutions) == 0 {
-		return sanitised
-	}
-
-	institutions := make([]definition.Education, len(list.Institutions))
-	copy(institutions, list.Institutions)
-	sort.SliceStable(institutions, func(i, j int) bool {
-		return institutions[i].Order < institutions[j].Order
-	})
-
-	for _, institution := range institutions {
+	for _, institution := range list.Institutions {
 		entry := latexEducation{
 			Institution: g.formatter.EscapeText(strings.TrimSpace(institution.Institution)),
 			Degree:      g.formatter.EscapeText(strings.TrimSpace(institution.Degree)),
@@ -216,6 +185,10 @@ func (g *LaTeXGenerator) sanitiseEducation(list definition.EducationList) latexE
 			GPA:         g.formatter.FormatGPA(institution.GPA, institution.MaxGPA),
 			Honors:      institution.Honors,
 			Description: institution.Description,
+			Thesis:      institution.Thesis,
+		}
+		if institution.Thesis != nil && institution.Thesis.Url != "" {
+			entry.Thesis.Url = g.formatter.EscapeText(strings.TrimSpace(institution.Thesis.Url))
 		}
 		sanitised.Institutions = append(sanitised.Institutions, entry)
 	}
@@ -228,31 +201,14 @@ func (g *LaTeXGenerator) sanitiseSkills(skills definition.Skills) latexSkills {
 		Title: g.formatter.EscapeText(strings.TrimSpace(skills.Title)),
 	}
 
-	if len(skills.Categories) == 0 {
-		return sanitised
-	}
-
-	categories := make([]definition.SkillCategory, len(skills.Categories))
-	copy(categories, skills.Categories)
-	sort.SliceStable(categories, func(i, j int) bool {
-		return categories[i].Order < categories[j].Order
-	})
-
-	for _, category := range categories {
-		items := make([]definition.SkillItem, len(category.Items))
-		copy(items, category.Items)
-		sort.SliceStable(items, func(i, j int) bool {
-			return items[i].Order < items[j].Order
-		})
-
-		sanitisedItems := make([]definition.SkillItem, 0, len(items))
-		for _, item := range items {
+	for _, category := range skills.Categories {
+		sanitisedItems := make([]definition.SkillItem, 0, len(category.Items))
+		for _, item := range category.Items {
 			name := strings.TrimSpace(item.Name)
 			if name == "" {
 				continue
 			}
 			sanitisedItems = append(sanitisedItems, definition.SkillItem{
-				Order:             item.Order,
 				Name:              name,
 				Level:             strings.TrimSpace(item.Level),
 				Years:             item.Years,
@@ -280,17 +236,7 @@ func (g *LaTeXGenerator) sanitiseProjects(projects definition.ProjectList) latex
 		Title: g.formatter.EscapeText(strings.TrimSpace(projects.Title)),
 	}
 
-	if len(projects.Projects) == 0 {
-		return sanitised
-	}
-
-	entries := make([]definition.Project, len(projects.Projects))
-	copy(entries, projects.Projects)
-	sort.SliceStable(entries, func(i, j int) bool {
-		return entries[i].Order < entries[j].Order
-	})
-
-	for _, project := range entries {
+	for _, project := range projects.Projects {
 		entry := latexProject{
 			Name:         g.formatter.EscapeText(strings.TrimSpace(project.Name)),
 			Technologies: g.sanitiseTechnologies(project.Technologies),
@@ -355,17 +301,7 @@ func (g *LaTeXGenerator) collectProjectHighlights(project definition.Project) []
 }
 
 func selectPrimaryLink(links []definition.Link) *definition.Link {
-	if len(links) == 0 {
-		return nil
-	}
-
-	ordered := make([]definition.Link, len(links))
-	copy(ordered, links)
-	sort.SliceStable(ordered, func(i, j int) bool {
-		return ordered[i].Order < ordered[j].Order
-	})
-
-	for _, link := range ordered {
+	for _, link := range links {
 		url := strings.TrimSpace(link.URL)
 		if url == "" {
 			continue
@@ -375,13 +311,11 @@ func selectPrimaryLink(links []definition.Link) *definition.Link {
 			text = url
 		}
 		return &definition.Link{
-			Order: link.Order,
-			Text:  text,
-			URL:   url,
-			Type:  link.Type,
-			Icon:  link.Icon,
+			Text: text,
+			URL:  url,
+			Type: link.Type,
+			Icon: link.Icon,
 		}
 	}
-
 	return nil
 }

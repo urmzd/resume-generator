@@ -47,6 +47,15 @@
     expansion=false
 }
 
+% Font setup
+% User request: "Restore LaTeX look" -> Use Latin Modern
+\RequirePackage{lmodern}
+% User request: "Restore LaTeX look" -> Use Latin Modern
+\RequirePackage{lmodern}
+% \renewcommand{\familydefault}{\sfdefault} % REMOVED: Default to Serif (Roman) for classical look
+\renewcommand{\familydefault}{\rmdefault} % Explicitly set to Roman (Serif)
+
+
 % ============================================================================
 % COLORS
 % ============================================================================
@@ -65,10 +74,10 @@
 % SECTION FORMATTING
 % ============================================================================
 \titleformat{\section}
-    {\normalfont\Large\bfseries\scshape}  % Format
+    {\normalfont\large\bfseries}          % Format
     {}                                      % Label
     {0pt}                                   % Sep
-    {}                                      % Before
+    {\MakeUppercase}                        % Before (uppercase titles)
     [\vspace{-0.5ex}\titlerule]            % After
 
 \titlespacing*{\section}{0pt}{1.5ex plus 0.5ex minus 0.2ex}{0.8ex plus 0.2ex}
@@ -77,9 +86,11 @@
 % LIST FORMATTING
 % ============================================================================
 \setlist[itemize]{
-    leftmargin=*,
-    itemsep=0pt,
-    topsep=3pt,
+    leftmargin=1.5em,
+    labelwidth=1em,
+    labelsep=0.5em,
+    itemsep=0.2ex,
+    topsep=2pt,
     parsep=0pt,
     partopsep=0pt,
     label=\textbullet
@@ -119,25 +130,28 @@
     \begin{center}
         {\large\itshape #1}%
     \end{center}%
-    \vspace{0.5ex}
+    \vspace{1.5ex}
 }
 
-% Contact information using tabular for clean alignment
+% Contact information with evenly distributed spacing
+% User requirement: "space before the start of the first link and space after the last link"
+% and "separated by pipes".
 \NewDocumentCommand{\resumecontact}{m}{%
+    \vspace{1.0ex} % Space between name and links
     \begin{center}
-        \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}c@{}}
-            #1
-        \end{tabular*}%
+        {%
+            % We will rely on template.tex to provide separators, 
+            % but we need to ensure the container allows spacing.
+            \small#1%
+        }%
     \end{center}%
     \vspace{\headersep}
 }
 
-% Helper for contact line with separators
-\newcommand{\contactline}[1]{%
-    \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}*{20}{c}@{}}
-        #1
-    \end{tabular*}
-}
+% Separator for contact info (visible pipe with spacing)
+% User req: "pipes between the link and ultimately having space before the start of the first link"
+% We will redefine sep to be just the pipe with spacing.
+\newcommand{\sep}{\hspace{1em}|\hspace{1em}}
 
 % Summary block
 \newcommand{\resumesummary}[1]{%
@@ -151,25 +165,40 @@
 % ============================================================================
 
 % Three-column header (title, organization, date)
+% User req: Title, Company, Date bolded. Company centered.
 \NewDocumentCommand{\resumeentry}{m m m}{%
     \vspace{\resumeitemsep}%
     \noindent%
-    \begin{tabularx}{\textwidth}{@{}X r@{}}
-        \textbf{#1} & \textbf{#3} \\
-        \textit{#2} & \\
+    \begin{tabularx}{\textwidth}{@{} >{\raggedright\arraybackslash}X >{\centering\arraybackslash}c >{\raggedleft\arraybackslash}X @{}}
+        \textbf{#1} & \textbf{#2} & \textbf{#3} \\
     \end{tabularx}%
     \par\vspace{-0.5ex}
 }
 
 % Three-column with location (title, organization, dates, location)
+% User req: Location hidden by default, but if this is used we should bold elements too.
+% However, plan says I will likely remove usage of this or make it default to Title/Company/Date.
+% I'll keep it but align with bolding requirements in case it IS used.
 \NewDocumentCommand{\resumeentryloc}{m m m m}{%
+    \vspace{\resumeitemsep}%
+    \noindent%
+    \begin{tabularx}{\textwidth}{@{} >{\raggedright\arraybackslash}X >{\centering\arraybackslash}c >{\raggedleft\arraybackslash}X @{}}
+        \textbf{#1} & \textbf{#2} & \textbf{#3} \\
+                    &              & \textbf{#4} \\
+    \end{tabularx}%
+    \par\vspace{-0.5ex}
+}
+
+% Education entry
+% User req: Degree below. School, degree, date, location bolded.
+\NewDocumentCommand{\resumeeducation}{m m m m}{%
     \vspace{\resumeitemsep}%
     \noindent%
     \begin{tabularx}{\textwidth}{@{}X r@{}}
         \textbf{#1} & \textbf{#3} \\
-        \textit{#2} & \textit{#4} \\
+        \textbf{#2} & \textbf{#4} \\
     \end{tabularx}%
-    \par\vspace{-0.5ex}
+    \par\vspace{0.2ex} % Slight space before description/items
 }
 
 % Subentry (for degrees, etc.)
@@ -183,8 +212,8 @@
 % CONVENIENCE MACROS
 % ============================================================================
 
-% Separator for contact info
-\newcommand{\sep}{\enspace|\enspace}
+% Separator for contact info (visible pipe with spacing)
+% \newcommand{\sep}{\hspace{1em}{\textbf{|}\hspace{1em}}}
 
 % Email link
 \newcommand{\email}[1]{\href{mailto:#1}{#1}}
