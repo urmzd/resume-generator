@@ -21,8 +21,8 @@ func TestBuildHeaderView(t *testing.T) {
 			Website:  " https://alice.dev ",
 			Location: &definition.Location{City: "New York", State: "NY", Country: "USA"},
 			Links: []definition.Link{
-				{Order: 2, Text: "", URL: "https://linkedin.com/in/alice"},
-				{Order: 1, Text: "GitHub", URL: "https://github.com/alice"},
+				{Text: "GitHub", URL: "https://github.com/alice"},
+				{Text: "", URL: "https://linkedin.com/in/alice"},
 			},
 			Visibility: definition.VisibilityConfig{
 				ShowEmail:    true,
@@ -73,20 +73,18 @@ func TestBuildSkillsView(t *testing.T) {
 			Title: "Capabilities",
 			Categories: []definition.SkillCategory{
 				{
-					Order: 2,
-					Name:  "Languages",
+					Name: "Tools",
 					Items: []definition.SkillItem{
-						{Order: 1, Name: "Go"},
-						{Order: 3, Name: " "},
-						{Order: 2, Name: " Python "},
+						{Name: "Git"},
+						{Name: "Docker"},
 					},
 				},
 				{
-					Order: 1,
-					Name:  "Tools",
+					Name: "Languages",
 					Items: []definition.SkillItem{
-						{Order: 2, Name: "Docker"},
-						{Order: 1, Name: "Git"},
+						{Name: "Go"},
+						{Name: " "},
+						{Name: " Python "},
 					},
 				},
 			},
@@ -124,18 +122,6 @@ func TestBuildExperienceView(t *testing.T) {
 		Experience: definition.ExperienceList{
 			Positions: []definition.Experience{
 				{
-					Order:       2,
-					Company:     "Beta Corp",
-					Title:       "Developer",
-					Description: []string{},
-					Highlights:  []string{"  Improved reliability  ", ""},
-					Dates: definition.DateRange{
-						Start: start,
-						End:   &end,
-					},
-				},
-				{
-					Order:       1,
 					Company:     "Acme Inc.",
 					Title:       "Senior Developer",
 					Description: []string{"  Built APIs  ", ""},
@@ -143,6 +129,16 @@ func TestBuildExperienceView(t *testing.T) {
 					Dates: definition.DateRange{
 						Start:   start,
 						Current: true,
+					},
+				},
+				{
+					Company:     "Beta Corp",
+					Title:       "Developer",
+					Description: []string{},
+					Highlights:  []string{"  Improved reliability  ", ""},
+					Dates: definition.DateRange{
+						Start: start,
+						End:   &end,
 					},
 				},
 			},

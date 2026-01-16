@@ -15,10 +15,6 @@
     \email{ {{- .Contact.Email -}} }%
     \sep%
     \phone{ {{- .Contact.Phone -}} }%
-{{- if .Contact.Location }}
-    \sep%
-    {{ fmtLocation .Contact.Location }}%
-{{- end }}
 {{- range .Contact.Links }}
     \sep%
     {{ fmtLink . }}%
@@ -33,10 +29,11 @@
 % EXPERIENCE
 % ============================================================================
 {{- if .Experience.Positions }}
-\section*{{ "{" }}{{ .Experience.Title | lower }}{{ "}" }}
+\section*{{ "{" }}{{ .Experience.Title }}{{ "}" }}
 {{- range .Experience.Positions }}
 {{- if .Location }}
-\resumeentryloc{ {{- .Title -}} }{ {{- .Company -}} }{ {{- fmtDates .Dates -}} }{ {{- fmtLocation .Location -}} }
+% User req: Location hidden by default. Use resumeentry (Title, Company, Dates)
+\resumeentry{ {{- .Title -}} }{ {{- .Company -}} }{ {{- fmtDates .Dates -}} }
 {{- else }}
 \resumeentry{ {{- .Title -}} }{ {{- .Company -}} }{ {{- fmtDates .Dates -}} }
 {{- end }}
@@ -54,12 +51,17 @@
 % EDUCATION
 % ============================================================================
 {{- if .Education.Institutions }}
-\section*{{ "{" }}{{ .Education.Title | lower }}{{ "}" }}
+\section*{{ "{" }}{{ .Education.Title }}{{ "}" }}
 {{- range .Education.Institutions }}
 {{- if .Location }}
-\resumeentryloc{ {{- .Institution -}} }{ {{- .Degree -}} }{ {{- fmtDates .Dates -}} }{ {{- fmtLocation .Location -}} }
+\resumeeducation{ {{- .Institution -}} }{ {{- .Degree -}} }{ {{- fmtDates .Dates -}} }{ {{- fmtLocation .Location -}} }
 {{- else }}
-\resumeentry{ {{- .Institution -}} }{ {{- .Degree -}} }{ {{- fmtDates .Dates -}} }
+\resumeeducation{ {{- .Institution -}} }{ {{- .Degree -}} }{ {{- fmtDates .Dates -}} }{}
+{{- end }}
+{{- if .Thesis }}
+\begin{description}
+    \item[Honours Thesis:] {{- if .Thesis.Url }} \href{ {{- .Thesis.Url -}} }{ {{- .Thesis.Title -}} } {{- else }} {{ .Thesis.Title }} {{- end }}
+\end{description}
 {{- end }}
 {{- if or .GPA .Honors }}
 \begin{description}
@@ -85,7 +87,7 @@
 % SKILLS
 % ============================================================================
 {{- if .Skills.Categories }}
-\section*{{ "{" }}{{ .Skills.Title | lower }}{{ "}" }}
+\section*{{ "{" }}{{ .Skills.Title }}{{ "}" }}
 \begin{description}
 {{- range .Skills.Categories }}
     \item[{{ .Name | escapeLatexChars }}:] {{ skillNames .Items | join ", " | escapeLatexChars }}
@@ -97,21 +99,20 @@
 % PROJECTS
 % ============================================================================
 {{- if .Projects.Projects }}
-\section*{{ "{" }}{{ .Projects.Title | lower }}{{ "}" }}
+\section*{{ "{" }}{{ .Projects.Title }}{{ "}" }}
 {{- range .Projects.Projects }}
 {{- if .URL }}
 \resumeentry{ {{- .Name -}} }{ {{- join ", " .Technologies -}} }{\url{ {{- .URL -}} }}
 {{- else }}
 \resumeentry{ {{- .Name -}} }{ {{- join ", " .Technologies -}} }{}
 {{- end }}
-{{- if .Highlights }}
-\begin{itemize}
-{{- range .Highlights }}
-    \item {{ escapeLatexChars . }}
-{{- end }}
-\end{itemize}
-{{- end }}
+    \begin{itemize}
+    {{- range .Highlights }}
+        \item {{ . | escapeLatexChars }}
+    {{- end }}
+    \end{itemize}
 {{- end }}
 {{- end }}
+
 
 \end{document}

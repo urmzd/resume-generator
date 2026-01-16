@@ -1,7 +1,6 @@
 package definition
 
 import (
-	"sort"
 	"strings"
 	"time"
 )
@@ -40,9 +39,8 @@ type OutputPreferences struct {
 	Destination string            `json:"destination,omitempty" yaml:"destination,omitempty" toml:"destination,omitempty"`
 }
 
-// Contact includes ordering metadata and contact details.
+// Contact includes contact details.
 type Contact struct {
-	Order      int              `json:"order" yaml:"order" toml:"order"`
 	Name       string           `json:"name" yaml:"name" toml:"name"`
 	Title      string           `json:"title,omitempty" yaml:"title,omitempty" toml:"title,omitempty"`
 	Email      string           `json:"email" yaml:"email" toml:"email"`
@@ -54,9 +52,8 @@ type Contact struct {
 	Visibility VisibilityConfig `json:"visibility,omitempty" yaml:"visibility,omitempty" toml:"visibility,omitempty"`
 }
 
-// Link stores ordering metadata and optional presentation details.
+// Link stores optional presentation details.
 type Link struct {
-	Order       int    `json:"order" yaml:"order" toml:"order"`
 	Text        string `json:"text" yaml:"text" toml:"text"`
 	URL         string `json:"url" yaml:"url" toml:"url"`
 	Type        string `json:"type,omitempty" yaml:"type,omitempty" toml:"type,omitempty"` // linkedin, github, portfolio, etc.
@@ -72,9 +69,8 @@ type VisibilityConfig struct {
 	ShowSummary  bool `json:"show_summary" yaml:"show_summary" toml:"show_summary"`
 }
 
-// Skills groups related categories with ordering metadata.
+// Skills groups related categories.
 type Skills struct {
-	Order      int             `json:"order" yaml:"order" toml:"order"`
 	Title      string          `json:"title,omitempty" yaml:"title,omitempty" toml:"title,omitempty"`
 	Categories []SkillCategory `json:"categories" yaml:"categories" toml:"categories"`
 	Layout     string          `json:"layout,omitempty" yaml:"layout,omitempty" toml:"layout,omitempty"` // grid, list, compact
@@ -82,7 +78,6 @@ type Skills struct {
 
 // SkillCategory represents a group of related skills
 type SkillCategory struct {
-	Order       int         `json:"order" yaml:"order" toml:"order"`
 	Name        string      `json:"name" yaml:"name" toml:"name"`
 	Items       []SkillItem `json:"items" yaml:"items" toml:"items"`
 	Description string      `json:"description,omitempty" yaml:"description,omitempty" toml:"description,omitempty"`
@@ -91,7 +86,6 @@ type SkillCategory struct {
 
 // SkillItem represents an individual skill with proficiency
 type SkillItem struct {
-	Order             int      `json:"order" yaml:"order" toml:"order"`
 	Name              string   `json:"name" yaml:"name" toml:"name"`
 	Level             string   `json:"level,omitempty" yaml:"level,omitempty" toml:"level,omitempty"` // beginner, intermediate, advanced, expert
 	Years             int      `json:"years,omitempty" yaml:"years,omitempty" toml:"years,omitempty"`
@@ -100,17 +94,15 @@ type SkillItem struct {
 	Keywords          []string `json:"keywords,omitempty" yaml:"keywords,omitempty" toml:"keywords,omitempty"`
 }
 
-// ExperienceList with ordering and grouping
+// ExperienceList with grouping
 type ExperienceList struct {
-	Order     int               `json:"order" yaml:"order" toml:"order"`
 	Title     string            `json:"title,omitempty" yaml:"title,omitempty" toml:"title,omitempty"`
 	Positions []Experience      `json:"positions" yaml:"positions" toml:"positions"`
 	Groups    []ExperienceGroup `json:"groups,omitempty" yaml:"groups,omitempty" toml:"groups,omitempty"`
 }
 
-// Experience captures a professional position with ordering metadata.
+// Experience captures a professional position.
 type Experience struct {
-	Order          int           `json:"order" yaml:"order" toml:"order"`
 	Company        string        `json:"company" yaml:"company" toml:"company"`
 	Title          string        `json:"title" yaml:"title" toml:"title"`
 	Department     string        `json:"department,omitempty" yaml:"department,omitempty" toml:"department,omitempty"`
@@ -138,7 +130,6 @@ type ExperienceGroup struct {
 
 // Achievement represents a notable accomplishment
 type Achievement struct {
-	Order       int        `json:"order" yaml:"order" toml:"order"`
 	Title       string     `json:"title" yaml:"title" toml:"title"`
 	Description string     `json:"description" yaml:"description" toml:"description"`
 	Impact      string     `json:"impact,omitempty" yaml:"impact,omitempty" toml:"impact,omitempty"`
@@ -163,17 +154,15 @@ type DateRange struct {
 	Duration string     `json:"duration,omitempty" yaml:"duration,omitempty" toml:"duration,omitempty"`
 }
 
-// ProjectList with ordering and categorization
+// ProjectList with categorization
 type ProjectList struct {
-	Order      int               `json:"order" yaml:"order" toml:"order"`
 	Title      string            `json:"title,omitempty" yaml:"title,omitempty" toml:"title,omitempty"`
 	Projects   []Project         `json:"projects" yaml:"projects" toml:"projects"`
 	Categories []ProjectCategory `json:"categories,omitempty" yaml:"categories,omitempty" toml:"categories,omitempty"`
 }
 
-// Project provides detailed project information with ordering metadata.
+// Project provides detailed project information.
 type Project struct {
-	Order        int           `json:"order" yaml:"order" toml:"order"`
 	Name         string        `json:"name" yaml:"name" toml:"name"`
 	Category     string        `json:"category,omitempty" yaml:"category,omitempty" toml:"category,omitempty"`
 	Type         string        `json:"type,omitempty" yaml:"type,omitempty" toml:"type,omitempty"`       // personal, professional, open-source
@@ -189,28 +178,13 @@ type Project struct {
 	Images       []string      `json:"images,omitempty" yaml:"images,omitempty" toml:"images,omitempty"`
 }
 
-// URL returns the primary link URL for the project, ordered by the link's order value.
+// URL returns the primary link URL for the project (first non-empty link).
 func (p Project) URL() string {
-	if len(p.Links) == 0 {
-		return ""
-	}
-
-	ordered := make([]Link, len(p.Links))
-	copy(ordered, p.Links)
-
-	sort.SliceStable(ordered, func(i, j int) bool {
-		if ordered[i].Order == ordered[j].Order {
-			return i < j
-		}
-		return ordered[i].Order < ordered[j].Order
-	})
-
-	for _, link := range ordered {
+	for _, link := range p.Links {
 		if url := strings.TrimSpace(link.URL); url != "" {
 			return url
 		}
 	}
-
 	return ""
 }
 
@@ -222,16 +196,14 @@ type ProjectCategory struct {
 	Projects    []int  `json:"projects" yaml:"projects" toml:"projects"` // References to project orders
 }
 
-// EducationList with ordering and additional metadata
+// EducationList with additional metadata
 type EducationList struct {
-	Order        int         `json:"order" yaml:"order" toml:"order"`
 	Title        string      `json:"title,omitempty" yaml:"title,omitempty" toml:"title,omitempty"`
 	Institutions []Education `json:"institutions" yaml:"institutions" toml:"institutions"`
 }
 
-// Education captures academic history with ordering metadata.
+// Education captures academic history.
 type Education struct {
-	Order       int                 `json:"order" yaml:"order" toml:"order"`
 	Institution string              `json:"institution" yaml:"institution" toml:"institution"`
 	Degree      string              `json:"degree" yaml:"degree" toml:"degree"`
 	Field       string              `json:"field,omitempty" yaml:"field,omitempty" toml:"field,omitempty"`
@@ -252,7 +224,6 @@ type Education struct {
 
 // Coursework represents relevant coursework
 type Coursework struct {
-	Order       int    `json:"order" yaml:"order" toml:"order"`
 	Name        string `json:"name" yaml:"name" toml:"name"`
 	Code        string `json:"code,omitempty" yaml:"code,omitempty" toml:"code,omitempty"`
 	Grade       string `json:"grade,omitempty" yaml:"grade,omitempty" toml:"grade,omitempty"`
@@ -269,18 +240,17 @@ type Thesis struct {
 	Keywords    []string `json:"keywords,omitempty" yaml:"keywords,omitempty" toml:"keywords,omitempty"`
 	Publication string   `json:"publication,omitempty" yaml:"publication,omitempty" toml:"publication,omitempty"`
 	DOI         string   `json:"doi,omitempty" yaml:"doi,omitempty" toml:"doi,omitempty"`
+	Url         string   `json:"url,omitempty" yaml:"url,omitempty" toml:"url,omitempty"`
 }
 
-// CertificationList with ordering
+// CertificationList
 type CertificationList struct {
-	Order          int             `json:"order" yaml:"order" toml:"order"`
 	Title          string          `json:"title,omitempty" yaml:"title,omitempty" toml:"title,omitempty"`
 	Certifications []Certification `json:"certifications" yaml:"certifications" toml:"certifications"`
 }
 
 // Certification represents a professional certification or credential
 type Certification struct {
-	Order           int        `json:"order" yaml:"order" toml:"order"`
 	Name            string     `json:"name" yaml:"name" toml:"name"`
 	Issuer          string     `json:"issuer" yaml:"issuer" toml:"issuer"`
 	IssueDate       *time.Time `json:"issueDate,omitempty" yaml:"issueDate,omitempty" toml:"issueDate,omitempty"`
@@ -320,9 +290,6 @@ func (cv *ConfigurationValidator) ValidateResume(resume *Resume) []ValidationErr
 		})
 	}
 
-	// Validate ordering (no duplicates)
-	errors = append(errors, cv.validateOrdering(resume)...)
-
 	// Validate contact information
 	if resume.Contact.Name == "" {
 		errors = append(errors, ValidationError{
@@ -349,39 +316,4 @@ type ValidationError struct {
 	Message string      `json:"message"`
 	Type    string      `json:"type"`
 	Value   interface{} `json:"value,omitempty"`
-}
-
-// validateOrdering checks for duplicate order values within sections
-func (cv *ConfigurationValidator) validateOrdering(resume *Resume) []ValidationError {
-	var errors []ValidationError
-
-	// Check skill category ordering
-	categoryOrders := make(map[int]bool)
-	for _, category := range resume.Skills.Categories {
-		if categoryOrders[category.Order] {
-			errors = append(errors, ValidationError{
-				Field:   "skills.categories.order",
-				Message: "Duplicate order value found in skill categories",
-				Type:    "duplicate",
-				Value:   category.Order,
-			})
-		}
-		categoryOrders[category.Order] = true
-	}
-
-	// Check experience ordering
-	expOrders := make(map[int]bool)
-	for _, exp := range resume.Experience.Positions {
-		if expOrders[exp.Order] {
-			errors = append(errors, ValidationError{
-				Field:   "experience.positions.order",
-				Message: "Duplicate order value found in experience positions",
-				Type:    "duplicate",
-				Value:   exp.Order,
-			})
-		}
-		expOrders[exp.Order] = true
-	}
-
-	return errors
 }

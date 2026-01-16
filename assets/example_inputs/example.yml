@@ -4,7 +4,6 @@ meta:
     formats: ["pdf", "html"]
 
 contact:
-  order: 1
   name: Jane Doe
   title: Senior Software Engineer
   email: example@email.com
@@ -15,48 +14,33 @@ contact:
     state: Academia
     country: USA
   links:
-    - order: 1
-      text: LinkedIn
+    - text: LinkedIn
       url: https://linkedin.com/in/janedoe
       type: linkedin
-    - order: 2
-      text: GitHub
+    - text: GitHub
       url: https://github.com/janedoe
       type: github
 
 skills:
-  order: 2
   title: Core Skills
   categories:
-    - order: 1
-      name: Programming Languages
+    - name: Programming Languages
       items:
-        - order: 1
-          name: Python
-        - order: 2
-          name: Java
-        - order: 3
-          name: C++
-        - order: 4
-          name: JavaScript
-    - order: 2
-      name: Tools & Frameworks
+        - name: Python
+        - name: Java
+        - name: C++
+        - name: JavaScript
+    - name: Tools & Frameworks
       items:
-        - order: 1
-          name: AWS
-        - order: 2
-          name: Docker
-        - order: 3
-          name: React
-        - order: 4
-          name: Node.js
+        - name: AWS
+        - name: Docker
+        - name: React
+        - name: Node.js
 
 experience:
-  order: 3
   title: Professional Experience
   positions:
-    - order: 1
-      company: Tech Innovations Inc.
+    - company: Tech Innovations Inc.
       title: Software Developer
       description:
         - "Developed a cloud-based storage solution improving data retrieval efficiency by 40%."
@@ -67,8 +51,7 @@ experience:
       location:
         city: Techville
         state: Academia
-    - order: 2
-      company: FutureSoft
+    - company: FutureSoft
       title: Systems Engineer
       description:
         - "Implemented a company-wide upgrade of network security protocols, enhancing system security by 50%."
@@ -79,8 +62,7 @@ experience:
       location:
         city: Innovation City
         state: Futuristan
-    - order: 3
-      company: Innovative Tech Corp
+    - company: Innovative Tech Corp
       title: Lead Developer
       description:
         - "Led the development of a scalable e-commerce platform, increasing user engagement by 30%."
@@ -91,8 +73,7 @@ experience:
       location:
         city: Metropolis
         state: Innovation State
-    - order: 4
-      company: NextGen Solutions
+    - company: NextGen Solutions
       title: Junior Developer
       description:
         - "Assisted in developing APIs for internal tools, improving workflow efficiency by 25%."
@@ -105,11 +86,9 @@ experience:
         state: Progress
 
 education:
-  order: 4
   title: Education
   institutions:
-    - order: 1
-      institution: Prestigious University
+    - institution: Prestigious University
       degree: Ph.D. in Computer Science
       description:
         - category: Dissertation
@@ -122,8 +101,7 @@ education:
       location:
         city: Techville
         state: Academia
-    - order: 2
-      institution: University of Fictional
+    - institution: University of Fictional
       degree: Bachelor of Science in Software Engineering
       honors:
         - Magna Cum Laude
@@ -141,11 +119,9 @@ education:
         state: Stateville
 
 projects:
-  order: 5
   title: Projects
   projects:
-    - order: 1
-      name: Personal Finance Tracker
+    - name: Personal Finance Tracker
       description:
         - "Developed a full-stack web application for personal finance management with budgeting and forecasting tools."
       technologies:
@@ -154,12 +130,10 @@ projects:
         - React
         - PostgreSQL
       links:
-        - order: 1
-          text: Source Code
+        - text: Source Code
           url: https://github.com/janedoe/finance-tracker
           type: github
-    - order: 2
-      name: Eco-Friendly Route Finder
+    - name: Eco-Friendly Route Finder
       description:
         - "Created a mobile application that calculates eco-friendly travel routes to reduce carbon footprint."
       technologies:
@@ -168,7 +142,6 @@ projects:
         - MapKit
         - Firebase
       links:
-        - order: 1
-          text: Source Code
+        - text: Source Code
           url: https://github.com/janedoe/eco-route-finder
           type: github

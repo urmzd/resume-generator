@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"sort"
 	"strings"
 	"time"
 
@@ -122,7 +121,6 @@ func NewHTMLGenerator(logger *zap.SugaredLogger) *HTMLGenerator {
 		format: formatter,
 	}
 }
-
 
 // Generate creates an HTML resume from the resume data and template
 func (g *HTMLGenerator) Generate(templateContent string, resume *definition.Resume) (string, error) {
@@ -248,26 +246,18 @@ func buildHeaderView(resume *definition.Resume, formatter Formatter) htmlHeaderV
 		})
 	}
 
-	if len(resume.Contact.Links) > 0 {
-		links := make([]definition.Link, len(resume.Contact.Links))
-		copy(links, resume.Contact.Links)
-		sort.SliceStable(links, func(i, j int) bool {
-			return links[i].Order < links[j].Order
-		})
-
-		for _, link := range links {
-			text := strings.TrimSpace(link.Text)
-			if text == "" {
-				text = strings.TrimSpace(link.URL)
-			}
-			if text == "" {
-				continue
-			}
-			header.ContactItems = append(header.ContactItems, htmlInlineItem{
-				Text: text,
-				URL:  strings.TrimSpace(link.URL),
-			})
+	for _, link := range resume.Contact.Links {
+		text := strings.TrimSpace(link.Text)
+		if text == "" {
+			text = strings.TrimSpace(link.URL)
 		}
+		if text == "" {
+			continue
+		}
+		header.ContactItems = append(header.ContactItems, htmlInlineItem{
+			Text: text,
+			URL:  strings.TrimSpace(link.URL),
+		})
 	}
 
 	if len(header.ContactItems) > 0 {
@@ -286,21 +276,9 @@ func buildSkillsView(resume *definition.Resume, formatter Formatter) *htmlSkills
 		Title: defaultString(resume.Skills.Title, "Skills"),
 	}
 
-	categories := make([]definition.SkillCategory, len(resume.Skills.Categories))
-	copy(categories, resume.Skills.Categories)
-	sort.SliceStable(categories, func(i, j int) bool {
-		return categories[i].Order < categories[j].Order
-	})
-
-	for _, category := range categories {
-		items := make([]definition.SkillItem, len(category.Items))
-		copy(items, category.Items)
-		sort.SliceStable(items, func(i, j int) bool {
-			return items[i].Order < items[j].Order
-		})
-
-		names := make([]string, 0, len(items))
-		for _, item := range items {
+	for _, category := range resume.Skills.Categories {
+		names := make([]string, 0, len(category.Items))
+		for _, item := range category.Items {
 			name := strings.TrimSpace(item.Name)
 			if name != "" {
 				names = append(names, name)
@@ -334,13 +312,7 @@ func buildExperienceView(resume *definition.Resume, formatter Formatter) *htmlEx
 		Title: defaultString(resume.Experience.Title, "Experience"),
 	}
 
-	positions := make([]definition.Experience, len(resume.Experience.Positions))
-	copy(positions, resume.Experience.Positions)
-	sort.SliceStable(positions, func(i, j int) bool {
-		return positions[i].Order < positions[j].Order
-	})
-
-	for _, pos := range positions {
+	for _, pos := range resume.Experience.Positions {
 		entry := htmlExperienceEntry{
 			Title:      strings.TrimSpace(pos.Title),
 			Company:    strings.TrimSpace(pos.Company),
@@ -384,13 +356,7 @@ func buildProjectsView(resume *definition.Resume, formatter Formatter) *htmlProj
 		Title: defaultString(resume.Projects.Title, "Projects"),
 	}
 
-	projects := make([]definition.Project, len(resume.Projects.Projects))
-	copy(projects, resume.Projects.Projects)
-	sort.SliceStable(projects, func(i, j int) bool {
-		return projects[i].Order < projects[j].Order
-	})
-
-	for _, project := range projects {
+	for _, project := range resume.Projects.Projects {
 		entry := htmlProjectEntry{
 			Name:         strings.TrimSpace(project.Name),
 			Category:     strings.TrimSpace(project.Category),
@@ -411,25 +377,18 @@ func buildProjectsView(resume *definition.Resume, formatter Formatter) *htmlProj
 			}
 		}
 
-		if len(project.Links) > 0 {
-			links := make([]definition.Link, len(project.Links))
-			copy(links, project.Links)
-			sort.SliceStable(links, func(i, j int) bool {
-				return links[i].Order < links[j].Order
-			})
-			for _, link := range links {
-				text := strings.TrimSpace(link.Text)
-				if text == "" {
-					text = strings.TrimSpace(link.URL)
-				}
-				if text == "" {
-					continue
-				}
-				entry.Links = append(entry.Links, htmlInlineItem{
-					Text: text,
-					URL:  strings.TrimSpace(link.URL),
-				})
+		for _, link := range project.Links {
+			text := strings.TrimSpace(link.Text)
+			if text == "" {
+				text = strings.TrimSpace(link.URL)
 			}
+			if text == "" {
+				continue
+			}
+			entry.Links = append(entry.Links, htmlInlineItem{
+				Text: text,
+				URL:  strings.TrimSpace(link.URL),
+			})
 		}
 
 		view.Entries = append(view.Entries, entry)
@@ -451,13 +410,7 @@ func buildEducationView(resume *definition.Resume, formatter Formatter) *htmlEdu
 		Title: defaultString(resume.Education.Title, "Education"),
 	}
 
-	institutions := make([]definition.Education, len(resume.Education.Institutions))
-	copy(institutions, resume.Education.Institutions)
-	sort.SliceStable(institutions, func(i, j int) bool {
-		return institutions[i].Order < institutions[j].Order
-	})
-
-	for _, institution := range institutions {
+	for _, institution := range resume.Education.Institutions {
 		entry := htmlEducationEntry{
 			Institution: strings.TrimSpace(institution.Institution),
 			Degree:      strings.TrimSpace(institution.Degree),
@@ -525,13 +478,7 @@ func buildCertificationsView(resume *definition.Resume, formatter Formatter) *ht
 		Title: defaultString(resume.Certifications.Title, "Certifications"),
 	}
 
-	certs := make([]definition.Certification, len(resume.Certifications.Certifications))
-	copy(certs, resume.Certifications.Certifications)
-	sort.SliceStable(certs, func(i, j int) bool {
-		return certs[i].Order < certs[j].Order
-	})
-
-	for _, cert := range certs {
+	for _, cert := range resume.Certifications.Certifications {
 		entry := htmlCertificationEntry{
 			Name:            strings.TrimSpace(cert.Name),
 			Issuer:          strings.TrimSpace(cert.Issuer),

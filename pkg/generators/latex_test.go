@@ -71,17 +71,16 @@ func TestLaTeXGeneratorGenerate(t *testing.T) {
 			Email: "john@example.com",
 			Phone: "+1 (555) 123-4567",
 			Links: []definition.Link{
-				{Order: 1, URL: "https://example.com", Text: "Website"},
+				{URL: "https://example.com", Text: "Website"},
 			},
 		},
 		Skills: definition.Skills{
 			Categories: []definition.SkillCategory{
 				{
-					Order: 1,
-					Name:  "Languages",
+					Name: "Languages",
 					Items: []definition.SkillItem{
-						{Order: 1, Name: "Go"},
-						{Order: 2, Name: "Rust"},
+						{Name: "Go"},
+						{Name: "Rust"},
 					},
 				},
 			},
@@ -89,7 +88,6 @@ func TestLaTeXGeneratorGenerate(t *testing.T) {
 		Experience: definition.ExperienceList{
 			Positions: []definition.Experience{
 				{
-					Order:   1,
 					Title:   "Engineer",
 					Company: "Acme #1",
 					Description: []string{
@@ -105,7 +103,6 @@ func TestLaTeXGeneratorGenerate(t *testing.T) {
 		Education: definition.EducationList{
 			Institutions: []definition.Education{
 				{
-					Order:       1,
 					Institution: "University of {Code}",
 					Degree:      "B.Sc Computer Science",
 					GPA:         "3.9",
@@ -120,14 +117,13 @@ func TestLaTeXGeneratorGenerate(t *testing.T) {
 		Projects: definition.ProjectList{
 			Projects: []definition.Project{
 				{
-					Order:        1,
 					Name:         "Project_One",
 					Technologies: []string{"Go", "Terraform"},
 					Description: []string{
 						"Deployed to 100% of regions",
 					},
 					Links: []definition.Link{
-						{Order: 1, URL: "https://project.example.com", Text: "Repo"},
+						{URL: "https://project.example.com", Text: "Repo"},
 					},
 				},
 			},
