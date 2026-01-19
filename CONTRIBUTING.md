@@ -97,7 +97,7 @@ docker build -t resume-generator .
 # Or use the justfile
 just docker-build
 
-# Run tests in Docker
+# Run tests
 just test
 ```
 
@@ -133,16 +133,16 @@ Test your changes with example inputs:
 
 ```bash
 # Test with resume format
-./resume-generator run -i assets/example_inputs/example.yml -t modern-html
+./resume-generator run -i assets/example_resumes/software_engineer.yml -t modern-html
 
-# Test with legacy format
-./resume-generator run -i assets/example_inputs/example.yml -t modern-latex
+# Test with LaTeX template
+./resume-generator run -i assets/example_resumes/software_engineer.yml -t modern-latex
 
 # Test validation
-./resume-generator validate assets/example_inputs/example.yml
+./resume-generator validate assets/example_resumes/software_engineer.yml
 
 # Test preview
-./resume-generator preview assets/example_inputs/example.yml
+./resume-generator preview assets/example_resumes/software_engineer.yml
 
 # Test template listing
 ./resume-generator templates list
@@ -356,7 +356,7 @@ func LoadTemplate(name string) (*Template, error) {
 
 5. **Test the template:**
    ```bash
-   ./resume-generator run -i assets/example_inputs/example.yml -t your-template-name
+   ./resume-generator run -i assets/example_resumes/software_engineer.yml -t your-template-name
    ```
 
 6. **Add example output:**

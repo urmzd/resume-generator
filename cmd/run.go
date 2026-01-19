@@ -305,6 +305,7 @@ func defaultResumeBaseName(resumeSlug string) string {
 func sanitizeNameComponent(value string) string {
 	value = strings.ToLower(value)
 	value = strings.ReplaceAll(value, " ", "_")
+	value = strings.ReplaceAll(value, "-", "_")
 
 	var builder strings.Builder
 	for _, r := range value {

@@ -12,9 +12,10 @@ if ! command -v docker >/dev/null 2>&1; then
   exit 1
 fi
 
+has_local_converter=true
 if ! command -v magick >/dev/null 2>&1 && ! command -v convert >/dev/null 2>&1 && ! command -v pdftoppm >/dev/null 2>&1; then
-  echo "Error: install ImageMagick (magick/convert) or poppler-utils (pdftoppm) for PDF -> PNG conversion." >&2
-  exit 1
+  has_local_converter=false
+  echo "No local PDF -> PNG converter found; falling back to Docker + poppler-utils."
 fi
 
 mkdir -p "$output_dir"
@@ -47,12 +48,23 @@ for template in "${templates[@]}"; do
 
   target_path="${output_dir}/${template}.png"
   echo "Converting ${pdf_path} -> ${target_path}"
-  if command -v magick >/dev/null 2>&1; then
-    magick -density 300 "${pdf_path}[0]" -quality 90 "$target_path"
-  elif command -v convert >/dev/null 2>&1; then
-    convert -density 300 "${pdf_path}[0]" -quality 90 "$target_path"
+  if [ "$has_local_converter" = true ]; then
+    if command -v magick >/dev/null 2>&1; then
+      magick -density 300 "${pdf_path}[0]" -quality 90 "$target_path"
+    elif command -v convert >/dev/null 2>&1; then
+      convert -density 300 "${pdf_path}[0]" -quality 90 "$target_path"
+    else
+      pdftoppm -png -singlefile -r 300 "$pdf_path" "${target_path%.png}"
+    fi
   else
-    pdftoppm -png -singlefile -r 300 "$pdf_path" "${target_path%.png}"
+    tmp_pdf="$(mktemp "${output_dir}/preview.XXXXXX.pdf")"
+    cp "$pdf_path" "$tmp_pdf"
+    docker run --rm \
+      -v "$tmp_pdf":/input.pdf:ro \
+      -v "$output_dir":/output \
+      alpine:3.19 \
+      sh -c "apk add --no-cache poppler-utils >/dev/null && pdftoppm -png -singlefile -r 300 /input.pdf /output/$(basename "${target_path%.png}")"
+    rm -f "$tmp_pdf"
   fi
 
   rm -rf "$tmp_dir"

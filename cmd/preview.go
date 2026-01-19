@@ -123,7 +123,7 @@ This is useful for quickly checking if your configuration is valid.`,
 		fmt.Println("To see the full configuration in JSON format, add --json flag")
 		fmt.Printf("To generate output, use: resume-generator run -i %s\n", filePath)
 
-		// If verbose or json flag is set, show full JSON (we'll add this flag later if needed)
+		// If --json flag is set, show full JSON
 		if verbose, _ := cmd.Flags().GetBool("json"); verbose {
 			fmt.Println("\n" + strings.Repeat("─", 50))
 			fmt.Println("Full Configuration (JSON):")

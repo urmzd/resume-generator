@@ -135,7 +135,7 @@ var templatesValidateCmd = &cobra.Command{
 			}
 			fmt.Println("✓ HTML template appears valid")
 
-		case ".txt":
+		case ".tex", ".ltx":
 			// Assume LaTeX template
 			if !strings.Contains(templateStr, "\\documentclass") && !strings.Contains(templateStr, "\\begin{document}") {
 				fmt.Println("Warning: Template doesn't appear to be a LaTeX document")

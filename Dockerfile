@@ -96,11 +96,11 @@ CMD ["--help"]
 # Build:
 #   docker build -t resume-generator .
 #
-# Generate HTML:
-#   docker run --rm -v $(pwd):/work resume-generator run -i /work/resume.yml -f html -o /work
+# Generate PDF from an HTML template:
+#   docker run --rm -v $(pwd):/work resume-generator run -i /work/resume.yml -t modern-html -o /work
 #
 # Generate PDF:
-#   docker run --rm -v $(pwd):/work resume-generator run -i /work/resume.yml -f pdf -o /work
+#   docker run --rm -v $(pwd):/work resume-generator run -i /work/resume.yml -t modern-latex -o /work
 #
 # List templates:
 #   docker run --rm -v $(pwd):/work resume-generator templates list
