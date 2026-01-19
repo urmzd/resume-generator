@@ -80,6 +80,7 @@ func (g *DOCXGenerator) addHeader(doc *docx.Docx, contact resume.Contact) {
 func (g *DOCXGenerator) addSectionHeader(doc *docx.Docx, title string) {
 	para := doc.AddParagraph()
 	para.AddText(strings.ToUpper(title)).Bold().Size("24")
+	doc.AddParagraph() // Add spacing after section header
 }
 
 // addEducation adds the education section.
