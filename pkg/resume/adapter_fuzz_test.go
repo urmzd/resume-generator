@@ -1,4 +1,4 @@
-package definition
+package resume
 
 import (
 	"os"
@@ -10,14 +10,12 @@ import (
 // to ensure it doesn't panic or crash on malformed input
 func FuzzLoadResumeFromFile_YAML(f *testing.F) {
 	// Seed corpus with valid examples
-	f.Add([]byte(`meta:
-  version: "2.0"
+	f.Add([]byte(`
 contact:
   name: "John Doe"
   email: "john@example.com"`))
 
-	f.Add([]byte(`meta:
-  version: "2.0"
+	f.Add([]byte(`
 contact:
   name: "Test"
   email: "test@test.com"
@@ -47,14 +45,13 @@ experience:
 func FuzzLoadResumeFromFile_JSON(f *testing.F) {
 	// Seed corpus
 	f.Add([]byte(`{
-  "meta": {"version": "2.0"},
   "contact": {
     "name": "Jane Smith",
     "email": "jane@example.com"
   }
 }`))
 
-	f.Add([]byte(`{"meta":{"version":"2.0"},"contact":{"name":"Test","email":"test@test.com"}}`))
+	f.Add([]byte(`{"contact":{"name":"Test","email":"test@test.com"}}`))
 	f.Add([]byte(`{}`))
 	f.Add([]byte(``))
 
@@ -74,12 +71,10 @@ func FuzzLoadResumeFromFile_JSON(f *testing.F) {
 // FuzzLoadResumeFromFile_TOML tests the TOML parser with random input
 func FuzzLoadResumeFromFile_TOML(f *testing.F) {
 	// Seed corpus
-	f.Add([]byte(`[meta]
-version = "2.0"
-
-[contact]
-name = "Bob Wilson"
-email = "bob@example.com"`))
+	f.Add([]byte(`
+contact:
+  name: "Bob Wilson"
+  email: "bob@example.com"`))
 
 	f.Add([]byte(``))
 

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/urmzd/resume-generator/pkg/definition"
+	"github.com/urmzd/resume-generator/pkg/resume"
 	"go.uber.org/zap"
 )
 
@@ -43,16 +43,16 @@ func TestLaTeXFormatDateRange(t *testing.T) {
 
 	formatter := newLaTeXFormatter()
 
-	if got := formatter.FormatDateRange(definition.DateRange{Start: start, End: &end}); got != "Jan 2020 - Jun 2021" {
-		t.Fatalf("formatDateRange(start, &end, false) = %q, want Jan 2020 - Jun 2021", got)
+	if got := formatter.FormatDateRange(resume.DateRange{Start: start, End: &end}); got != `Jan 2020 \textendash\ Jun 2021` {
+		t.Fatalf("formatDateRange(start, &end, false) = %q, want Jan 2020 \\textendash\\ Jun 2021", got)
 	}
 
-	if got := formatter.FormatDateRange(definition.DateRange{Start: start, Current: true}); got != "Jan 2020 - Present" {
-		t.Fatalf("formatDateRange(start, nil, true) = %q, want Jan 2020 - Present", got)
+	if got := formatter.FormatDateRange(resume.DateRange{Start: start}); got != `Jan 2020 \textendash\ Present` {
+		t.Fatalf("formatDateRange(start, nil, true) = %q, want Jan 2020 \\textendash\\ Present", got)
 	}
 
 	var zero time.Time
-	if got := formatter.FormatDateRange(definition.DateRange{Start: zero}); got != "" {
+	if got := formatter.FormatDateRange(resume.DateRange{Start: zero}); got != "" {
 		t.Fatalf("formatDateRange(zero, nil, false) = %q, want empty string", got)
 	}
 }
@@ -65,66 +65,65 @@ func TestLaTeXGeneratorGenerate(t *testing.T) {
 	eduStart := time.Date(2018, time.September, 1, 0, 0, 0, 0, time.UTC)
 	eduEnd := time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC)
 
-	resume := &definition.Resume{
-		Contact: definition.Contact{
+	resume := &resume.Resume{
+		Contact: resume.Contact{
 			Name:  "John & Co.",
 			Email: "john@example.com",
 			Phone: "+1 (555) 123-4567",
-			Links: []definition.Link{
-				{URL: "https://example.com", Text: "Website"},
+			Links: []resume.Link{
+				{URI: "https://example.com"},
 			},
 		},
-		Skills: definition.Skills{
-			Categories: []definition.SkillCategory{
+		Skills: resume.Skills{
+			Categories: []resume.SkillCategory{
 				{
-					Name: "Languages",
-					Items: []definition.SkillItem{
-						{Name: "Go"},
-						{Name: "Rust"},
+					Category: "Languages",
+					Items: []string{
+						"Go",
+						"Rust",
 					},
 				},
 			},
 		},
-		Experience: definition.ExperienceList{
-			Positions: []definition.Experience{
+		Experience: resume.ExperienceList{
+			Positions: []resume.Experience{
 				{
 					Title:   "Engineer",
 					Company: "Acme #1",
-					Description: []string{
+					Highlights: []string{
 						"Improved throughput by 50%",
 					},
-					Dates: definition.DateRange{
-						Start:   expStart,
-						Current: true,
+					Dates: resume.DateRange{
+						Start: expStart,
 					},
 				},
 			},
 		},
-		Education: definition.EducationList{
-			Institutions: []definition.Education{
+		Education: resume.EducationList{
+			Institutions: []resume.Education{
 				{
 					Institution: "University of {Code}",
-					Degree:      "B.Sc Computer Science",
-					GPA:         "3.9",
-					MaxGPA:      "4.0",
-					Dates: definition.DateRange{
+					Degree: resume.Degree{
+						Name: "B.Sc Computer Science"},
+					GPA: &resume.GPA{
+						GPA:    "3.9",
+						MaxGPA: "4.0",
+					},
+					Dates: resume.DateRange{
 						Start: eduStart,
 						End:   &eduEnd,
 					},
 				},
 			},
 		},
-		Projects: definition.ProjectList{
-			Projects: []definition.Project{
+		Projects: resume.ProjectList{
+			Projects: []resume.Project{
 				{
-					Name:         "Project_One",
-					Technologies: []string{"Go", "Terraform"},
-					Description: []string{
+					Name: "Project_One",
+					Highlights: []string{
 						"Deployed to 100% of regions",
 					},
-					Links: []definition.Link{
-						{URL: "https://project.example.com", Text: "Repo"},
-					},
+					Link: resume.Link{URI: "https://project.example.com"},
 				},
 			},
 		},
@@ -150,13 +149,13 @@ func TestLaTeXGeneratorGenerate(t *testing.T) {
 		{"escaped name", `John \& Co.`},
 		{"email macro", `\email{john@example.com}`},
 		{"phone macro", `\phone{+1 (555) 123-4567}`},
-		{"website link", `\href{https://example.com}{Website}`},
+		{"website link", `\href{https://example.com}{example.com}`},
 		{"experience company escape", `Acme \#1`},
-		{"experience dates", `Jan 2022 - Present`},
+		{"experience dates", `Jan 2022 \textendash\ Present`},
 		{"experience highlight escape", `50\%`},
 		{"skills display", `Go, Rust`},
 		{"education institution escape", `University of \{Code\}`},
-		{"education date range", `Sep 2018 - Jun 2021`},
+		{"education date range", `Sep 2018 \textendash\ Jun 2021`},
 		{"project name escape", `Project\_One`},
 		{"project link text", `https://project.example.com`},
 	}

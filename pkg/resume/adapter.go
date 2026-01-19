@@ -1,4 +1,4 @@
-package definition
+package resume
 
 import (
 	"encoding/json"
@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
-	"gopkg.in/yaml.v3"
 )
 
 // InputData represents resume data that can be validated and converted to the runtime format.
@@ -37,8 +36,7 @@ func (a *ResumeAdapter) GetFormat() string {
 }
 
 func (a *ResumeAdapter) Validate() error {
-	validator := &ConfigurationValidator{StrictMode: false}
-	errors := validator.ValidateResume(a.Resume)
+	errors := Validate(a.Resume)
 	if len(errors) > 0 {
 		return fmt.Errorf("validation failed with %d errors: %v", len(errors), errors[0].Message)
 	}
@@ -58,8 +56,8 @@ func LoadResumeFromFile(filePath string) (InputData, error) {
 
 	switch fileExt {
 	case ".yaml", ".yml":
-		if err := yaml.Unmarshal(data, &resumeData); err != nil {
-			return nil, fmt.Errorf("failed to parse YAML: %w", err)
+		if err := UnmarshalYAMLWithContext(data, &resumeData); err != nil {
+			return nil, fmt.Errorf("failed to parse YAML in %s: %w", filePath, err)
 		}
 		serializationFmt = "yaml"
 

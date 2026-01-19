@@ -1,4 +1,4 @@
-package definition
+package resume
 
 import (
 	"os"
@@ -158,9 +158,7 @@ func TestLoadResumeFromFile_JSON(t *testing.T) {
 func TestLoadResumeFromFile_TOML(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	validTOML := `[meta]
-version = "2.0"
-
+	validTOML := `
 [contact]
 name = "Bob Wilson"
 email = "bob@example.com"`
@@ -230,12 +228,6 @@ func TestLoadResumeFromFile_FileNotFound(t *testing.T) {
 
 func TestResumeAdapter_ToResume(t *testing.T) {
 	resume := &Resume{
-		Meta: ResumeMetadata{
-			Version: "2.0",
-			Output: OutputPreferences{
-				Formats: []string{"pdf"},
-			},
-		},
 		Contact: Contact{
 			Name:  "Test User",
 			Email: "test@example.com",
@@ -287,12 +279,6 @@ func TestResumeAdapter_Validate(t *testing.T) {
 		{
 			name: "valid resume",
 			resume: &Resume{
-				Meta: ResumeMetadata{
-					Version: "2.0",
-					Output: OutputPreferences{
-						Formats: []string{"pdf"},
-					},
-				},
 				Contact: Contact{
 					Name:  "Test User",
 					Email: "test@example.com",
@@ -303,12 +289,6 @@ func TestResumeAdapter_Validate(t *testing.T) {
 		{
 			name: "missing name",
 			resume: &Resume{
-				Meta: ResumeMetadata{
-					Version: "2.0",
-					Output: OutputPreferences{
-						Formats: []string{"pdf"},
-					},
-				},
 				Contact: Contact{
 					Email: "test@example.com",
 				},
@@ -318,42 +298,8 @@ func TestResumeAdapter_Validate(t *testing.T) {
 		{
 			name: "missing email",
 			resume: &Resume{
-				Meta: ResumeMetadata{
-					Version: "2.0",
-					Output: OutputPreferences{
-						Formats: []string{"pdf"},
-					},
-				},
 				Contact: Contact{
 					Name: "Test User",
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "missing output formats",
-			resume: &Resume{
-				Meta: ResumeMetadata{
-					Version: "2.0",
-				},
-				Contact: Contact{
-					Name:  "Test User",
-					Email: "test@example.com",
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "missing version",
-			resume: &Resume{
-				Meta: ResumeMetadata{
-					Output: OutputPreferences{
-						Formats: []string{"pdf"},
-					},
-				},
-				Contact: Contact{
-					Name:  "Test User",
-					Email: "test@example.com",
 				},
 			},
 			wantErr: true,

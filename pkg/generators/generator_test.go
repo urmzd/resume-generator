@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/urmzd/resume-generator/pkg/definition"
+	"github.com/urmzd/resume-generator/pkg/resume"
 	"go.uber.org/zap"
 )
 
@@ -186,8 +186,8 @@ format: html
 	}
 
 	// Create test resume
-	resume := &definition.Resume{
-		Contact: definition.Contact{
+	resume := &resume.Resume{
+		Contact: resume.Contact{
 			Name:  "Test User",
 			Email: "test@example.com",
 		},

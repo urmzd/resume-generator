@@ -10,8 +10,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/urmzd/resume-generator/pkg/compilers"
-	"github.com/urmzd/resume-generator/pkg/definition"
 	"github.com/urmzd/resume-generator/pkg/generators"
+	"github.com/urmzd/resume-generator/pkg/resume"
 	"github.com/urmzd/resume-generator/pkg/utils"
 	"go.uber.org/zap"
 )
@@ -49,7 +49,7 @@ var runCmd = &cobra.Command{
 		}
 
 		// Load resume data using unified adapter
-		inputData, err := definition.LoadResumeFromFile(inputPath)
+		inputData, err := resume.LoadResumeFromFile(inputPath)
 		if err != nil {
 			sugar.Fatalf("Error loading resume data: %s", err)
 		}
@@ -60,8 +60,8 @@ var runCmd = &cobra.Command{
 		}
 
 		// Convert to the runtime resume structure for generation
-		resume := inputData.ToResume()
-		sugar.Infof("Loaded resume for %s (format: %s)", resume.Contact.Name, inputData.GetFormat())
+		resumeData := inputData.ToResume()
+		sugar.Infof("Loaded resume for %s (format: %s)", resumeData.Contact.Name, inputData.GetFormat())
 
 		// Generate using unified template system
 		generator := generators.NewGenerator(sugar)
@@ -77,7 +77,7 @@ var runCmd = &cobra.Command{
 		sugar.Infof("Generating resumes for %d template(s)", len(selectedTemplates))
 
 		// Determine output folder and filenames
-		resumeSlug := generateResumeSlug(resume)
+		resumeSlug := generateResumeSlug(resumeData)
 		currentTime := time.Now()
 		dateFolder := currentTime.Format("2006-01-02")
 
@@ -114,11 +114,6 @@ var runCmd = &cobra.Command{
 		var results []generationResult
 
 		for _, tmpl := range selectedTemplates {
-			content, err := generator.GenerateWithTemplate(tmpl, resume)
-			if err != nil {
-				sugar.Fatalf("Failed to generate resume with template %s: %v", tmpl.Name, err)
-			}
-
 			templateRunDir, err := resolveTemplateOutputDir(runBaseDir, tmpl)
 			if err != nil {
 				sugar.Fatalf("Failed to prepare output path for template %s: %v", tmpl.Name, err)
@@ -126,6 +121,37 @@ var runCmd = &cobra.Command{
 
 			if err := utils.EnsureDir(templateRunDir); err != nil {
 				sugar.Fatalf("Error creating template output directory %s: %v", templateRunDir, err)
+			}
+
+			// DOCX has a different flow - it generates bytes directly
+			if tmpl.Type == generators.TemplateTypeDOCX {
+				docxBytes, err := generator.GenerateDOCX(resumeData)
+				if err != nil {
+					sugar.Fatalf("Failed to generate DOCX with template %s: %v", tmpl.Name, err)
+				}
+
+				docxOutputPath, debugDir, err := ensureUniqueOutputPaths(templateRunDir, desiredPDFBase, ".docx")
+				if err != nil {
+					sugar.Fatalf("Error determining output filename for template %s: %v", tmpl.Name, err)
+				}
+
+				if err := os.WriteFile(docxOutputPath, docxBytes, 0644); err != nil {
+					sugar.Fatalf("Failed to write DOCX file: %v", err)
+				}
+
+				results = append(results, generationResult{
+					template: tmpl.Name,
+					tType:    tmpl.Type,
+					pdfPath:  docxOutputPath,
+					debugDir: debugDir,
+				})
+				continue
+			}
+
+			// Standard template-based generation for HTML and LaTeX
+			content, err := generator.GenerateWithTemplate(tmpl, resumeData)
+			if err != nil {
+				sugar.Fatalf("Failed to generate resume with template %s: %v", tmpl.Name, err)
 			}
 
 			pdfOutputPath, debugDir, err := ensureUniqueOutputPaths(templateRunDir, desiredPDFBase, pdfExt)
@@ -198,7 +224,7 @@ func compileLaTeXToPDF(logger *zap.SugaredLogger, latexContent, outputPath, debu
 	}
 
 	// Create compiler based on engine selection
-	var compiler definition.Compiler
+	var compiler compilers.Compiler
 	if LaTeXEngine != "" {
 		// User specified an engine
 		logger.Infof("Using specified LaTeX engine: %s", LaTeXEngine)
@@ -237,7 +263,7 @@ func compileLaTeXToPDF(logger *zap.SugaredLogger, latexContent, outputPath, debu
 	return nil
 }
 
-func generateResumeSlug(resume *definition.Resume) string {
+func generateResumeSlug(resume *resume.Resume) string {
 	nameParts := strings.Fields(resume.Contact.Name)
 
 	var components []string

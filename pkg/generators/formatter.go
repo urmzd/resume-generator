@@ -3,9 +3,8 @@ package generators
 import (
 	"strings"
 	"text/template"
-	"time"
 
-	"github.com/urmzd/resume-generator/pkg/definition"
+	"github.com/urmzd/resume-generator/pkg/resume"
 )
 
 // Formatter defines the contract each rendering engine must satisfy to ensure
@@ -15,19 +14,16 @@ type Formatter interface {
 	EscapeText(value string) string
 
 	// FormatDateRange converts a date range to a human readable string.
-	FormatDateRange(definition.DateRange) string
+	FormatDateRange(resume.DateRange) string
 
 	// FormatOptionalDateRange formats a potentially nil date range pointer.
-	FormatOptionalDateRange(*definition.DateRange) string
+	FormatOptionalDateRange(*resume.DateRange) string
 
 	// FormatDates handles legacy date representations used in templates.
 	FormatDates(value interface{}) string
 
-	// FormatCertificationDate renders certification issue/expiration dates.
-	FormatCertificationDate(issue, expiration *time.Time) string
-
 	// FormatLocation renders a user location string.
-	FormatLocation(*definition.Location) string
+	FormatLocation(*resume.Location) string
 
 	// FormatList renders a comma separated list after trimming empty values.
 	FormatList([]string) string
@@ -35,14 +31,14 @@ type Formatter interface {
 	// FormatGPA renders GPA with optional denominator.
 	FormatGPA(gpa, max string) string
 
-	// SkillNames returns ordered skill names for display.
-	SkillNames([]definition.SkillItem) []string
+	// SkillNames returns skill names for display.
+	SkillNames([]string) []string
 
 	// Join concatenates strings using a separator.
 	Join(sep string, items []string) string
 
 	// FormatLink renders a link using engine-specific markup.
-	FormatLink(definition.Link) string
+	FormatLink(string) string
 
 	// Lower converts text to lower-case using engine rules.
 	Lower(string) string

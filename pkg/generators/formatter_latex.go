@@ -6,15 +6,19 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/urmzd/resume-generator/pkg/definition"
+	"github.com/urmzd/resume-generator/pkg/resume"
 )
 
-type latexFormatter struct{}
+// latexFormatter provides LaTeX-specific formatting, embedding shared logic from baseFormatter.
+type latexFormatter struct {
+	baseFormatter
+}
 
 func newLaTeXFormatter() *latexFormatter {
 	return &latexFormatter{}
 }
 
+// latexEscaper replaces LaTeX special characters.
 var latexEscaper = strings.NewReplacer(
 	`\`, `\textbackslash{}`,
 	`{`, `\{`,
@@ -28,28 +32,87 @@ var latexEscaper = strings.NewReplacer(
 	`^`, `\textasciicircum{}`,
 )
 
+// EscapeText escapes LaTeX special characters.
 func (f *latexFormatter) EscapeText(value string) string {
 	return latexEscaper.Replace(value)
 }
 
-func (f *latexFormatter) FormatDateRange(dates definition.DateRange) string {
-	return f.formatDateRange(dates.Start, dates.End, dates.Current)
+// FormatLocation renders a location with LaTeX escaping.
+func (f *latexFormatter) FormatLocation(loc *resume.Location) string {
+	return f.baseFormatter.FormatLocation(loc, f.EscapeText)
 }
 
-func (f *latexFormatter) FormatOptionalDateRange(dates *definition.DateRange) string {
-	if dates == nil {
+// FormatList joins values with LaTeX escaping.
+func (f *latexFormatter) FormatList(values []string) string {
+	filtered := filterStrings(values)
+	for i := range filtered {
+		filtered[i] = f.EscapeText(filtered[i])
+	}
+	return strings.Join(filtered, ", ")
+}
+
+// FormatGPA renders GPA with LaTeX escaping.
+func (f *latexFormatter) FormatGPA(gpa, max string) string {
+	result := f.baseFormatter.FormatGPA(gpa, max)
+	return f.EscapeText(result)
+}
+
+// FormatGPAStruct renders GPA from a *resume.GPA struct with LaTeX escaping.
+func (f *latexFormatter) FormatGPAStruct(g *resume.GPA) string {
+	if g == nil {
 		return ""
 	}
-	return f.FormatDateRange(*dates)
+	return f.FormatGPA(g.GPA, g.MaxGPA)
 }
 
+// FormatDateRange overrides the base formatter to use LaTeX-specific en-dash.
+func (f *latexFormatter) FormatDateRange(dates resume.DateRange) string {
+	return f.formatDateRangeLaTeX(dates.Start, dates.End)
+}
+
+// formatDateRangeLaTeX formats dates using LaTeX \textendash\ for the en-dash.
+func (f *latexFormatter) formatDateRangeLaTeX(start time.Time, end *time.Time) string {
+	if start.IsZero() && (end == nil || end.IsZero()) {
+		return ""
+	}
+
+	startStr := f.formatMonthYear(start)
+	var endStr string
+
+	switch {
+	case end == nil:
+		endStr = "Present"
+	case !end.IsZero():
+		endStr = f.formatMonthYear(*end)
+	default:
+		endStr = "Present"
+	}
+
+	if startStr == "" {
+		return endStr
+	}
+	if endStr == "" || startStr == endStr {
+		return startStr
+	}
+	return fmt.Sprintf(`%s \textendash\ %s`, startStr, endStr)
+}
+
+// formatMonthYear formats a time as "Jan 2006".
+func (f *latexFormatter) formatMonthYear(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+	return t.Format("Jan 2006")
+}
+
+// FormatDates overrides the base formatter to use LaTeX-specific en-dash.
 func (f *latexFormatter) FormatDates(value interface{}) string {
 	switch v := value.(type) {
 	case string:
 		return strings.TrimSpace(v)
-	case definition.DateRange:
+	case resume.DateRange:
 		return f.FormatDateRange(v)
-	case *definition.DateRange:
+	case *resume.DateRange:
 		if v == nil {
 			return ""
 		}
@@ -59,183 +122,111 @@ func (f *latexFormatter) FormatDates(value interface{}) string {
 	}
 }
 
-func (f *latexFormatter) FormatCertificationDate(issue, expiration *time.Time) string {
-	if (issue == nil || issue.IsZero()) && (expiration == nil || expiration.IsZero()) {
-		return ""
-	}
-
-	issueStr := ""
-	if issue != nil && !issue.IsZero() {
-		issueStr = f.formatMonthYear(*issue)
-	}
-
-	expStr := ""
-	if expiration != nil && !expiration.IsZero() {
-		expStr = f.formatMonthYear(*expiration)
-	}
-
-	switch {
-	case issueStr == "":
-		return expStr
-	case expStr == "":
-		return issueStr
-	default:
-		return fmt.Sprintf("%s - %s", issueStr, expStr)
-	}
-}
-
-func (f *latexFormatter) FormatLocation(loc *definition.Location) string {
-	if loc == nil {
-		return ""
-	}
-
-	parts := make([]string, 0, 3)
-	if strings.TrimSpace(loc.City) != "" {
-		parts = append(parts, strings.TrimSpace(loc.City))
-	}
-	if strings.TrimSpace(loc.State) != "" {
-		parts = append(parts, strings.TrimSpace(loc.State))
-	} else if strings.TrimSpace(loc.Region) != "" {
-		parts = append(parts, strings.TrimSpace(loc.Region))
-	}
-	if strings.TrimSpace(loc.Country) != "" {
-		parts = append(parts, strings.TrimSpace(loc.Country))
-	}
-
-	if len(parts) == 0 {
-		return ""
-	}
-
-	return f.EscapeText(strings.Join(parts, ", "))
-}
-
-func (f *latexFormatter) FormatList(values []string) string {
-	filtered := filterStrings(values)
-	for i := range filtered {
-		filtered[i] = f.EscapeText(filtered[i])
-	}
-	return strings.Join(filtered, ", ")
-}
-
-func (f *latexFormatter) FormatGPA(gpa, max string) string {
-	gpa = strings.TrimSpace(gpa)
-	max = strings.TrimSpace(max)
-	if gpa == "" {
-		return ""
-	}
-	if max == "" || max == "4.0" {
-		return f.EscapeText(gpa)
-	}
-	return fmt.Sprintf("%s / %s", f.EscapeText(gpa), f.EscapeText(max))
-}
-
-func (f *latexFormatter) SkillNames(items []definition.SkillItem) []string {
-	result := make([]string, 0, len(items))
-	for _, item := range items {
-		if name := strings.TrimSpace(item.Name); name != "" {
-			result = append(result, name)
-		}
-	}
-	return result
-}
-
-func (f *latexFormatter) Join(sep string, items []string) string {
-	return strings.Join(items, sep)
-}
-
-func (f *latexFormatter) FormatLink(link definition.Link) string {
-	url := strings.TrimSpace(link.URL)
+// FormatLink renders a LaTeX \href command.
+func (f *latexFormatter) FormatLink(link string) string {
+	url := strings.TrimSpace(link)
 	if url == "" {
 		return ""
 	}
-	text := strings.TrimSpace(link.Text)
-	if text == "" {
-		text = url
+	return fmt.Sprintf(`\href{%s}{%s}`, f.EscapeText(url), f.EscapeText(url))
+}
+
+// ExtractDisplayURL removes protocol and www prefix for cleaner display.
+func (f *latexFormatter) ExtractDisplayURL(url string) string {
+	url = strings.TrimSpace(url)
+	if url == "" {
+		return ""
 	}
-	return fmt.Sprintf(`\href{%s}{%s}`, f.EscapeText(url), f.EscapeText(text))
+	url = strings.TrimPrefix(url, "https://")
+	url = strings.TrimPrefix(url, "http://")
+	url = strings.TrimPrefix(url, "www.")
+	url = strings.TrimSuffix(url, "/")
+	return url
 }
 
-func (f *latexFormatter) Lower(value string) string {
-	return strings.ToLower(value)
-}
-
-func (f *latexFormatter) Upper(value string) string {
-	return strings.ToUpper(value)
-}
-
-func (f *latexFormatter) Title(value string) string {
-	return strings.Title(value)
-}
-
-func (f *latexFormatter) SanitizePhone(phone string) string {
-	var builder strings.Builder
-	for _, r := range phone {
-		if (r >= '0' && r <= '9') || r == '+' {
-			builder.WriteRune(r)
-		}
+// FormatLinkWithDomain renders a link using domain as display text.
+func (f *latexFormatter) FormatLinkWithDomain(link string) string {
+	url := strings.TrimSpace(link)
+	if url == "" {
+		return ""
 	}
-	return builder.String()
+	displayURL := f.ExtractDisplayURL(url)
+	return fmt.Sprintf(`\href{%s}{%s}`, f.EscapeText(url), f.EscapeText(displayURL))
 }
 
+// TemplateFuncs exposes helper functions for LaTeX templates.
 func (f *latexFormatter) TemplateFuncs() template.FuncMap {
 	return template.FuncMap{
+		// Text escaping
 		"escape":           f.EscapeText,
 		"escapeLatexChars": f.EscapeText,
-		"fmtDateRange":     f.FormatDateRange,
-		"fmtDates":         f.FormatDates,
-		"join":             f.Join,
-		"skillNames":       f.SkillNames,
+
+		// Date formatting
+		"fmtDateRange": f.FormatDateRange,
+		"fmtDates":     f.FormatDates,
+		"formatDateRange": func(start time.Time, end *time.Time) string {
+			return f.formatDateRangeInternal(start, end)
+		},
+
+		// List formatting
+		"join":       f.Join,
+		"formatList": f.FormatList,
+		"skillNames": f.SkillNames,
+
+		// Link formatting
 		"fmtLink": func(value interface{}) string {
 			switch v := value.(type) {
-			case definition.Link:
+			case string:
 				return f.FormatLink(v)
 			default:
 				return ""
 			}
 		},
+		"fmtLinkWithDomain": func(value interface{}) string {
+			switch v := value.(type) {
+			case string:
+				return f.FormatLinkWithDomain(v)
+			case resume.Link:
+				return f.FormatLinkWithDomain(v.URI)
+			case *resume.Link:
+				if v == nil {
+					return ""
+				}
+				return f.FormatLinkWithDomain(v.URI)
+			default:
+				return ""
+			}
+		},
+		"extractDisplayURL": f.ExtractDisplayURL,
+
+		// Location formatting
 		"fmtLocation": func(value interface{}) string {
 			switch v := value.(type) {
-			case *definition.Location:
+			case *resume.Location:
 				return f.FormatLocation(v)
-			case definition.Location:
+			case resume.Location:
 				return f.FormatLocation(&v)
 			default:
 				return ""
 			}
 		},
+
+		// GPA formatting
+		"formatGPA": f.FormatGPAStruct,
+
+		// Case transformations
 		"title": f.Title,
 		"upper": f.Upper,
 		"lower": f.Lower,
-	}
-}
 
-func (f *latexFormatter) formatDateRange(start time.Time, end *time.Time, current bool) string {
-	if start.IsZero() && (end == nil || (end != nil && end.IsZero())) && !current {
-		return ""
+		// String utilities
+		"trim":        strings.TrimSpace,
+		"filterEmpty": filterStrings,
+		"default": func(defaultVal, value interface{}) interface{} {
+			if value == nil || value == "" {
+				return defaultVal
+			}
+			return value
+		},
 	}
-
-	startStr := f.formatMonthYear(start)
-	var endStr string
-
-	switch {
-	case current:
-		endStr = "Present"
-	case end != nil && !end.IsZero():
-		endStr = f.formatMonthYear(*end)
-	}
-
-	if startStr == "" {
-		return endStr
-	}
-	if endStr == "" || startStr == endStr {
-		return startStr
-	}
-	return fmt.Sprintf("%s - %s", startStr, endStr)
-}
-
-func (f *latexFormatter) formatMonthYear(t time.Time) string {
-	if t.IsZero() {
-		return ""
-	}
-	return t.Format("Jan 2006")
 }
