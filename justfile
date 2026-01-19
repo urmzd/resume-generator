@@ -129,7 +129,7 @@ test: build-cli docker-build
     @echo "Build and test completed successfully!"
 
 # Generate a resume using the CLI (local Go build)
-generate input_file="./assets/example_resumes/example.yml" output_dir="outputs":
+generate input_file="./assets/example_resumes/example.yml" output_dir="../outputs":
     @echo "Generating resume from {{input_file}} into {{output_dir}}"
     @if [ -x "{{cli_binary}}" ]; then \
         "{{cli_binary}}" run -i {{input_file}} -o {{output_dir}}; \
@@ -215,6 +215,6 @@ clean-all: clean
     @-docker rmi {{image_tag}}
     docker system prune -f
 
-check-latest-template output_path="./outputs" template="modern-latex":
+check-latest-template output_path="../outputs" template="modern-latex":
     @echo "Checking latest template: {{template}}"
     @zsh -c 't="{{template}}"; slug="${t//-/}"; ls -t {{output_path}}/**/$slug/**/*.pdf | head -n 1 | xargs open'
