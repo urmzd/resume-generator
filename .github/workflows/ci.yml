@@ -3,9 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
-    tags:
-      - "v*"
   pull_request:
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -67,7 +67,7 @@ jobs:
   docker_publish:
     name: Publish Docker Image
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'release' && github.event.action == 'published'
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -90,5 +90,5 @@ jobs:
           context: .
           push: true
           tags: |
-            urmzd/resume-generator:${{ github.ref_name }}
+            urmzd/resume-generator:${{ github.event.release.tag_name }}
             urmzd/resume-generator:latest
