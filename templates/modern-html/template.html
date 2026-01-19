@@ -1,18 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.View.Header.Name}} &mdash; Resume</title>
+    <title>{{.Contact.Name}} Resume</title>
     <style>
-        :root {
-            color-scheme: light;
-            --page-background: #f6f6f6;
-            --background: #ffffff;
-            --text: #1f2933;
-            --muted: #52606d;
-            --accent: #1c5d99;
-            --border: #d8dee4;
+        @page {
+            size: 8.5in 11in;
+            margin: 0;
+        }
+
+        @media print {
+            html {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            html,
+            body {
+                width: 8.5in;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            body {
+                padding: 0.5in !important;
+            }
+
+            .no-print {
+                display: none;
+            }
         }
 
         * {
@@ -20,422 +38,389 @@
         }
 
         body {
-            margin: 0;
-            padding: 32px 16px;
-            font-family: "Helvetica Neue", Arial, sans-serif;
-            background: var(--page-background);
-            color: var(--text);
-            line-height: 1.55;
-        }
-
-        .page {
-            max-width: 820px;
+            font-family: 'Times New Roman', serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            max-width: 8.5in;
             margin: 0 auto;
-            background: var(--background);
-            padding: 48px 56px;
-            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+            padding: 0.5in;
+            background: white;
+            color: #000;
+            overflow-wrap: anywhere;
         }
 
-        h1, h2, h3 {
-            font-weight: 600;
-            margin: 0;
-            color: var(--text);
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
         }
 
-        h1 {
-            font-size: 2rem;
-            letter-spacing: 0.02em;
-        }
-
-        h2 {
-            font-size: 0.95rem;
+        .header h1 {
+            font-size: 18pt;
+            font-weight: bold;
+            margin: 0 0 5px 0;
             text-transform: uppercase;
-            letter-spacing: 0.16em;
         }
 
-        h3 {
-            font-size: 1.05rem;
+        .header .title {
+            font-size: 12pt;
+            font-style: italic;
+            margin: 0 0 5px 0;
         }
 
-        .page-header {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 16px;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 16px;
-            margin-bottom: 28px;
-        }
-
-        .subtitle {
-            margin-top: 6px;
-            color: var(--muted);
-            font-size: 1rem;
-        }
-
-        .contact-list {
-            list-style: none;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px 18px;
+        .header .contact {
+            font-size: 11pt;
             margin: 0;
-            padding: 0;
-            font-size: 0.9rem;
         }
 
-        .contact-list a,
-        .contact-list span {
-            color: var(--muted);
+        .header .contact a {
+            color: inherit;
             text-decoration: none;
         }
 
-        .contact-list a:hover,
-        .contact-list a:focus {
-            color: var(--accent);
+        .header .contact a:hover {
             text-decoration: underline;
         }
 
         .section {
-            margin-top: 28px;
+            margin-bottom: 20px;
         }
 
-        .section h2 {
-            border-bottom: 1.5px solid var(--border);
-            padding-bottom: 6px;
-            margin-bottom: 16px;
-            color: var(--accent);
+        .section-title {
+            font-size: 12pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 1px solid #000;
+            margin-bottom: 8px;
+            padding-bottom: 2px;
+        }
+
+        .summary {
+            margin-bottom: 20px;
         }
 
         .summary p {
             margin: 0;
-            color: var(--muted);
+            text-align: justify;
+        }
+
+        .education-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .education-table td {
+            padding: 3px 0;
+            vertical-align: top;
+        }
+
+        .education-table .institution {
+            font-weight: bold;
+            width: 70%;
+        }
+
+        .education-table .dates {
+            text-align: right;
+            width: 30%;
+        }
+
+        .education-table .details {
+            font-weight: normal;
+            font-style: italic;
+        }
+
+        .education-details {
+            margin: 4px 0 0 20px;
+            padding: 0;
+        }
+
+        .education-details li {
+            margin-bottom: 2px;
         }
 
         .skills-list {
             margin: 0;
-            padding: 0;
+            padding-left: 20px;
         }
 
-        .skill-row {
-            display: grid;
-            grid-template-columns: 180px 1fr;
-            gap: 12px;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-        }
-
-        .skill-row dt {
-            font-weight: 600;
-            color: var(--text);
-        }
-
-        .skill-row dd {
-            margin: 0;
-            color: var(--muted);
-        }
-
-        .entry {
-            margin-bottom: 20px;
-        }
-
-        .entry:last-child {
-            margin-bottom: 0;
-        }
-
-        .entry-header {
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
-            align-items: flex-start;
-        }
-
-        .entry-header h3 {
+        .skills-list li {
             margin-bottom: 4px;
         }
 
-        .meta {
+        .skills-list strong {
+            font-weight: bold;
+        }
+
+        .job {
+            margin-bottom: 15px;
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 3px;
+        }
+
+        .job-title {
+            font-weight: bold;
+            font-size: 11pt;
+        }
+
+        .job-dates {
+            font-weight: bold;
+            font-size: 11pt;
+        }
+
+        .job-company {
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+
+        .job-duties {
             margin: 0;
-            color: var(--muted);
-            font-size: 0.9rem;
+            padding-left: 20px;
         }
 
-        .date-range {
-            color: var(--muted);
-            font-size: 0.9rem;
-            white-space: nowrap;
+        .job-duties li {
+            margin-bottom: 2px;
         }
 
-        .bullet-list {
-            margin: 10px 0 0 18px;
-            padding: 0;
+        .project {
+            margin-bottom: 15px;
         }
 
-        .bullet-list li {
-            margin-bottom: 6px;
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 3px;
         }
 
-        .link-list {
-            margin: 12px 0 0;
+        .project-name {
+            font-weight: bold;
+            font-size: 11pt;
+        }
+
+        .project-dates {
+            font-weight: bold;
+            font-size: 11pt;
+        }
+
+        .project-meta {
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+
+        .project-description {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .project-description li {
+            margin-bottom: 2px;
+        }
+
+        .project-links {
+            margin: 5px 0 0 20px;
             padding: 0;
             list-style: none;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px 18px;
-            font-size: 0.9rem;
         }
 
-        .link-list a {
-            color: var(--accent);
-            text-decoration: none;
+        .project-links li {
+            display: inline;
         }
 
-        .link-list a:hover,
-        .link-list a:focus {
+        .project-links li:not(:last-child)::after {
+            content: " | ";
+        }
+
+        .project-links a {
+            color: #000;
             text-decoration: underline;
         }
 
         .cert-list {
-            list-style: none;
             margin: 0;
-            padding: 0;
-            display: grid;
-            gap: 12px;
+            padding-left: 20px;
         }
 
-        .cert-line {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            font-weight: 600;
+        .cert-list li {
+            margin-bottom: 4px;
         }
 
-        .cert-date {
-            color: var(--muted);
-            font-weight: 400;
-            font-size: 0.9rem;
-            white-space: nowrap;
-        }
-
-        .cert-meta {
-            color: var(--muted);
-            font-size: 0.9rem;
-        }
-
-        .cert-meta a {
-            color: var(--accent);
-            text-decoration: none;
-        }
-
-        .cert-meta a:hover,
-        .cert-meta a:focus {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 768px) {
+        @media screen {
             body {
-                padding: 16px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 0.25in;
+                font-size: 10pt;
             }
 
-            .page {
-                padding: 32px 24px;
-            }
-
-            .skill-row {
-                grid-template-columns: 1fr;
-            }
-
-            .entry-header {
+            .job-header,
+            .project-header {
                 flex-direction: column;
                 align-items: flex-start;
             }
 
-            .date-range {
-                margin-top: 4px;
-            }
-
-            .contact-list {
-                justify-content: flex-start;
-            }
-        }
-
-        @media print {
-            body {
-                padding: 0;
-                background: #ffffff;
-            }
-
-            .page {
-                margin: 0;
-                box-shadow: none;
-                padding: 32px 40px;
-            }
-
-            .link-list a,
-            .contact-list a,
-            .cert-meta a {
-                text-decoration: none;
-                color: inherit;
-            }
-
-            .date-range {
-                color: #333333;
+            .job-dates,
+            .project-dates {
+                font-size: 10pt;
+                margin-top: 2px;
             }
         }
     </style>
 </head>
+
 <body>
-    <main class="page">
-        <header class="page-header">
-            <div class="identity">
-                <h1>{{.View.Header.Name}}</h1>
-                {{if .View.Header.Title}}
-                <p class="subtitle">{{.View.Header.Title}}</p>
-                {{end}}
-            </div>
-            {{if .View.Header.HasContactRow}}
-            <ul class="contact-list">
-                {{range .View.Header.ContactItems}}
-                <li>
-                    {{if .URL}}
-                    <a href="{{.URL}}">{{.Text}}</a>
-                    {{else}}
-                    <span>{{.Text}}</span>
-                    {{end}}
-                </li>
-                {{end}}
-            </ul>
-            {{end}}
-        </header>
+    <div class="header">
+        <h1>{{.Contact.Name}}</h1>
+        <p class="contact">
+            {{- $sep := false -}}
+            {{- if .Contact.Email -}}
+            {{if $sep}} | {{end}}<a href="mailto:{{.Contact.Email}}">{{.Contact.Email}}</a>
+            {{- $sep = true -}}
+            {{- end -}}
 
-        {{if .View.Summary}}
-        <section class="section summary">
-            <h2>Summary</h2>
-            <p>{{.View.Summary}}</p>
-        </section>
-        {{end}}
+            {{- if .Contact.Phone -}}
+            {{if $sep}} | {{end}}<a href="tel:{{sanitizePhone .Contact.Phone}}">{{.Contact.Phone}}</a>
+            {{- $sep = true -}}
+            {{- end -}}
 
-        {{if .View.Skills}}
-        <section class="section">
-            <h2>{{.View.Skills.Title}}</h2>
-            <dl class="skills-list">
-                {{range .View.Skills.Categories}}
-                <div class="skill-row">
-                    <dt>{{.Name}}</dt>
-                    <dd>{{.Display}}</dd>
-                </div>
-                {{end}}
-            </dl>
-        </section>
-        {{end}}
+            {{- if .Contact.Location -}}
+            {{- $loc := formatLocation .Contact.Location -}}
+            {{- if $loc -}}
+            {{if $sep}} | {{end}}{{$loc}}
+            {{- $sep = true -}}
+            {{- end -}}
+            {{- end -}}
 
-        {{if .View.Experience}}
-        <section class="section">
-            <h2>{{.View.Experience.Title}}</h2>
-            {{range .View.Experience.Positions}}
-            <article class="entry">
-                <div class="entry-header">
-                    <div>
-                        {{if .Title}}<h3>{{.Title}}</h3>{{end}}
-                        {{if .Company}}<p class="meta">{{.Company}}</p>{{end}}
-                        {{if .Location}}<p class="meta">{{.Location}}</p>{{end}}
-                    </div>
-                    {{if .DateRange}}<span class="date-range">{{.DateRange}}</span>{{end}}
-                </div>
-                {{if .Highlights}}
-                <ul class="bullet-list">
-                    {{range .Highlights}}
-                    <li>{{.}}</li>
-                    {{end}}
-                </ul>
-                {{end}}
-            </article>
-            {{end}}
-        </section>
-        {{end}}
+            {{- range .Contact.Links -}}
+            {{- if .URI -}}
+            {{if $sep}} | {{end}}<a href="{{.URI}}">{{.URI}}</a>
+            {{- $sep = true -}}
+            {{- end -}}
+            {{- end -}}
+        </p>
+    </div>
 
-        {{if .View.Projects}}
-        <section class="section">
-            <h2>{{.View.Projects.Title}}</h2>
-            {{range .View.Projects.Entries}}
-            <article class="entry">
-                <div class="entry-header">
-                    <div>
-                        {{if .Name}}<h3>{{.Name}}</h3>{{end}}
-                        {{if .Category}}<p class="meta">{{.Category}}</p>{{end}}
-                        {{if .Technologies}}<p class="meta">{{.Technologies}}</p>{{end}}
-                    </div>
-                    {{if .DateRange}}<span class="date-range">{{.DateRange}}</span>{{end}}
-                </div>
-                {{if .Description}}
-                <ul class="bullet-list">
-                    {{range .Description}}
-                    <li>{{.}}</li>
-                    {{end}}
-                </ul>
-                {{end}}
-                {{if .Links}}
-                <ul class="link-list">
-                    {{range .Links}}
-                    <li><a href="{{.URL}}">{{.Text}}</a></li>
-                    {{end}}
-                </ul>
-                {{end}}
-            </article>
-            {{end}}
-        </section>
-        {{end}}
-
-        {{if .View.Education}}
-        <section class="section">
-            <h2>{{.View.Education.Title}}</h2>
-            {{range .View.Education.Schools}}
-            <article class="entry">
-                <div class="entry-header">
-                    <div>
-                        {{if .Degree}}
-                        <h3>
-                            {{.Degree}}
-                            {{if .Field}}, {{.Field}}{{end}}
-                        </h3>
+    {{if .Education.Institutions}}
+    <div class="section">
+        <div class="section-title">{{default "Education" .Education.Title}}</div>
+        <table class="education-table">
+            {{range .Education.Institutions}}
+            <tr>
+                <td class="institution">
+                    {{.Institution}}
+                    {{- if .Degree.Name}}, {{.Degree.Name}}{{end -}}
+                    {{- if .GPA}}{{$gpa := formatGPA .GPA}}{{if $gpa}} <span class="details">(GPA: {{$gpa}})</span>{{end}}{{end -}}
+                </td>
+                <td class="dates">{{fmtDateRange .Dates}}</td>
+            </tr>
+            {{- $descriptions := filterEmpty .Degree.Descriptions -}}
+            {{- if $descriptions }}
+            <tr>
+                <td colspan="2">
+                    <ul class="education-details">
+                        {{- range $descriptions}}<li>{{.}}</li>{{- end}}
+                    </ul>
+                </td>
+            </tr>
+            {{- end }}
+            {{if .Thesis}}
+            <tr>
+                <td colspan="2">
+                    <ul class="job-duties">
+                        {{if .Thesis.Title}}
+                        <li>Thesis: {{.Thesis.Title}}
+                            {{- if .Thesis.Link.URI}} <a href="{{.Thesis.Link.URI}}">({{.Thesis.Link.URI}})</a>{{end -}}
+                        </li>
                         {{end}}
-                        {{if .Institution}}<p class="meta">{{.Institution}}</p>{{end}}
-                        {{if .Location}}<p class="meta">{{.Location}}</p>{{end}}
-                        {{if .GPA}}<p class="meta">GPA: {{.GPA}}</p>{{end}}
-                        {{if .Honors}}<p class="meta">Honors: {{.Honors}}</p>{{end}}
-                    </div>
-                    {{if .DateRange}}<span class="date-range">{{.DateRange}}</span>{{end}}
-                </div>
-                {{if .Details}}
-                <ul class="bullet-list">
-                    {{range .Details}}
-                    <li>{{.}}</li>
-                    {{end}}
-                </ul>
-                {{end}}
-            </article>
+                        {{range .Thesis.Highlights}}
+                        <li>{{.}}</li>
+                        {{end}}
+                    </ul>
+                </td>
+            </tr>
             {{end}}
-        </section>
-        {{end}}
+            {{end}}
+        </table>
+    </div>
+    {{end}}
 
-        {{if .View.Certifications}}
-        <section class="section">
-            <h2>{{.View.Certifications.Title}}</h2>
-            <ul class="cert-list">
-                {{range .View.Certifications.Certifications}}
-                <li>
-                    <div class="cert-line">
-                        <span class="cert-name">{{.Name}}</span>
-                        {{if .DateRange}}<span class="cert-date">{{.DateRange}}</span>{{end}}
-                    </div>
-                    {{if .Issuer}}<div class="cert-meta">{{.Issuer}}</div>{{end}}
-                    {{if .CredentialID}}<div class="cert-meta">Credential: {{.CredentialID}}</div>{{end}}
-                    {{if .VerificationURL}}<div class="cert-meta"><a href="{{.VerificationURL}}">{{.VerificationURL}}</a></div>{{end}}
-                </li>
+    {{if .Skills.Categories}}
+    <div class="section">
+        <div class="section-title">{{default "Skills" .Skills.Title}}</div>
+        <ul class="skills-list">
+            {{range .Skills.Categories}}
+            <li><strong>{{.Category}}:</strong> {{formatList .Items}}</li>
+            {{end}}
+        </ul>
+    </div>
+    {{end}}
+
+    {{if .Experience.Positions}}
+    <div class="section">
+        <div class="section-title">{{default "Experience" .Experience.Title}}</div>
+        {{range .Experience.Positions}}
+        <div class="job">
+            <div class="job-header">
+                <div class="job-title">{{.Title}}</div>
+                <div class="job-dates">{{fmtDateRange .Dates}}</div>
+            </div>
+            {{if or .Company .Location}}
+            <div class="job-company">
+                {{- if .Company}}{{.Company}}{{end -}}
+                {{- if and .Company .Location}} | {{end -}}
+                {{- if .Location}}{{formatLocation .Location}}{{end -}}
+            </div>
+            {{end}}
+
+            {{$high := filterEmpty .Highlights}}
+            {{if $high}}
+            <ul class="job-duties">
+                {{range $high}}
+                <li>{{.}}</li>
                 {{end}}
             </ul>
-        </section>
+            {{end}}
+        </div>
         {{end}}
-    </main>
+    </div>
+    {{end}}
+
+    {{if .Projects.Projects}}
+    <div class="section">
+        <div class="section-title">{{default "Projects" .Projects.Title}}</div>
+        {{range .Projects.Projects}}
+        <div class="project">
+            <div class="project-header">
+                <div class="project-name">{{.Name}}</div>
+            </div>
+
+            {{$high := filterEmpty .Highlights}}
+            {{if $high}}
+            <ul class="project-description">
+                {{range $high}}
+                <li>{{.}}</li>
+                {{end}}
+            </ul>
+            {{end}}
+
+            {{if .Link.URI}}
+            <ul class="project-links">
+                <li><a href="{{.Link.URI}}">{{.Link.URI}}</a></li>
+            </ul>
+            {{end}}
+        </div>
+        {{end}}
+    </div>
+    {{end}}
 </body>
+
 </html>

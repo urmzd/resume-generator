@@ -1,86 +1,74 @@
-meta:
-  version: "2.0"
-  output:
-    formats: ["pdf", "html"]
-
 contact:
   name: Jane Doe
-  title: Senior Software Engineer
   email: example@email.com
   phone: "+1-123-456-7890"
-  summary: "Senior engineer with deep experience in cloud platforms, developer tooling, and applied machine learning."
   location:
     city: Techville
     state: Academia
     country: USA
   links:
-    - text: LinkedIn
-      url: https://linkedin.com/in/janedoe
-      type: linkedin
-    - text: GitHub
-      url: https://github.com/janedoe
-      type: github
+    - uri: https://linkedin.com/in/janedoe
+    - uri: https://github.com/janedoe
 
 skills:
   title: Core Skills
   categories:
-    - name: Programming Languages
+    - category: Programming Languages
       items:
-        - name: Python
-        - name: Java
-        - name: C++
-        - name: JavaScript
-    - name: Tools & Frameworks
+        - Python
+        - Java
+        - C++
+        - JavaScript
+    - category: Tools & Frameworks
       items:
-        - name: AWS
-        - name: Docker
-        - name: React
-        - name: Node.js
+        - AWS
+        - Docker
+        - React
+        - Node.js
 
 experience:
   title: Professional Experience
   positions:
     - company: Tech Innovations Inc.
       title: Software Developer
-      description:
+      highlights:
         - "Developed a cloud-based storage solution improving data retrieval efficiency by 40%."
         - "Collaborated on a team project to create a cross-platform mobile application."
       dates:
-        start: 2021-07-01
-        current: true
+        start: "2021-07-01T00:00:00Z"
       location:
         city: Techville
         state: Academia
     - company: FutureSoft
       title: Systems Engineer
-      description:
+      highlights:
         - "Implemented a company-wide upgrade of network security protocols, enhancing system security by 50%."
         - "Automated key processes using Python and Bash scripts, saving 200 man-hours annually."
       dates:
-        start: 2023-01-01
-        end: 2023-12-31
+        start: "2023-01-01T00:00:00Z"
+        end: "2023-12-31T00:00:00Z"
       location:
         city: Innovation City
         state: Futuristan
     - company: Innovative Tech Corp
       title: Lead Developer
-      description:
+      highlights:
         - "Led the development of a scalable e-commerce platform, increasing user engagement by 30%."
         - "Managed a team of 5 developers and introduced agile delivery practices across the organization."
       dates:
-        start: 2022-08-01
-        end: 2022-12-31
+        start: "2022-08-01T00:00:00Z"
+        end: "2022-12-31T00:00:00Z"
       location:
         city: Metropolis
         state: Innovation State
     - company: NextGen Solutions
       title: Junior Developer
-      description:
+      highlights:
         - "Assisted in developing APIs for internal tools, improving workflow efficiency by 25%."
         - "Won second place in a company-wide hackathon with a machine learning project."
       dates:
-        start: 2020-01-01
-        end: 2021-06-30
+        start: "2020-01-01T00:00:00Z"
+        end: "2021-06-30T00:00:00Z"
       location:
         city: Future City
         state: Progress
@@ -89,31 +77,20 @@ education:
   title: Education
   institutions:
     - institution: Prestigious University
-      degree: Ph.D. in Computer Science
-      description:
-        - category: Dissertation
-          value: "Advanced Algorithms in Machine Learning"
-        - category: Notable achievements
-          value: "Published 5 papers in top-tier journals; received Best Dissertation Award."
+      degree:
+        name: Ph.D. in Computer Science
       dates:
-        start: 2021-09-01
-        end: 2024-05-30
+        start: "2021-09-01T00:00:00Z"
+        end: "2024-05-30T00:00:00Z"
       location:
         city: Techville
         state: Academia
     - institution: University of Fictional
-      degree: Bachelor of Science in Software Engineering
-      honors:
-        - Magna Cum Laude
-        - Research Distinction
-      description:
-        - category: Certificate
-          value: "Specialization in Data Science"
-        - category: Notable achievements
-          value: "Dean's List (2018, 2019); Undergraduate Research Award."
+      degree:
+        name: Bachelor of Science in Software Engineering
       dates:
-        start: 2017-09-01
-        end: 2021-06-30
+        start: "2017-09-01T00:00:00Z"
+        end: "2021-06-30T00:00:00Z"
       location:
         city: Imaginary City
         state: Stateville
@@ -122,26 +99,12 @@ projects:
   title: Projects
   projects:
     - name: Personal Finance Tracker
-      description:
+      highlights:
         - "Developed a full-stack web application for personal finance management with budgeting and forecasting tools."
-      technologies:
-        - Python
-        - JavaScript
-        - React
-        - PostgreSQL
-      links:
-        - text: Source Code
-          url: https://github.com/janedoe/finance-tracker
-          type: github
+      link:
+        uri: https://github.com/janedoe/finance-tracker
     - name: Eco-Friendly Route Finder
-      description:
+      highlights:
         - "Created a mobile application that calculates eco-friendly travel routes to reduce carbon footprint."
-      technologies:
-        - Java
-        - Swift
-        - MapKit
-        - Firebase
-      links:
-        - text: Source Code
-          url: https://github.com/janedoe/eco-route-finder
-          type: github
+      link:
+        uri: https://github.com/janedoe/eco-route-finder

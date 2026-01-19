@@ -12,7 +12,7 @@ release_ldflags := env_var_or_default("GO_LDFLAGS", "-s -w")
 # Directories
 outputs_dir := "outputs"
 inputs_dir := "inputs"
-examples_dir := "assets/example_inputs"
+examples_dir := "assets/example_resumes"
 templates_dir := "templates"
 
 # Build the CLI binary for local development or release
@@ -129,7 +129,7 @@ test: build-cli docker-build
     @echo "Build and test completed successfully!"
 
 # Generate a resume using the CLI (local Go build)
-generate input_file="./assets/example_inputs/example.yml" output_dir="outputs":
+generate input_file="./assets/example_resumes/example.yml" output_dir="outputs":
     @echo "Generating resume from {{input_file}} into {{output_dir}}"
     @if [ -x "{{cli_binary}}" ]; then \
         "{{cli_binary}}" run -i {{input_file}} -o {{output_dir}}; \
@@ -217,5 +217,4 @@ clean-all: clean
 
 check-latest-template output_path="./outputs" template="modern-latex":
     @echo "Checking latest template: {{template}}"
-    @ls -t {{output_path}}/**/{{template}}/**/*.pdf | head -n 1
-    @open $(ls -t {{output_path}}/**/{{template}}/**/*.pdf | head -n 1)
+    @zsh -c 't="{{template}}"; slug="${t//-/}"; ls -t {{output_path}}/**/$slug/**/*.pdf | head -n 1 | xargs open'

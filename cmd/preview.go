@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/urmzd/resume-generator/pkg/definition"
+	"github.com/urmzd/resume-generator/pkg/resume"
 	"github.com/urmzd/resume-generator/pkg/utils"
 	"go.uber.org/zap"
 )
@@ -38,7 +38,7 @@ This is useful for quickly checking if your configuration is valid.`,
 		fmt.Printf("Loading resume configuration from: %s\n\n", filePath)
 
 		// Load using unified adapter
-		inputData, err := definition.LoadResumeFromFile(filePath)
+		inputData, err := resume.LoadResumeFromFile(filePath)
 		if err != nil {
 			sugar.Fatalf("Error loading resume: %v", err)
 		}
@@ -57,15 +57,11 @@ This is useful for quickly checking if your configuration is valid.`,
 		fmt.Println("└─────────────────────────────────────────────┘")
 		fmt.Println()
 
-		fmt.Printf("Format Type: %s\n", inputData.GetFormat())
-		fmt.Printf("Version: %s\n\n", resume.Meta.Version)
+		fmt.Printf("Format Type: %s\n\n", inputData.GetFormat())
 
 		// Contact Info
 		fmt.Println("📧 Contact Information:")
 		fmt.Printf("  Name:     %s\n", resume.Contact.Name)
-		if resume.Contact.Title != "" {
-			fmt.Printf("  Title:    %s\n", resume.Contact.Title)
-		}
 		fmt.Printf("  Email:    %s\n", resume.Contact.Email)
 		if resume.Contact.Phone != "" {
 			fmt.Printf("  Phone:    %s\n", resume.Contact.Phone)
@@ -87,7 +83,7 @@ This is useful for quickly checking if your configuration is valid.`,
 			}
 			fmt.Printf("  %d categories, %d total skills\n", len(resume.Skills.Categories), totalSkills)
 			for _, cat := range resume.Skills.Categories {
-				fmt.Printf("    - %s: %d skills\n", cat.Name, len(cat.Items))
+				fmt.Printf("    - %s: %d skills\n", cat.Category, len(cat.Items))
 			}
 			fmt.Println()
 		}
@@ -122,31 +118,10 @@ This is useful for quickly checking if your configuration is valid.`,
 			fmt.Println()
 		}
 
-		// Certifications
-		if resume.Certifications.Certifications != nil && len(resume.Certifications.Certifications) > 0 {
-			fmt.Println("📜 Certifications:")
-			fmt.Printf("  %d certification(s)\n", len(resume.Certifications.Certifications))
-			for _, cert := range resume.Certifications.Certifications {
-				fmt.Printf("    - %s from %s\n", cert.Name, cert.Issuer)
-			}
-			fmt.Println()
-		}
-
-		// Output configuration
-		if len(resume.Meta.Output.Formats) > 0 {
-			fmt.Println("📄 Output Configuration:")
-			fmt.Printf("  Formats: %v\n", resume.Meta.Output.Formats)
-			if resume.Meta.Theme != "" {
-				fmt.Printf("  Theme:   %s\n", resume.Meta.Theme)
-			}
-			fmt.Println()
-		}
-
-		// Offer to show full JSON
 		fmt.Println("✓ Configuration is valid!")
 		fmt.Println()
 		fmt.Println("To see the full configuration in JSON format, add --json flag")
-		fmt.Println("To generate output, use: resume-generator run -i", filePath)
+		fmt.Printf("To generate output, use: resume-generator run -i %s\n", filePath)
 
 		// If verbose or json flag is set, show full JSON (we'll add this flag later if needed)
 		if verbose, _ := cmd.Flags().GetBool("json"); verbose {

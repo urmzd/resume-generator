@@ -27,15 +27,6 @@ func TestCanonicalToolName(t *testing.T) {
 	}
 }
 
-func TestContainsHelper(t *testing.T) {
-	if contains("needle", []string{"hay", "stack"}) {
-		t.Fatal("contains returned true for missing value")
-	}
-	if !contains("needle", []string{"hay", "needle", "stack"}) {
-		t.Fatal("contains returned false for present value")
-	}
-}
-
 func TestHTMLToPDFCompilerCompileNoTool(t *testing.T) {
 	compiler := &HTMLToPDFCompiler{
 		logger: zap.NewNop().Sugar(),
@@ -107,6 +98,9 @@ exit 0
 	}
 	if !strings.Contains(logContent, "--print-to-pdf="+outputPath) {
 		t.Errorf("chromium command missing print-to-pdf flag: %s", logContent)
+	}
+	if !strings.Contains(logContent, "--print-to-pdf-no-header") {
+		t.Errorf("chromium command missing print-to-pdf-no-header flag: %s", logContent)
 	}
 	if !strings.Contains(logContent, "--user-data-dir=") {
 		t.Errorf("chromium command missing user-data-dir flag: %s", logContent)

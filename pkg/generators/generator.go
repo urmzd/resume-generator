@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/urmzd/resume-generator/pkg/definition"
+	"github.com/urmzd/resume-generator/pkg/resume"
 	"github.com/urmzd/resume-generator/pkg/utils"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -18,6 +18,7 @@ type TemplateType string
 const (
 	TemplateTypeLaTeX TemplateType = "latex"
 	TemplateTypeHTML  TemplateType = "html"
+	TemplateTypeDOCX  TemplateType = "docx"
 )
 
 // Template represents a resume template including metadata from config.yml
@@ -134,7 +135,7 @@ func ListTemplates() ([]Template, error) {
 
 // Generate renders a resume using the specified template name.
 // Returns the rendered content as a string.
-func (g *Generator) Generate(templateName string, resume *definition.Resume) (string, error) {
+func (g *Generator) Generate(templateName string, resume *resume.Resume) (string, error) {
 	tmpl, err := LoadTemplate(templateName)
 	if err != nil {
 		return "", err
@@ -144,7 +145,7 @@ func (g *Generator) Generate(templateName string, resume *definition.Resume) (st
 
 // GenerateWithTemplate renders a resume using an already-loaded template.
 // Returns the rendered content as a string without re-loading template metadata.
-func (g *Generator) GenerateWithTemplate(tmpl *Template, resume *definition.Resume) (string, error) {
+func (g *Generator) GenerateWithTemplate(tmpl *Template, resume *resume.Resume) (string, error) {
 	g.logger.Infof("Generating resume using template: %s (%s)", tmpl.Name, tmpl.Type)
 
 	// Read template content
@@ -165,15 +166,23 @@ func (g *Generator) GenerateWithTemplate(tmpl *Template, resume *definition.Resu
 }
 
 // renderHTML renders an HTML template
-func (g *Generator) renderHTML(templateContent string, resume *definition.Resume) (string, error) {
+func (g *Generator) renderHTML(templateContent string, resume *resume.Resume) (string, error) {
 	htmlGen := NewHTMLGenerator(g.logger)
 	return htmlGen.Generate(templateContent, resume)
 }
 
 // renderLaTeX renders a LaTeX template
-func (g *Generator) renderLaTeX(templateContent string, resume *definition.Resume) (string, error) {
+func (g *Generator) renderLaTeX(templateContent string, resume *resume.Resume) (string, error) {
 	latexGen := NewLaTeXGenerator(g.logger)
 	return latexGen.Generate(templateContent, resume)
+}
+
+// GenerateDOCX generates a DOCX document from the resume.
+// Returns the document as bytes since DOCX is a binary format.
+func (g *Generator) GenerateDOCX(resume *resume.Resume) ([]byte, error) {
+	g.logger.Info("Generating DOCX resume")
+	docxGen := NewDOCXGenerator(g.logger)
+	return docxGen.Generate(resume)
 }
 
 // GetTemplateType returns the type of a template
@@ -250,12 +259,19 @@ func parseTemplateType(format string) (TemplateType, error) {
 		return TemplateTypeHTML, nil
 	case string(TemplateTypeLaTeX):
 		return TemplateTypeLaTeX, nil
+	case string(TemplateTypeDOCX):
+		return TemplateTypeDOCX, nil
 	default:
 		return "", fmt.Errorf("unsupported template format: %s", format)
 	}
 }
 
 func resolveTemplateFile(templateDir string, tmplType TemplateType, override string) (string, error) {
+	// DOCX doesn't use template files - it's generated programmatically
+	if tmplType == TemplateTypeDOCX {
+		return "", nil
+	}
+
 	filename := strings.TrimSpace(override)
 	if filename == "" {
 		switch tmplType {

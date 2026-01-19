@@ -5,42 +5,37 @@
 % ============================================================================
 % HEADER
 % ============================================================================
-\resumename{ {{- .Contact.Name -}} }
-
-{{- if .Contact.Title }}
-\resumetitle{ {{- .Contact.Title -}} }
-{{- end }}
+\resumename{ {{- escape .Contact.Name -}} }
 
 \resumecontact{%
-    \email{ {{- .Contact.Email -}} }%
+    \email{ {{- escape .Contact.Email -}} }%
+    {{- if .Contact.Phone }}
     \sep%
-    \phone{ {{- .Contact.Phone -}} }%
+    \phone{ {{- escape .Contact.Phone -}} }%
+    {{- end }}
 {{- range .Contact.Links }}
     \sep%
-    {{ fmtLink . }}%
+    {{ fmtLinkWithDomain . }}%
 {{- end }}
 }
-
-{{- if .Contact.Summary }}
-\resumesummary{ {{- .Contact.Summary -}} }
-{{- end }}
 
 % ============================================================================
 % EXPERIENCE
 % ============================================================================
 {{- if .Experience.Positions }}
-\section*{{ "{" }}{{ .Experience.Title }}{{ "}" }}
+\section*{{ "{" }}{{ default "Experience" .Experience.Title }}{{ "}" }}
 {{- range .Experience.Positions }}
 {{- if .Location }}
 % User req: Location hidden by default. Use resumeentry (Title, Company, Dates)
-\resumeentry{ {{- .Title -}} }{ {{- .Company -}} }{ {{- fmtDates .Dates -}} }
+\resumeentry{ {{- escape .Title -}} }{ {{- escape .Company -}} }{ {{- fmtDates .Dates -}} }
 {{- else }}
-\resumeentry{ {{- .Title -}} }{ {{- .Company -}} }{ {{- fmtDates .Dates -}} }
+\resumeentry{ {{- escape .Title -}} }{ {{- escape .Company -}} }{ {{- fmtDates .Dates -}} }
 {{- end }}
-{{- if .Highlights }}
+{{- $high := filterEmpty .Highlights }}
+{{- if $high }}
 \begin{itemize}
-{{- range .Highlights }}
-    \item {{ escapeLatexChars . }}
+{{- range $high }}
+    \item {{ escape . }}
 {{- end }}
 \end{itemize}
 {{- end }}
@@ -51,34 +46,37 @@
 % EDUCATION
 % ============================================================================
 {{- if .Education.Institutions }}
-\section*{{ "{" }}{{ .Education.Title }}{{ "}" }}
+\section*{{ "{" }}{{ default "Education" .Education.Title }}{{ "}" }}
 {{- range .Education.Institutions }}
 {{- if .Location }}
-\resumeeducation{ {{- .Institution -}} }{ {{- .Degree -}} }{ {{- fmtDates .Dates -}} }{ {{- fmtLocation .Location -}} }
+\resumeeducation{ {{- escape .Institution -}} }{ {{- escape .Degree.Name -}} }{ {{- fmtDates .Dates -}} }{ {{- fmtLocation .Location -}} }
 {{- else }}
-\resumeeducation{ {{- .Institution -}} }{ {{- .Degree -}} }{ {{- fmtDates .Dates -}} }{}
+\resumeeducation{ {{- escape .Institution -}} }{ {{- escape .Degree.Name -}} }{ {{- fmtDates .Dates -}} }{}
+{{- end }}
+{{- $descriptions := filterEmpty .Degree.Descriptions }}
+{{- if .GPA }}
+\begin{description}
+    \item[GPA:] {{ formatGPA .GPA }}
+\end{description}
+{{- end }}
+{{- if $descriptions }}
+\begin{itemize}
+    {{- range $descriptions }}
+    \item {{ escape . }}
+    {{- end }}
+\end{itemize}
 {{- end }}
 {{- if .Thesis }}
-\begin{description}
-    \item[Honours Thesis:] {{- if .Thesis.Url }} \href{ {{- .Thesis.Url -}} }{ {{- .Thesis.Title -}} } {{- else }} {{ .Thesis.Title }} {{- end }}
-\end{description}
+\vspace{0.3ex}
+\noindent \textbf{Honours Thesis: {{ escape .Thesis.Title }}} {{- if .Thesis.Link.URI }} \hfill \href{ {{- .Thesis.Link.URI -}} }{ {{- extractDisplayURL .Thesis.Link.URI -}} }{{- end }}
+{{- if .Thesis.Highlights }}
+\begin{itemize}
+{{- range .Thesis.Highlights }}
+    \item {{ escape . }}
 {{- end }}
-{{- if or .GPA .Honors }}
-\begin{description}
-{{- if .GPA }}
-    \item[GPA:] {{ .GPA }}
+\end{itemize}
 {{- end }}
-{{- if .Honors }}
-    \item[Honors:] {{ join ", " .Honors | escapeLatexChars }}
-{{- end }}
-\end{description}
-{{- end }}
-{{- if .Description }}
-\begin{description}
-{{- range .Description }}
-    \item[{{ .Category | escapeLatexChars }}:] {{ .Value | escapeLatexChars }}
-{{- end }}
-\end{description}
+\par\vspace{0.3ex}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -87,10 +85,10 @@
 % SKILLS
 % ============================================================================
 {{- if .Skills.Categories }}
-\section*{{ "{" }}{{ .Skills.Title }}{{ "}" }}
+\section*{{ "{" }}{{ default "Skills" .Skills.Title }}{{ "}" }}
 \begin{description}
 {{- range .Skills.Categories }}
-    \item[{{ .Name | escapeLatexChars }}:] {{ skillNames .Items | join ", " | escapeLatexChars }}
+    \item[{{ escape .Category }}:] {{ formatList .Items }}
 {{- end }}
 \end{description}
 {{- end }}
@@ -99,20 +97,22 @@
 % PROJECTS
 % ============================================================================
 {{- if .Projects.Projects }}
-\section*{{ "{" }}{{ .Projects.Title }}{{ "}" }}
+\section*{{ "{" }}{{ default "Projects" .Projects.Title }}{{ "}" }}
 {{- range .Projects.Projects }}
-{{- if .URL }}
-\resumeentry{ {{- .Name -}} }{ {{- join ", " .Technologies -}} }{\url{ {{- .URL -}} }}
+{{- if .Link.URI }}
+\noindent \textbf{ {{ escape .Name }} } \hfill \href{ {{- .Link.URI -}} }{ {{- extractDisplayURL .Link.URI -}} } \par
 {{- else }}
-\resumeentry{ {{- .Name -}} }{ {{- join ", " .Technologies -}} }{}
+\noindent \textbf{ {{ escape .Name }} } \par
 {{- end }}
+{{- $high := filterEmpty .Highlights }}
+{{- if $high }}
     \begin{itemize}
-    {{- range .Highlights }}
-        \item {{ . | escapeLatexChars }}
+    {{- range $high }}
+        \item {{ escape . }}
     {{- end }}
     \end{itemize}
 {{- end }}
 {{- end }}
-
+{{- end }}
 
 \end{document}

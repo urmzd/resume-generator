@@ -6,283 +6,117 @@ import (
 	"strings"
 	"time"
 
-	"github.com/urmzd/resume-generator/pkg/definition"
+	"github.com/urmzd/resume-generator/pkg/resume"
 )
 
-type htmlFormatter struct{}
+// htmlFormatter provides HTML-specific formatting, embedding shared logic from baseFormatter.
+type htmlFormatter struct {
+	baseFormatter
+}
 
 func newHTMLFormatter() *htmlFormatter {
 	return &htmlFormatter{}
 }
 
+// EscapeText escapes HTML special characters.
 func (f *htmlFormatter) EscapeText(value string) string {
 	return template.HTMLEscapeString(value)
 }
 
-func (f *htmlFormatter) FormatDateRange(dates definition.DateRange) string {
-	return f.formatDateRange(dates.Start, dates.End, dates.Current)
+// FormatLocation renders a location with HTML escaping.
+func (f *htmlFormatter) FormatLocation(loc *resume.Location) string {
+	return f.baseFormatter.FormatLocation(loc, nil) // No escaping needed for plain text display
 }
 
-func (f *htmlFormatter) FormatOptionalDateRange(dates *definition.DateRange) string {
-	if dates == nil {
-		return ""
-	}
-	return f.FormatDateRange(*dates)
-}
-
-func (f *htmlFormatter) FormatDates(value interface{}) string {
-	switch v := value.(type) {
-	case string:
-		return strings.TrimSpace(v)
-	case definition.DateRange:
-		return f.FormatDateRange(v)
-	case *definition.DateRange:
-		if v == nil {
-			return ""
-		}
-		return f.FormatDateRange(*v)
-	default:
-		return ""
-	}
-}
-
-func (f *htmlFormatter) FormatCertificationDate(issue, expiration *time.Time) string {
-	if (issue == nil || issue.IsZero()) && (expiration == nil || expiration.IsZero()) {
-		return ""
-	}
-
-	issueStr := ""
-	if issue != nil && !issue.IsZero() {
-		issueStr = f.formatMonthYear(*issue)
-	}
-
-	expStr := ""
-	if expiration != nil && !expiration.IsZero() {
-		expStr = f.formatMonthYear(*expiration)
-	}
-
-	switch {
-	case issueStr == "":
-		return expStr
-	case expStr == "":
-		return issueStr
-	default:
-		return fmt.Sprintf("%s – %s", issueStr, expStr)
-	}
-}
-
-func (f *htmlFormatter) FormatLocation(loc *definition.Location) string {
-	if loc == nil {
-		return ""
-	}
-
-	parts := make([]string, 0, 3)
-	if strings.TrimSpace(loc.City) != "" {
-		parts = append(parts, strings.TrimSpace(loc.City))
-	}
-	if strings.TrimSpace(loc.State) != "" {
-		parts = append(parts, strings.TrimSpace(loc.State))
-	} else if strings.TrimSpace(loc.Region) != "" {
-		parts = append(parts, strings.TrimSpace(loc.Region))
-	}
-	if strings.TrimSpace(loc.Country) != "" && !f.containsIgnoreCase(parts, loc.Country) {
-		parts = append(parts, strings.TrimSpace(loc.Country))
-	}
-
-	return strings.Join(parts, ", ")
-}
-
-func (f *htmlFormatter) FormatList(values []string) string {
-	return strings.Join(filterStrings(values), ", ")
-}
-
-func (f *htmlFormatter) FormatGPA(gpa, max string) string {
-	gpa = strings.TrimSpace(gpa)
-	max = strings.TrimSpace(max)
-	if gpa == "" {
-		return ""
-	}
-	if max == "" || max == "4.0" {
-		return gpa
-	}
-	return fmt.Sprintf("%s / %s", gpa, max)
-}
-
-func (f *htmlFormatter) SkillNames(items []definition.SkillItem) []string {
-	result := make([]string, 0, len(items))
-	for _, item := range items {
-		if name := strings.TrimSpace(item.Name); name != "" {
-			result = append(result, name)
-		}
-	}
-	return result
-}
-
-func (f *htmlFormatter) Join(sep string, items []string) string {
-	return strings.Join(items, sep)
-}
-
-func (f *htmlFormatter) FormatLink(link definition.Link) string {
-	url := strings.TrimSpace(link.URL)
+// FormatLink renders an HTML anchor tag.
+func (f *htmlFormatter) FormatLink(link string) string {
+	url := strings.TrimSpace(link)
 	if url == "" {
 		return ""
 	}
-	text := strings.TrimSpace(link.Text)
-	if text == "" {
-		text = url
-	}
-	return fmt.Sprintf(`<a href="%s">%s</a>`, template.HTMLEscapeString(url), template.HTMLEscapeString(text))
+	return fmt.Sprintf(`<a href="%s">%s</a>`, template.HTMLEscapeString(url), template.HTMLEscapeString(url))
 }
 
-func (f *htmlFormatter) Lower(value string) string {
-	return strings.ToLower(value)
-}
-
-func (f *htmlFormatter) Upper(value string) string {
-	return strings.ToUpper(value)
-}
-
-func (f *htmlFormatter) Title(value string) string {
-	return strings.Title(value)
-}
-
-func (f *htmlFormatter) SanitizePhone(phone string) string {
-	var builder strings.Builder
-	for _, r := range phone {
-		if (r >= '0' && r <= '9') || r == '+' {
-			builder.WriteRune(r)
-		}
-	}
-	return builder.String()
-}
-
+// TemplateFuncs exposes helper functions for HTML templates.
 func (f *htmlFormatter) TemplateFuncs() template.FuncMap {
-	funcs := template.FuncMap{
-		"escape":            f.EscapeText,
-		"safeHTML":          func(value string) template.HTML { return template.HTML(value) },
+	return template.FuncMap{
+		// Text escaping
+		"escape":   f.EscapeText,
+		"safeHTML": func(value string) template.HTML { return template.HTML(value) },
+
+		// Date formatting
 		"formatDate":        func(t time.Time) string { return t.Format("January 2006") },
 		"formatDateShort":   func(t time.Time) string { return t.Format("Jan 2006") },
 		"formatDateRange":   f.formatDateRange,
-		"calculateDuration": f.calculateDuration,
-		"join":              f.Join,
-		"lower":             f.Lower,
-		"upper":             f.Upper,
-		"title":             f.Title,
-		"replace":           strings.ReplaceAll,
-		"hasPrefix":         strings.HasPrefix,
-		"hasSuffix":         strings.HasSuffix,
-		"contains":          strings.Contains,
-		// Sort functions preserved for template compatibility - they now return input unchanged (list order is source of truth)
-		"sortSkillsByOrder":        func(categories []definition.SkillCategory) []definition.SkillCategory { return categories },
-		"sortExperienceByOrder":    func(experiences []definition.Experience) []definition.Experience { return experiences },
-		"sortProjectsByOrder":      func(projects []definition.Project) []definition.Project { return projects },
-		"sortEducationByOrder":     func(education []definition.Education) []definition.Education { return education },
-		"sortLinksByOrder":         func(links []definition.Link) []definition.Link { return links },
-		"sortCertificationsByOrder": func(certs []definition.Certification) []definition.Certification { return certs },
-		"getIconClass": f.getIconClass,
-		"formatGPA":    f.FormatGPA,
-		"add":          func(a, b int) int { return a + b },
-		"subtract":     func(a, b int) int { return a - b },
-		"multiply":     func(a, b int) int { return a * b },
-		"divide": func(a, b int) int {
-			if b == 0 {
-				return 0
+		"fmtDateRange":      f.FormatDateRange,
+		"calculateDuration": f.CalculateDuration,
+
+		// Location formatting
+		"formatLocation": func(loc *resume.Location) string { return f.FormatLocation(loc) },
+		"fmtLocation": func(value interface{}) string {
+			switch v := value.(type) {
+			case *resume.Location:
+				return f.FormatLocation(v)
+			case resume.Location:
+				return f.FormatLocation(&v)
+			default:
+				return ""
 			}
-			return a / b
 		},
-		"isEven":                  func(n int) bool { return n%2 == 0 },
-		"isOdd":                   func(n int) bool { return n%2 != 0 },
-		"formatCertificationDate": f.FormatCertificationDate,
-	}
 
-	return funcs
-}
+		// List formatting
+		"formatList":  f.FormatList,
+		"join":        f.Join,
+		"skillNames":  f.SkillNames,
+		"filterEmpty": filterStrings,
 
-func (f *htmlFormatter) formatDateRange(start time.Time, end *time.Time, current bool) string {
-	if start.IsZero() && (end == nil || (end != nil && end.IsZero())) && !current {
-		return ""
-	}
+		// Case transformations
+		"lower": f.Lower,
+		"upper": f.Upper,
+		"title": f.Title,
 
-	startStr := f.formatMonthYear(start)
-	var endStr string
+		// String utilities
+		"replace":   strings.ReplaceAll,
+		"hasPrefix": strings.HasPrefix,
+		"hasSuffix": strings.HasSuffix,
+		"contains":  strings.Contains,
+		"trim":      strings.TrimSpace,
 
-	switch {
-	case current:
-		endStr = "Present"
-	case end == nil:
-		endStr = "Present"
-	case !end.IsZero():
-		endStr = f.formatMonthYear(*end)
-	default:
-		endStr = "Present"
-	}
+		// Link formatting
+		"formatLink": f.FormatLink,
+		"fmtLink": func(value interface{}) string {
+			switch v := value.(type) {
+			case string:
+				return f.FormatLink(v)
+			default:
+				return ""
+			}
+		},
 
-	if startStr == "" {
-		return endStr
-	}
-	if endStr == "" || startStr == endStr {
-		return startStr
-	}
-	return fmt.Sprintf("%s – %s", startStr, endStr)
-}
+		// GPA formatting
+		"formatGPA": f.FormatGPAStruct,
 
-func (f *htmlFormatter) calculateDuration(start time.Time, end *time.Time) string {
-	var endTime time.Time
-	if end == nil {
-		endTime = time.Now()
-	} else {
-		endTime = *end
-	}
+		// Phone sanitization
+		"sanitizePhone": f.SanitizePhone,
 
-	diff := endTime.Sub(start)
-	years := int(diff.Hours() / 24 / 365)
-	months := int((diff.Hours() / 24 / 30)) % 12
+		// Sort functions (preserved for template compatibility - return input unchanged)
+		"sortSkillsByOrder":     func(categories []resume.SkillCategory) []resume.SkillCategory { return categories },
+		"sortExperienceByOrder": func(experiences []resume.Experience) []resume.Experience { return experiences },
+		"sortProjectsByOrder":   func(projects []resume.Project) []resume.Project { return projects },
+		"sortEducationByOrder":  func(education []resume.Education) []resume.Education { return education },
+		"sortLinksByOrder":      func(links []string) []string { return links },
 
-	switch {
-	case years > 0 && months > 0:
-		return fmt.Sprintf("%d yr %d mo", years, months)
-	case years > 0:
-		return fmt.Sprintf("%d yr", years)
-	case months > 0:
-		return fmt.Sprintf("%d mo", months)
-	default:
-		return "< 1 mo"
+		// Default value helper
+		"default": func(defaultVal, value interface{}) interface{} {
+			if value == nil || value == "" {
+				return defaultVal
+			}
+			return value
+		},
 	}
 }
 
-func (f *htmlFormatter) formatMonthYear(t time.Time) string {
-	if t.IsZero() {
-		return ""
-	}
-	return t.Format("Jan 2006")
-}
-
-func (f *htmlFormatter) containsIgnoreCase(list []string, value string) bool {
-	value = strings.ToLower(strings.TrimSpace(value))
-	for _, item := range list {
-		if strings.ToLower(strings.TrimSpace(item)) == value {
-			return true
-		}
-	}
-	return false
-}
-
-func (f *htmlFormatter) sortSkillCategories(skills []definition.SkillCategory) []definition.SkillCategory {
-	return skills
-}
-
-func (f *htmlFormatter) getIconClass(linkType string) string {
-	icons := map[string]string{
-		"github":    "fab fa-github",
-		"linkedin":  "fab fa-linkedin",
-		"twitter":   "fab fa-twitter",
-		"website":   "fas fa-globe",
-		"portfolio": "fas fa-briefcase",
-		"email":     "fas fa-envelope",
-		"phone":     "fas fa-phone",
-	}
-	if icon, exists := icons[strings.ToLower(linkType)]; exists {
-		return icon
-	}
-	return "fas fa-link"
+// formatDateRange is a template-friendly version accepting individual args.
+func (f *htmlFormatter) formatDateRange(start time.Time, end *time.Time) string {
+	return f.baseFormatter.formatDateRangeInternal(start, end)
 }

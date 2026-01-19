@@ -1,9 +1,11 @@
 name: modern-html
 display_name: Modern HTML
-description: Minimal HTML resume template with typography inspired by the modern LaTeX variant.
+description: Clean, traditional resume template with serif typography and professional styling suitable for print and web.
 format: html
-version: "1.1.0"
+version: "1.0.0"
 author: Resume Generator Team
 tags:
   - html
-  - modern
+  - traditional
+  - professional
+  - print-friendly

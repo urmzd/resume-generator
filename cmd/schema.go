@@ -7,7 +7,7 @@ import (
 
 	"github.com/invopop/jsonschema"
 	"github.com/spf13/cobra"
-	"github.com/urmzd/resume-generator/pkg/definition"
+	"github.com/urmzd/resume-generator/pkg/resume"
 )
 
 var SchemaOutput string
@@ -58,7 +58,7 @@ func generateSchema() error {
 		AllowAdditionalProperties: false,
 		DoNotReference:            true,
 	}
-	schema := reflector.Reflect(&definition.Resume{})
+	schema := reflector.Reflect(&resume.Resume{})
 
 	// Add metadata
 	schema.Title = "Resume Format (v2.0)"
@@ -105,21 +105,16 @@ Key features:
 func addSchemaExample(schema *jsonschema.Schema) {
 	schema.Examples = []interface{}{
 		map[string]interface{}{
-			"meta": map[string]interface{}{
-				"version": "2.0",
-			},
 			"contact": map[string]interface{}{
 				"order": 1,
 				"name":  "Jane Smith",
-				"title": "Senior Software Engineer",
 				"email": "jane.smith@example.com",
 				"phone": "+1-555-987-6543",
 				"links": []map[string]interface{}{
 					{
-						"order": 1,
-						"text":  "GitHub",
-						"url":   "https://github.com/janesmith",
-						"type":  "github",
+						"text": "GitHub",
+						"url":  "https://github.com/janesmith",
+						"type": "github",
 					},
 				},
 				"location": map[string]interface{}{
@@ -130,11 +125,8 @@ func addSchemaExample(schema *jsonschema.Schema) {
 				"summary": "Experienced software engineer specializing in distributed systems and cloud architecture.",
 			},
 			"experience": map[string]interface{}{
-				"order": 2,
-				"title": "Professional Experience",
 				"positions": []map[string]interface{}{
 					{
-						"order":   1,
 						"company": "Tech Innovations Inc",
 						"title":   "Senior Software Engineer",
 						"highlights": []string{

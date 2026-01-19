@@ -4,10 +4,9 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/urmzd/resume-generator/pkg/definition"
+	"github.com/urmzd/resume-generator/pkg/resume"
 	"github.com/urmzd/resume-generator/pkg/utils"
 	"go.uber.org/zap"
-	"gopkg.in/yaml.v3"
 )
 
 func initValidateCmd() {
@@ -36,16 +35,12 @@ var validateCmd = &cobra.Command{
 			sugar.Fatalf("failed to read file: %v", err)
 		}
 
-		var resume definition.Resume
-		if err := yaml.Unmarshal(content, &resume); err != nil {
-			sugar.Fatalf("failed to unmarshal YAML: %v", err)
+		var resumeData resume.Resume
+		if err := resume.UnmarshalYAMLWithContext(content, &resumeData); err != nil {
+			sugar.Fatalf("failed to parse YAML in %s: %v", filePath, err)
 		}
 
-		validator := &definition.ConfigurationValidator{
-			StrictMode: true,
-		}
-
-		errors := validator.ValidateResume(&resume)
+		errors := resume.Validate(&resumeData)
 		if len(errors) > 0 {
 			sugar.Errorf("Validation failed with %d errors:", len(errors))
 			for _, e := range errors {

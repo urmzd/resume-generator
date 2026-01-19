@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/urmzd/resume-generator/pkg/definition"
 	"go.uber.org/zap"
 
 	"io"
@@ -97,7 +96,7 @@ type LaTeXCompiler struct {
 
 // NewLaTeXCompiler creates a new instance of LaTeXCompiler with the specified command and logger.
 // The command can be any LaTeX compiler like xelatex, pdflatex, lualatex, etc.
-func NewLaTeXCompiler(command string, logger *zap.SugaredLogger) definition.Compiler {
+func NewLaTeXCompiler(command string, logger *zap.SugaredLogger) Compiler {
 	return &LaTeXCompiler{
 		command:      command,
 		outputFolder: "",
@@ -108,7 +107,7 @@ func NewLaTeXCompiler(command string, logger *zap.SugaredLogger) definition.Comp
 
 // NewAutoLaTeXCompiler creates a LaTeX compiler by automatically detecting the available engine.
 // Returns an error if no LaTeX engine is found.
-func NewAutoLaTeXCompiler(logger *zap.SugaredLogger) (definition.Compiler, error) {
+func NewAutoLaTeXCompiler(logger *zap.SugaredLogger) (Compiler, error) {
 	engine := DetectLaTeXEngine()
 	if engine == "" {
 		return nil, fmt.Errorf("no LaTeX engine found\n\nPlease install one of the following:\n  - TeX Live:   https://www.tug.org/texlive/\n  - MiKTeX:     https://miktex.org/\n  - MacTeX:     https://www.tug.org/mactex/ (macOS)\n\nOr use Docker which includes LaTeX:\n  docker run --rm -v $(pwd):/work texlive/texlive")

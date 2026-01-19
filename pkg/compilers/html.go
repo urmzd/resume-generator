@@ -135,10 +135,10 @@ Or use Docker which includes all dependencies:
 	}
 
 	// Convert based on available tool
-	switch {
-	case contains(c.toolName, []string{"ungoogled-chromium", "chromium", "google-chrome"}):
+	switch c.toolName {
+	case "chromium", "ungoogled-chromium", "google-chrome":
 		return c.compileWithChromium(tmpFile.Name(), outputPath)
-	case c.toolName == "wkhtmltopdf":
+	case "wkhtmltopdf":
 		return c.compileWithWKHTMLToPDF(tmpFile.Name(), outputPath)
 	default:
 		return fmt.Errorf("unsupported tool: %s", c.toolName)
@@ -169,6 +169,7 @@ func (c *HTMLToPDFCompiler) compileWithChromium(htmlPath, outputPath string) err
 		"--no-first-run",
 		"--no-default-browser-check",
 		"--print-to-pdf=" + absOutputPath,
+		"--print-to-pdf-no-header",
 	}
 
 	// Use a temporary user data directory to avoid touching default profiles (prevents crashes on some Chromium builds)
@@ -321,16 +322,6 @@ func (c *HTMLToPDFCompiler) compileWithWKHTMLToPDF(htmlPath, outputPath string) 
 
 	c.logger.Infof("Successfully converted HTML to PDF: %s", outputPath)
 	return nil
-}
-
-// contains checks if a string is in a slice
-func contains(str string, slice []string) bool {
-	for _, s := range slice {
-		if s == str {
-			return true
-		}
-	}
-	return false
 }
 
 // canonicalToolName normalizes tool names to a small canonical set
