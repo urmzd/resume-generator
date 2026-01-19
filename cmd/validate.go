@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"os"
-
 	"github.com/spf13/cobra"
 	"github.com/urmzd/resume-generator/pkg/resume"
 	"github.com/urmzd/resume-generator/pkg/utils"
@@ -30,17 +28,13 @@ var validateCmd = &cobra.Command{
 			sugar.Fatalf("File does not exist: %s", filePath)
 		}
 
-		content, err := os.ReadFile(filePath)
+		inputData, err := resume.LoadResumeFromFile(filePath)
 		if err != nil {
-			sugar.Fatalf("failed to read file: %v", err)
+			sugar.Fatalf("failed to load resume data: %v", err)
 		}
 
-		var resumeData resume.Resume
-		if err := resume.UnmarshalYAMLWithContext(content, &resumeData); err != nil {
-			sugar.Fatalf("failed to parse YAML in %s: %v", filePath, err)
-		}
-
-		errors := resume.Validate(&resumeData)
+		resumeData := inputData.ToResume()
+		errors := resume.Validate(resumeData)
 		if len(errors) > 0 {
 			sugar.Errorf("Validation failed with %d errors:", len(errors))
 			for _, e := range errors {

@@ -2,12 +2,12 @@
 
 ## Introduction
 
-Resume Generator is a CLI-focused toolkit for turning structured configuration files into polished resumes. It supports multiple output formats and ships with a flexible template system so you can generate professional PDFs or HTML resumes from YAML, JSON, or TOML data.
+Resume Generator is a CLI-focused toolkit for turning structured configuration files into polished resumes. It supports multiple template formats and ships with a flexible template system so you can generate professional PDFs from LaTeX or HTML templates using YAML, JSON, or TOML data.
 
 ## Features
 
 ### Core Capabilities
-- **Multiple Output Formats**: Generate resumes in PDF (LaTeX) or HTML with the same template system
+- **Multiple Template Types**: Generate PDFs from LaTeX or HTML templates with the same data model
 - **Data-Only Inputs**: Provide resume content as YAML, JSON, or TOML; the CLI selects templates and output targets
 - **Template System**: Modular templates with embedded assets; customize or create new templates per project
 - **Robust Path Resolution**: Works from any directory, supports `~`, relative paths, and dated output workspaces
@@ -51,50 +51,50 @@ Per-run flags for Chromium-based browsers can still be appended via `RESUME_CHRO
 
 2. **Build the CLI**
    ```bash
-   go build -o resume-generator ./...
+   go build -o resume-generator .
    ```
 
 3. **Generate a Resume**
    ```bash
-   ./resume-generator run -i assets/example_inputs/example.yml -t modern-html
+   ./resume-generator run -i assets/example_resumes/software_engineer.yml -t modern-html
    ```
 
 If you prefer Docker, build the bundled image and run commands inside the container:
 
 ```bash
 docker build -t resume-generator .
-docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_inputs/example.yml -t modern-html
+docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_resumes/software_engineer.yml -t modern-html
 ```
 
 ### CLI Usage
 
 1. **Build the Application**
    ```bash
-   go build -o resume-generator ./...
+   go build -o resume-generator .
    ```
 
 2. **Generate Resume**
    ```bash
-   # Generate HTML resume with a specific template
-   ./resume-generator run -i assets/example_inputs/example.yml -t modern-html
+   # Generate PDF from an HTML template
+   ./resume-generator run -i assets/example_resumes/software_engineer.yml -t modern-html
 
    # Generate with multiple templates (creates separate outputs for each)
-   ./resume-generator run -i assets/example_inputs/example.yml -t modern-html -t modern-latex
+   ./resume-generator run -i assets/example_resumes/software_engineer.yml -t modern-html -t modern-latex
 
    # Generate with all available templates (if -t is omitted)
-   ./resume-generator run -i assets/example_inputs/example.yml
+   ./resume-generator run -i assets/example_resumes/software_engineer.yml
 
    # Use comma-separated template names
-   ./resume-generator run -i assets/example_inputs/example.yml -t modern-html,modern-latex
+   ./resume-generator run -i assets/example_resumes/software_engineer.yml -t modern-html,modern-latex
 
    # Custom output root with multiple templates
-   ./resume-generator run -i assets/example_inputs/example.yml -o outputs/custom-run -t modern-html -t modern-latex
+   ./resume-generator run -i assets/example_resumes/software_engineer.yml -o outputs/custom-run -t modern-html -t modern-latex
 
    # Validate configuration
-   ./resume-generator validate assets/example_inputs/example.yml
+   ./resume-generator validate assets/example_resumes/software_engineer.yml
 
    # Preview without generation
-   ./resume-generator preview assets/example_inputs/example.yml
+   ./resume-generator preview assets/example_resumes/software_engineer.yml
 
    # List available templates
    ./resume-generator templates list
@@ -106,7 +106,7 @@ docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_i
 3. **Path Resolution**
 
    The CLI now supports flexible path resolution:
-   - **Relative paths**: `./assets/example_inputs/example.yml`, `../data/resume.yml`
+   - **Relative paths**: `./assets/example_resumes/software_engineer.yml`, `../data/resume.yml`
    - **Absolute paths**: `/Users/name/Documents/resume.yml`
    - **Home directory**: `~/Documents/resume.yml`
    - **Custom output locations**: Specify any directory path for generated artifacts
@@ -116,7 +116,7 @@ docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_i
    Examples:
    ```bash
    # Relative input, custom output root
-   ./resume-generator run -i assets/example_inputs/example.yml -o outputs/my_resume
+   ./resume-generator run -i assets/example_resumes/software_engineer.yml -o outputs/my_resume
 
    # Absolute paths
    ./resume-generator run -i /path/to/resume.yml -o /path/to/output-directory
@@ -152,7 +152,7 @@ docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_i
 
 ## Template Previews
 
-Generated from `assets/example_resumes/software_engineer.yml` and stored as PNGs in `assets/example_results/`.
+Generated from `assets/example_resumes/software_engineer.yml`. Run `just readme-previews` to refresh the PNGs in `assets/example_results/`.
 
 ### Modern HTML
 
@@ -182,7 +182,7 @@ Use the CLI to explore or apply templates:
 
 ## Customization
 
-To customize your resume, edit the source data file (e.g., `example.yml`) with your personal information, experiences, and skills. The tool supports YAML, JSON, and TOML inputs.
+To customize your resume, edit the source data file (e.g., `software_engineer.yml`) with your personal information, experiences, and skills. The tool supports YAML, JSON, and TOML inputs.
 
 ## Advanced Usage
 
@@ -197,23 +197,29 @@ just build-cli
 # Build Docker image
 just docker-build
 
-# Run specific example in Docker
-just example example.yml
-
-# Run all examples
-just examples
+# Run resume generator with Docker (defaults to the bundled example)
+just docker-run
 
 # Generate resume using local CLI
-just generate config.yml output modern-html
+just generate assets/example_resumes/software_engineer.yml ../outputs modern-html
+
+# Run any CLI subcommand directly
+just cli --help
 
 # Validate configuration
-just validate config.yml
+just cli validate assets/example_resumes/software_engineer.yml
 
 # Preview configuration
-just preview config.yml
+just cli preview assets/example_resumes/software_engineer.yml
 
 # List templates
-just templates
+just cli templates list
+
+# Show available LaTeX engines
+just cli templates engines
+
+# Generate JSON schema
+just cli schema -o ./schemas/resume.schema.json
 
 # Generate README template previews (PNG)
 just readme-previews
@@ -229,14 +235,8 @@ just clean
 For Docker-based workflows:
 
 ```bash
-# Execute custom command in container
-just exec "resume-generator --help"
-
-# Start interactive shell
-just shell
-
 # Run resume generator with Docker
-just docker-run example.yml modern-html
+just docker-run assets/example_resumes/software_engineer.yml modern-html
 ``` 
 
 ## Templates

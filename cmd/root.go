@@ -21,7 +21,7 @@ func initRootCmd() {
 
 var rootCmd = &cobra.Command{
 	Use:   "resume-generator",
-	Short: "Generate beautiful LaTeX resumes with one command.",
+	Short: "Generate resumes from structured data using templates.",
 }
 
 func Execute() error {
