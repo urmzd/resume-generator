@@ -71,6 +71,9 @@ RUN mkdir -p /templates /examples /inputs /outputs /tmp/uploads /tmp/downloads
 # Copy default templates
 COPY templates /templates/
 
+# Copy example resumes for README previews
+COPY assets/example_resumes /app/assets/example_resumes
+
 # Expose templates within the working directory for relative lookups
 RUN ln -sfn /templates /app/templates
 

@@ -120,6 +120,28 @@ pdf-to-jpeg pdf output="docs/readme-preview.jpg":
         exit 1; \
      fi
 
+# Convert a generated PDF into a README-friendly PNG preview
+pdf-to-png pdf output="assets/example_results/modern-html.png":
+    @echo "Converting {{pdf}} -> {{output}}"
+    @pdf_path="{{pdf}}"; \
+     output_path="{{output}}"; \
+     mkdir -p "$(dirname "$output_path")"; \
+     if command -v magick >/dev/null 2>&1; then \
+        magick -density 300 "${pdf_path}[0]" -quality 90 "$output_path"; \
+     elif command -v convert >/dev/null 2>&1; then \
+        convert -density 300 "${pdf_path}[0]" -quality 90 "$output_path"; \
+     elif command -v pdftoppm >/dev/null 2>&1; then \
+        output_base="${output_path%.*}"; \
+        pdftoppm -png -singlefile -r 300 "$pdf_path" "$output_base"; \
+     else \
+        echo "Error: install ImageMagick (magick/convert) or poppler-utils (pdftoppm) for PDF -> PNG conversion." >&2; \
+        exit 1; \
+     fi
+
+# Generate README preview images for the bundled templates
+readme-previews:
+    @scripts/generate-readme-previews.sh
+
 # Full build and test workflow
 test: build-cli docker-build
     @echo "Running Go unit tests"
@@ -163,6 +185,13 @@ templates:
     else \
         go run main.go templates list; \
     fi
+
+# Show staged changes that will be included in the next commit
+commit-preview:
+    @echo "Staged changes:"
+    @git diff --staged --stat
+    @echo ""
+    @git diff --staged
 
 # Check available LaTeX engines
 latex-engines:

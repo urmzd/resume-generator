@@ -22,10 +22,10 @@
 % ============================================================================
 \geometry{
     a4paper,
-    left=0.5in,
-    right=0.5in,
-    top=0.5in,
-    bottom=0.5in
+    left=0.4in,
+    right=0.4in,
+    top=0.2in,
+    bottom=0.3in
 }
 
 % ============================================================================
@@ -40,6 +40,9 @@
 % Paragraph formatting
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0pt}
+
+% Line spacing (balanced)
+\linespread{1.05}
 
 % Microtype for better typography (expansion disabled for xetex compatibility)
 \microtypesetup{
@@ -74,23 +77,23 @@
 % SECTION FORMATTING
 % ============================================================================
 \titleformat{\section}
-    {\normalfont\large\bfseries}          % Format
+    {\normalfont\small\bfseries}          % Format (small since already bold+uppercase+underlined)
     {}                                      % Label
     {0pt}                                   % Sep
     {\MakeUppercase}                        % Before (uppercase titles)
     [\vspace{-0.5ex}\titlerule]            % After
 
-\titlespacing*{\section}{0pt}{1.5ex plus 0.5ex minus 0.2ex}{0.8ex plus 0.2ex}
+\titlespacing*{\section}{0pt}{8pt plus 1pt minus 1pt}{3pt plus 1pt}
 
 % ============================================================================
 % LIST FORMATTING
 % ============================================================================
 \setlist[itemize]{
-    leftmargin=1.5em,
+    leftmargin=0.25in,
     labelwidth=1em,
-    labelsep=0.5em,
-    itemsep=0.2ex,
-    topsep=2pt,
+    labelsep=0.3em,
+    itemsep=2pt,
+    topsep=3pt,
     parsep=0pt,
     partopsep=0pt,
     label=\textbullet
@@ -98,8 +101,8 @@
 
 \setlist[description]{
     leftmargin=0pt,
-    itemsep=0pt,
-    topsep=3pt,
+    itemsep=2pt,
+    topsep=2pt,
     parsep=0pt,
     labelwidth=!,
     font=\normalfont\bfseries
@@ -109,10 +112,10 @@
 % CUSTOM LENGTHS
 % ============================================================================
 \newlength{\resumeitemsep}
-\setlength{\resumeitemsep}{0.8ex plus 0.2ex minus 0.1ex}
+\setlength{\resumeitemsep}{6pt plus 1pt minus 1pt}
 
 \newlength{\headersep}
-\setlength{\headersep}{1.5ex plus 0.3ex minus 0.2ex}
+\setlength{\headersep}{0.5ex plus 0.1ex minus 0.1ex}
 
 % ============================================================================
 % HEADER COMMANDS
@@ -137,7 +140,7 @@
 % User requirement: "space before the start of the first link and space after the last link"
 % and "separated by pipes".
 \NewDocumentCommand{\resumecontact}{m}{%
-    \vspace{1.0ex} % Space between name and links
+    \vspace{2pt} % Space between name and links
     \begin{center}
         {%
             % We will rely on template.tex to provide separators, 
@@ -151,7 +154,7 @@
 % Separator for contact info (visible pipe with spacing)
 % User req: "pipes between the link and ultimately having space before the start of the first link"
 % We will redefine sep to be just the pipe with spacing.
-\newcommand{\sep}{\hspace{1em}|\hspace{1em}}
+\newcommand{\sep}{\hspace{0.5em}|\hspace{0.5em}}
 
 % Summary block
 \newcommand{\resumesummary}[1]{%
@@ -172,7 +175,7 @@
     \begin{tabularx}{\textwidth}{@{} >{\raggedright\arraybackslash}X >{\centering\arraybackslash}c >{\raggedleft\arraybackslash}X @{}}
         \textbf{#1} & \textbf{#2} & \textbf{#3} \\
     \end{tabularx}%
-    \par\vspace{-0.5ex}
+    \par\vspace{1pt}
 }
 
 % Three-column with location (title, organization, dates, location)
@@ -186,7 +189,7 @@
         \textbf{#1} & \textbf{#2} & \textbf{#3} \\
                     &              & \textbf{#4} \\
     \end{tabularx}%
-    \par\vspace{-0.5ex}
+    \par\vspace{1pt}
 }
 
 % Education entry
@@ -198,7 +201,7 @@
         \textbf{#1} & \textbf{#3} \\
         \textbf{#2} & \textbf{#4} \\
     \end{tabularx}%
-    \par\vspace{0.2ex} % Slight space before description/items
+    \par\vspace{1pt}
 }
 
 % Subentry (for degrees, etc.)

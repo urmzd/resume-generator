@@ -3,6 +3,8 @@ name: CI
 on:
   push:
     branches: [main]
+    tags:
+      - "v*"
   pull_request:
 
 permissions:
@@ -38,3 +40,55 @@ jobs:
 
       - name: Run sanitizePhone corpus
         run: go test -run=FuzzSanitizePhone -fuzz=FuzzSanitizePhone -fuzztime=10s ./pkg/generators
+
+  readme_previews:
+    name: README Template Previews
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install preview tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils
+
+      - name: Generate README previews
+        run: scripts/generate-readme-previews.sh
+
+      - name: Ensure previews are committed
+        run: |
+          if [ -n "$(git status --porcelain assets/example_results)" ]; then
+            echo "README preview images are out of date. Run scripts/generate-readme-previews.sh and commit the results."
+            git status --short assets/example_results
+            exit 1
+          fi
+
+  docker_publish:
+    name: Publish Docker Image
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            urmzd/resume-generator:${{ github.ref_name }}
+            urmzd/resume-generator:latest

@@ -150,15 +150,17 @@ docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_i
                    └── john_doe_resume.aux
    ```
 
-## Showcase
+## Template Previews
 
-Here are some examples of resumes generated with our tool:
+Generated from `assets/example_resumes/software_engineer.yml` and stored as PNGs in `assets/example_results/`.
 
-### Sample Resume 1
+### Modern HTML
 
-![Sample Resume 1](assets/example_results/example.jpg)
+![Modern HTML Preview](assets/example_results/modern-html.png)
 
-A clean, professional layout suitable for various industries.
+### Modern LaTeX
+
+![Modern LaTeX Preview](assets/example_results/modern-latex.png)
 
 ## Templates and Data
 
@@ -213,14 +215,14 @@ just preview config.yml
 # List templates
 just templates
 
-# Convert PDF output into a README preview image (first page)
-just pdf-to-jpeg outputs/john_doe/2024-01-01/modern-html/john_doe_resume.pdf docs/readme-preview.jpg
+# Generate README template previews (PNG)
+just readme-previews
 
 # Clean outputs
 just clean
 ```
 
-> The `pdf-to-jpeg` helper looks for `magick`, `convert`, or `pdftoppm`. Install ImageMagick or poppler-utils to enable the conversion.
+> The preview helpers look for `magick`, `convert`, or `pdftoppm`. Install ImageMagick or poppler-utils to enable the conversion.
 
 ### Docker Usage
 
