@@ -10,8 +10,8 @@ cli_binary := justfile_directory() + "/" + cli_output
 release_ldflags := env_var_or_default("GO_LDFLAGS", "-s -w")
 
 # Directories
-outputs_dir := "outputs"
-inputs_dir := "inputs"
+outputs_dir := "../outputs"
+inputs_dir := "../inputs"
 examples_dir := "assets/example_resumes"
 templates_dir := "templates"
 
