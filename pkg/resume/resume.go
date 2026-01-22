@@ -8,7 +8,7 @@ type Resume struct {
 	Contact    Contact        `json:"contact" yaml:"contact" toml:"contact"`
 	Skills     Skills         `json:"skills" yaml:"skills" toml:"skills"`
 	Experience ExperienceList `json:"experience" yaml:"experience" toml:"experience"`
-	Projects   ProjectList    `json:"projects" yaml:"projects" toml:"projects"`
+	Projects   *ProjectList   `json:"projects,omitempty" yaml:"projects,omitempty" toml:"projects,omitempty"`
 	Education  EducationList  `json:"education" yaml:"education" toml:"education"`
 }
 

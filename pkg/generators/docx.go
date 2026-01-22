@@ -31,7 +31,9 @@ func (g *DOCXGenerator) Generate(resume *resume.Resume) ([]byte, error) {
 	g.addEducation(doc, resume.Education)
 	g.addSkills(doc, resume.Skills)
 	g.addExperience(doc, resume.Experience)
-	g.addProjects(doc, resume.Projects)
+	if resume.Projects != nil {
+		g.addProjects(doc, *resume.Projects)
+	}
 
 	var buf bytes.Buffer
 	if _, err := doc.WriteTo(&buf); err != nil {
