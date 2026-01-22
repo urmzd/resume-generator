@@ -99,7 +99,7 @@ This is useful for quickly checking if your configuration is valid.`,
 		}
 
 		// Projects
-		if len(resume.Projects.Projects) > 0 {
+		if resume.Projects != nil && len(resume.Projects.Projects) > 0 {
 			fmt.Println("🚀 Projects:")
 			fmt.Printf("  %d project(s)\n", len(resume.Projects.Projects))
 			for _, proj := range resume.Projects.Projects {

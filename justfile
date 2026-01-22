@@ -47,7 +47,7 @@ docker-build:
     docker build --tag {{image_tag}} .
 
 # Run the resume-generator inside Docker
-docker-run input_file="{{examples_dir}}/software_engineer.yml" output_dir="{{outputs_dir}}" template="modern-html": docker-build
+docker-run input_file=(examples_dir + "/software_engineer.yml") output_dir=outputs_dir template="modern-html": docker-build
     @echo "Running resume-generator in Docker"
     docker run --rm \
       -v "{{justfile_directory()}}:/work" \
@@ -62,7 +62,7 @@ test: build-cli
     just go-test
 
 # Generate a resume using the CLI (local Go build)
-generate input_file="{{examples_dir}}/software_engineer.yml" output_dir="{{outputs_dir}}" template="":
+generate input_file=(examples_dir + "/software_engineer.yml") output_dir=outputs_dir template="":
     @echo "Generating resume from {{input_file}} into {{output_dir}}"
     @if [ -n "{{template}}" ]; then \
         just cli run -i {{input_file}} -o {{output_dir}} -t {{template}}; \

@@ -116,7 +116,7 @@ func TestLaTeXGeneratorGenerate(t *testing.T) {
 				},
 			},
 		},
-		Projects: resume.ProjectList{
+		Projects: &resume.ProjectList{
 			Projects: []resume.Project{
 				{
 					Name: "Project_One",
