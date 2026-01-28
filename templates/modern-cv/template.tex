@@ -11,7 +11,7 @@
 \setlength{\parskip}{4pt}
 
 % Section styling with underline for clear separation
-\newcommand{\resumesection}[1]{\section*{#1}\vspace{-4pt}\hrule\vspace{6pt}}
+\newcommand{\resumesection}[1]{\needspace{5\baselineskip}\section*{#1}\vspace{-4pt}\hrule\vspace{6pt}}
 
 \begin{document}
 
@@ -30,7 +30,7 @@
 \resumesection{Professional Experience}
 
 {{- range $exp := .Experience.Positions }}
-\needspace{4\baselineskip}
+\needspace{6\baselineskip}
 \noindent\textbf{ {{- escape $exp.Title -}} }{{ if $exp.EmploymentType }} ({{ employmentType $exp.EmploymentType }}){{ end }} \hfill {{ fmtDateLegal $exp.Dates.Start }} - {{ if $exp.Dates.End }}{{ fmtDateLegal $exp.Dates.End }}{{ else }}Present{{ end }}\nopagebreak
 
 \textbf{ {{- escape $exp.Company -}} }
