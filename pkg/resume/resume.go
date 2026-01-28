@@ -13,9 +13,11 @@ type Resume struct {
 }
 
 type Location struct {
-	City    string `json:"city" yaml:"city" toml:"city"`
-	State   string `json:"state,omitempty" yaml:"state,omitempty" toml:"state,omitempty"`
-	Country string `json:"country,omitempty" yaml:"country,omitempty" toml:"country,omitempty"`
+	City     string `json:"city" yaml:"city" toml:"city"`
+	State    string `json:"state,omitempty" yaml:"state,omitempty" toml:"state,omitempty"`
+	Province string `json:"province,omitempty" yaml:"province,omitempty" toml:"province,omitempty"`
+	Country  string `json:"country,omitempty" yaml:"country,omitempty" toml:"country,omitempty"`
+	Remote   bool   `json:"remote,omitempty" yaml:"remote,omitempty" toml:"remote,omitempty"`
 }
 
 type Link struct {
@@ -46,11 +48,14 @@ type ExperienceList struct {
 }
 
 type Experience struct {
-	Company    string    `json:"company" yaml:"company" toml:"company"`
-	Title      string    `json:"title" yaml:"title" toml:"title"`
-	Highlights []string  `json:"highlights,omitempty" yaml:"highlights,omitempty" toml:"highlights,omitempty"`
-	Dates      DateRange `json:"dates" yaml:"dates" toml:"dates"`
-	Location   *Location `json:"location,omitempty" yaml:"location,omitempty" toml:"location,omitempty"`
+	Company        string    `json:"company" yaml:"company" toml:"company"`
+	Title          string    `json:"title" yaml:"title" toml:"title"`
+	EmploymentType string    `json:"employment_type,omitempty" yaml:"employment_type,omitempty" toml:"employment_type,omitempty"`
+	Highlights     []string  `json:"highlights,omitempty" yaml:"highlights,omitempty" toml:"highlights,omitempty"`
+	Duties         []string  `json:"duties,omitempty" yaml:"duties,omitempty" toml:"duties,omitempty"`
+	Notes          string    `json:"notes,omitempty" yaml:"notes,omitempty" toml:"notes,omitempty"`
+	Dates          DateRange `json:"dates" yaml:"dates" toml:"dates"`
+	Location       *Location `json:"location,omitempty" yaml:"location,omitempty" toml:"location,omitempty"`
 }
 type ExperienceGroup struct {
 	Name      string `json:"name" yaml:"name" toml:"name"`
@@ -88,18 +93,27 @@ type GPA struct {
 }
 
 type Education struct {
-	Institution string    `json:"institution" yaml:"institution" toml:"institution"`
-	Degree      Degree    `json:"degree" yaml:"degree" toml:"degree"`
-	GPA         *GPA      `json:"gpa,omitempty" yaml:"gpa,omitempty" toml:"gpa,omitempty"`
-	Dates       DateRange `json:"dates" yaml:"dates" toml:"dates"`
-	Location    *Location `json:"location,omitempty" yaml:"location,omitempty" toml:"location,omitempty"`
-	Thesis      *Thesis   `json:"thesis,omitempty" yaml:"thesis,omitempty" toml:"thesis,omitempty"`
+	Institution     string    `json:"institution" yaml:"institution" toml:"institution"`
+	Degree          Degree    `json:"degree" yaml:"degree" toml:"degree"`
+	Specializations []string  `json:"specializations,omitempty" yaml:"specializations,omitempty" toml:"specializations,omitempty"`
+	GPA             *GPA      `json:"gpa,omitempty" yaml:"gpa,omitempty" toml:"gpa,omitempty"`
+	Awards          []Award   `json:"awards,omitempty" yaml:"awards,omitempty" toml:"awards,omitempty"`
+	Dates           DateRange `json:"dates" yaml:"dates" toml:"dates"`
+	Location        *Location `json:"location,omitempty" yaml:"location,omitempty" toml:"location,omitempty"`
+	Thesis          *Thesis   `json:"thesis,omitempty" yaml:"thesis,omitempty" toml:"thesis,omitempty"`
 }
 
 type Thesis struct {
-	Title      string   `json:"title" yaml:"title" toml:"title"`
-	Highlights []string `json:"highlights,omitempty" yaml:"highlights,omitempty" toml:"highlights,omitempty"`
-	Link       Link     `json:"link" yaml:"link" toml:"link"`
+	Title       string   `json:"title" yaml:"title" toml:"title"`
+	Highlights  []string `json:"highlights,omitempty" yaml:"highlights,omitempty" toml:"highlights,omitempty"`
+	Link        Link     `json:"link" yaml:"link" toml:"link"`
+	Description string   `json:"description,omitempty" yaml:"description,omitempty" toml:"description,omitempty"`
+}
+
+type Award struct {
+	Name  string     `json:"name" yaml:"name" toml:"name"`
+	Date  *time.Time `json:"date,omitempty" yaml:"date,omitempty" toml:"date,omitempty"`
+	Notes string     `json:"notes,omitempty" yaml:"notes,omitempty" toml:"notes,omitempty"`
 }
 
 func Validate(resume *Resume) []ValidationError {

@@ -31,6 +31,17 @@
             .no-print {
                 display: none;
             }
+
+            /* Keep section titles and single jobs together on a page when possible. */
+            .section-title {
+                break-after: avoid;
+                page-break-after: avoid;
+            }
+
+            .job {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
         }
 
         * {
@@ -394,6 +405,7 @@
     </div>
     {{end}}
 
+    {{if .Projects}}
     {{if .Projects.Projects}}
     <div class="section">
         <div class="section-title">{{default "Projects" .Projects.Title}}</div>
@@ -420,6 +432,7 @@
         </div>
         {{end}}
     </div>
+    {{end}}
     {{end}}
 </body>
 

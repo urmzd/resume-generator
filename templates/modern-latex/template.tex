@@ -96,6 +96,7 @@
 % ============================================================================
 % PROJECTS
 % ============================================================================
+{{- if .Projects }}
 {{- if .Projects.Projects }}
 \section*{{ "{" }}{{ default "Projects" .Projects.Title }}{{ "}" }}
 {{- range .Projects.Projects }}
@@ -111,6 +112,7 @@
         \item {{ escape . }}
     {{- end }}
     \end{itemize}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
