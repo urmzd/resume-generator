@@ -1,0 +1,150 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{needspace}
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\pagestyle{plain}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+% Section styling with underline for clear separation
+\newcommand{\resumesection}[1]{\section*{#1}\vspace{-4pt}\hrule\vspace{6pt}}
+
+\begin{document}
+
+% Header
+\begin{center}
+{\LARGE\bfseries {{ escape .Contact.Name }}}\\[4pt]
+{{ escape .Contact.Email }}
+{{- if .Contact.Phone }} $|$ {{ escape .Contact.Phone }}{{ end -}}
+{{- if .Contact.Links }}\\{{ end }}
+{{- range $i, $link := .Contact.Links }}{{ if $i }} $|$ {{ end }}\url{ {{- $link.URI -}} }{{ end }}
+\end{center}
+
+\vspace{8pt}
+
+% Professional Experience
+\resumesection{Professional Experience}
+
+{{- range $exp := .Experience.Positions }}
+\needspace{4\baselineskip}
+\noindent\textbf{ {{- escape $exp.Title -}} }{{ if $exp.EmploymentType }} ({{ employmentType $exp.EmploymentType }}){{ end }} \hfill {{ fmtDateLegal $exp.Dates.Start }} - {{ if $exp.Dates.End }}{{ fmtDateLegal $exp.Dates.End }}{{ else }}Present{{ end }}\nopagebreak
+
+\textbf{ {{- escape $exp.Company -}} }
+
+{{- if $exp.Location }}
+
+\textit{ {{- formatLocationFull $exp.Location -}} }
+{{- end }}
+
+{{- if $exp.Notes }}
+
+\textit{Note: {{ escape $exp.Notes }}}
+{{- end }}
+
+{{- $duties := $exp.Duties }}
+{{- if not $duties }}{{ $duties = $exp.Highlights }}{{ end }}
+{{- if $duties }}
+
+\needspace{3\baselineskip}
+\textbf{Job Description:}
+\begin{itemize}[leftmargin=*,nosep]
+{{- range $duties }}
+\item {{ escape . }}
+{{- end }}
+\end{itemize}
+{{- end }}
+
+{{- if and $exp.Highlights $exp.Duties }}
+
+\needspace{3\baselineskip}
+\textbf{Notable Achievements:}
+\begin{itemize}[leftmargin=*,nosep]
+{{- range $exp.Highlights }}
+\item {{ escape . }}
+{{- end }}
+\end{itemize}
+{{- end }}
+
+\vspace{6pt plus 4pt minus 2pt}
+\pagebreak[2]
+{{- end }}
+
+% Education
+\resumesection{Education}
+
+{{- range $edu := .Education.Institutions }}
+\needspace{3\baselineskip}
+\noindent\textbf{ {{- escape $edu.Institution -}} } \hfill {{ fmtDateLegal $edu.Dates.Start }} - {{ if $edu.Dates.End }}{{ fmtDateLegal $edu.Dates.End }}{{ else }}In Progress{{ end }}
+{{- if $edu.Location }}
+
+\textit{ {{- formatLocationFull $edu.Location -}} }
+{{- end }}
+
+\textit{ {{- escape $edu.Degree.Name -}} }
+
+{{- if $edu.GPA }}
+
+\textbf{GPA:} {{ $edu.GPA.GPA }}{{ if $edu.GPA.MaxGPA }} / {{ $edu.GPA.MaxGPA }}{{ end }}
+{{- end }}
+
+{{- if $edu.Specializations }}
+
+\textbf{Specialization(s):} {{ join ", " $edu.Specializations }}
+{{- end }}
+
+{{- if $edu.Thesis }}
+
+\textbf{Thesis:} {{ escape $edu.Thesis.Title }}
+{{- if $edu.Thesis.Link.URI }} (\url{ {{- $edu.Thesis.Link.URI -}} }){{ end }}
+{{- end }}
+
+{{- if $edu.Awards }}
+
+\textbf{Awards:}
+\begin{itemize}[leftmargin=*,nosep]
+{{- range $edu.Awards }}
+\item {{ escape .Name }}{{ if .Date }} ({{ fmtDateLegal .Date }}){{ end }}{{ if .Notes }} -- {{ escape .Notes }}{{ end }}
+{{- end }}
+\end{itemize}
+{{- end }}
+
+\vspace{6pt plus 4pt minus 2pt}
+{{- end }}
+
+% Skills
+{{- if .Skills.Categories }}
+\resumesection{Skills}
+\begin{description}
+{{- range .Skills.Categories }}
+    \item[{{ escape .Category }}:] {{ join ", " .Items }}
+{{- end }}
+\end{description}
+{{- end }}
+
+% Projects
+{{- if .Projects }}
+{{- if .Projects.Projects }}
+\resumesection{Projects}
+
+{{- range .Projects.Projects }}
+
+\noindent\textbf{ {{- escape .Name -}} }
+{{- if .Link.URI }} --- \url{ {{- .Link.URI -}} }{{ end }}
+{{- if .Highlights }}
+\begin{itemize}[leftmargin=*,nosep]
+{{- range .Highlights }}
+\item {{ escape . }}
+{{- end }}
+\end{itemize}
+{{- end }}
+
+\vspace{6pt plus 4pt minus 2pt}
+{{- end }}
+{{- end }}
+{{- end }}
+
+\end{document}

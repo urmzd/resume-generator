@@ -1,0 +1,10 @@
+name: modern-cv
+display_name: Modern CV
+description: Detailed employment history with comprehensive job information
+format: latex
+version: "1.0.0"
+author: Resume Generator Team
+tags:
+  - professional
+  - detailed
+  - comprehensive

@@ -167,9 +167,21 @@ func (f *latexFormatter) TemplateFuncs() template.FuncMap {
 		"formatDateRange": func(start time.Time, end *time.Time) string {
 			return f.formatDateRangeInternal(start, end)
 		},
+		"fmtDateLegal": func(t time.Time) string {
+			if t.IsZero() {
+				return ""
+			}
+			return t.Format("01/02/2006")
+		},
 
 		// List formatting
-		"join":       f.Join,
+		"join": func(sep string, items []string) string {
+			escaped := make([]string, len(items))
+			for i, item := range items {
+				escaped[i] = f.EscapeText(item)
+			}
+			return strings.Join(escaped, sep)
+		},
 		"formatList": f.FormatList,
 		"skillNames": f.SkillNames,
 
@@ -210,6 +222,40 @@ func (f *latexFormatter) TemplateFuncs() template.FuncMap {
 				return ""
 			}
 		},
+		"formatLocationFull": func(loc *resume.Location) string {
+			if loc == nil {
+				return ""
+			}
+			parts := []string{}
+			if loc.City != "" {
+				parts = append(parts, loc.City)
+			}
+			// Use Province if set, otherwise State
+			region := loc.Province
+			if region == "" {
+				region = loc.State
+			}
+			if region != "" {
+				parts = append(parts, region)
+			}
+			if loc.Country != "" {
+				parts = append(parts, loc.Country)
+			}
+			result := strings.Join(parts, ", ")
+			if loc.Remote {
+				result += " (Remote)"
+			}
+			return f.EscapeText(result)
+		},
+		"formatLocationShort": func(loc *resume.Location) string {
+			if loc == nil {
+				return ""
+			}
+			if loc.Province != "" {
+				return f.EscapeText(loc.Province)
+			}
+			return f.EscapeText(loc.State)
+		},
 
 		// GPA formatting
 		"formatGPA": f.FormatGPAStruct,
@@ -227,6 +273,35 @@ func (f *latexFormatter) TemplateFuncs() template.FuncMap {
 				return defaultVal
 			}
 			return value
+		},
+
+		// Math utilities
+		"add": func(a, b int) int { return a + b },
+
+		// Employment type helper
+		"employmentType": func(et string) string {
+			if et == "" {
+				return "Full-Time"
+			}
+			return et
+		},
+
+		// Current time helper
+		"now": func() time.Time { return time.Now() },
+
+		// Link label helper
+		"linkLabel": func(url string) string {
+			lower := strings.ToLower(url)
+			switch {
+			case strings.Contains(lower, "github"):
+				return "GitHub"
+			case strings.Contains(lower, "linkedin"):
+				return "LinkedIn"
+			case strings.Contains(lower, "twitter"), strings.Contains(lower, "x.com"):
+				return "Twitter"
+			default:
+				return "Website"
+			}
 		},
 	}
 }
