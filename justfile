@@ -70,6 +70,11 @@ generate input_file=(examples_dir + "/software_engineer.yml") output_dir=outputs
         just cli run -i {{input_file}} -o {{output_dir}}; \
     fi
 
+# Generate the JSON schema for the resume input format
+schema output=(justfile_directory() + "/assets/schema/resume.schema.json"):
+    @echo "Generating JSON schema -> {{output}}"
+    just cli schema -o {{output}}
+
 # Generate README preview images for the bundled templates
 readme-previews:
     @scripts/generate-readme-previews.sh
