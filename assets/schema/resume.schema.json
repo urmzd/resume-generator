@@ -1,0 +1,476 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/urmzd/resume-generator/pkg/resume/resume",
+  "properties": {
+    "contact": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "location": {
+          "properties": {
+            "city": {
+              "type": "string"
+            },
+            "state": {
+              "type": "string"
+            },
+            "province": {
+              "type": "string"
+            },
+            "country": {
+              "type": "string"
+            },
+            "remote": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "city"
+          ]
+        },
+        "links": {
+          "items": {
+            "properties": {
+              "uri": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "uri"
+            ]
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name",
+        "email"
+      ]
+    },
+    "skills": {
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "categories": {
+          "items": {
+            "properties": {
+              "category": {
+                "type": "string"
+              },
+              "items": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "category",
+              "items"
+            ]
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "categories"
+      ]
+    },
+    "experience": {
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "positions": {
+          "items": {
+            "properties": {
+              "company": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "employment_type": {
+                "type": "string"
+              },
+              "highlights": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "duties": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "notes": {
+                "type": "string"
+              },
+              "dates": {
+                "properties": {
+                  "start": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "end": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "start"
+                ]
+              },
+              "location": {
+                "properties": {
+                  "city": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string"
+                  },
+                  "province": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "type": "string"
+                  },
+                  "remote": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "city"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "company",
+              "title",
+              "dates"
+            ]
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "positions"
+      ]
+    },
+    "projects": {
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "projects": {
+          "items": {
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "link": {
+                "properties": {
+                  "uri": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "uri"
+                ]
+              },
+              "highlights": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "name"
+            ]
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "projects"
+      ]
+    },
+    "education": {
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "institutions": {
+          "items": {
+            "properties": {
+              "institution": {
+                "type": "string"
+              },
+              "degree": {
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "descriptions": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "name"
+                ]
+              },
+              "specializations": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "gpa": {
+                "properties": {
+                  "gpa": {
+                    "type": "string"
+                  },
+                  "max_gpa": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "type": "object"
+              },
+              "awards": {
+                "items": {
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "notes": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "type": "object",
+                  "required": [
+                    "name"
+                  ]
+                },
+                "type": "array"
+              },
+              "dates": {
+                "properties": {
+                  "start": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "end": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "start"
+                ]
+              },
+              "location": {
+                "properties": {
+                  "city": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string"
+                  },
+                  "province": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "type": "string"
+                  },
+                  "remote": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "city"
+                ]
+              },
+              "thesis": {
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "highlights": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "link": {
+                    "properties": {
+                      "uri": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false,
+                    "type": "object",
+                    "required": [
+                      "uri"
+                    ]
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "title",
+                  "link"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "institution",
+              "degree",
+              "dates"
+            ]
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "institutions"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "contact",
+    "skills",
+    "experience",
+    "education"
+  ],
+  "title": "Resume Format (v2.0)",
+  "description": "Unified resume format used by the CLI.\n\nSupported serialization formats:\n- YAML (.yml, .yaml)\n- JSON (.json)\n- TOML (.toml)\n\nKey features:\n- Contact details with optional links and location\n- Experience, education, projects, and skills sections\n- Date range validation for time-based entries\n- Location information with city/state/country",
+  "examples": [
+    {
+      "contact": {
+        "email": "jane.smith@example.com",
+        "links": [
+          {
+            "uri": "https://github.com/janesmith"
+          }
+        ],
+        "location": {
+          "city": "San Francisco",
+          "country": "USA",
+          "state": "CA"
+        },
+        "name": "Jane Smith",
+        "phone": "+1-555-987-6543"
+      },
+      "education": {
+        "institutions": [
+          {
+            "dates": {
+              "end": "2017-05-15T00:00:00Z",
+              "start": "2013-08-01T00:00:00Z"
+            },
+            "degree": {
+              "name": "Bachelor of Science in Computer Science"
+            },
+            "gpa": {
+              "gpa": "3.8",
+              "max_gpa": "4.0"
+            },
+            "institution": "University of California, Berkeley"
+          }
+        ],
+        "title": "Education"
+      },
+      "experience": {
+        "positions": [
+          {
+            "company": "Tech Innovations Inc",
+            "dates": {
+              "end": "2024-01-01T00:00:00Z",
+              "start": "2021-06-01T00:00:00Z"
+            },
+            "highlights": [
+              "Led team of 5 engineers in building microservices architecture",
+              "Improved system performance by 60% through optimization"
+            ],
+            "location": {
+              "city": "San Francisco",
+              "state": "CA"
+            },
+            "title": "Senior Software Engineer"
+          }
+        ]
+      },
+      "skills": {
+        "categories": [
+          {
+            "category": "Programming Languages",
+            "items": [
+              "Go",
+              "Python"
+            ]
+          }
+        ],
+        "title": "Technical Skills"
+      }
+    }
+  ]
+}
