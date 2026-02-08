@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   tests:
+    if: github.actor != 'github-actions[bot]'
     name: Unit Tests
     runs-on: ubuntu-latest
     steps:
@@ -22,10 +23,19 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build frontend
+        run: cd frontend && npm install && npm run build
+
       - name: Go test
         run: go test ./...
 
   fuzz:
+    if: github.actor != 'github-actions[bot]'
     name: Fuzz Smoke Test
     runs-on: ubuntu-latest
     steps:
@@ -37,10 +47,19 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build frontend
+        run: cd frontend && npm install && npm run build
+
       - name: Run sanitizePhone corpus
         run: go test -run=FuzzSanitizePhone -fuzz=FuzzSanitizePhone -fuzztime=10s ./pkg/generators
 
   readme_previews:
+    if: github.actor != 'github-actions[bot]'
     name: README Template Previews
     runs-on: ubuntu-latest
     steps:
@@ -52,12 +71,22 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y poppler-utils texlive-xetex texlive-latex-extra texlive-fonts-extra chromium-browser
 
+      - name: Build frontend
+        run: cd frontend && npm install && npm run build
+
       - name: Generate README previews
+        env:
+          ROD_BROWSER_BIN: /usr/bin/chromium-browser
         run: scripts/generate-readme-previews.sh
 
       - name: Ensure previews are committed
