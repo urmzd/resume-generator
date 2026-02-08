@@ -11,10 +11,8 @@ Resume Generator is a CLI-focused toolkit for turning structured configuration f
 - **Data-Only Inputs**: Provide resume content as YAML, JSON, or TOML; the CLI selects templates and output targets
 - **Template System**: Modular templates with embedded assets; customize or create new templates per project
 - **Robust Path Resolution**: Works from any directory, supports `~`, relative paths, and dated output workspaces
-- **Docker Support**: Containerized build that includes LaTeX and Chromium tooling for consistent output
 
 ### Technical Features
-- **Docker Workflow**: Build the Go binary and supporting toolchain in a single container
 - **CLI Commands**: Validate inputs, preview data, list templates, generate outputs, and export JSON schema
 - **Schema Generation**: Generate JSON Schema for IDE integration and validation
 
@@ -36,7 +34,6 @@ just generate
 Per-run flags for Chromium-based browsers can still be appended via `RESUME_CHROMIUM_FLAGS` (for example, to add `--no-first-run`).
 
 ### Optional
-- Docker (to run the bundled image)
 - [just](https://github.com/casey/just) for helper commands
 
 ## Getting Started
@@ -58,13 +55,6 @@ Per-run flags for Chromium-based browsers can still be appended via `RESUME_CHRO
    ```bash
    ./resume-generator run -i assets/example_resumes/software_engineer.yml -t modern-html
    ```
-
-If you prefer Docker, build the bundled image and run commands inside the container:
-
-```bash
-docker build -t resume-generator .
-docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_resumes/software_engineer.yml -t modern-html
-```
 
 ### CLI Usage
 
@@ -152,7 +142,7 @@ docker run --rm -v "$(pwd)":/work resume-generator run -i /work/assets/example_r
 
 ## Template Previews
 
-Generated from `assets/example_resumes/software_engineer.yml`. Run `just readme-previews` to refresh the PNGs in `assets/example_results/`.
+Generated from `assets/example_resumes/software_engineer.yml`. Run `scripts/generate-readme-previews.sh` to refresh the PNGs in `assets/example_results/`.
 
 ### Modern HTML
 
@@ -188,56 +178,23 @@ To customize your resume, edit the source data file (e.g., `software_engineer.ym
 
 ### Using Just Command Runner
 
-The project includes a `justfile` with convenient commands for common tasks:
+The project includes a `justfile` with convenient commands:
 
 ```bash
-# Build CLI binary
-just build-cli
+# Install Go dependencies and tools
+just init
 
-# Build Docker image
-just docker-build
+# Build the CLI binary
+just install
 
-# Run resume generator with Docker (defaults to the bundled example)
-just docker-run
+# Build and generate a resume (default example input)
+just run
 
-# Generate resume using local CLI
-just generate assets/example_resumes/software_engineer.yml ../outputs modern-html
-
-# Run any CLI subcommand directly
-just cli --help
-
-# Validate configuration
-just cli validate assets/example_resumes/software_engineer.yml
-
-# Preview configuration
-just cli preview assets/example_resumes/software_engineer.yml
-
-# List templates
-just cli templates list
-
-# Show available LaTeX engines
-just cli templates engines
-
-# Generate JSON schema
-just cli schema -o ./schemas/resume.schema.json
-
-# Generate README template previews (PNG)
-just readme-previews
-
-# Clean outputs
-just clean
+# Generate with custom input/output/template
+just run assets/example_resumes/software_engineer.yml outputs -t modern-html
 ```
 
 > The preview helpers look for `magick`, `convert`, or `pdftoppm`. Install ImageMagick or poppler-utils to enable the conversion.
-
-### Docker Usage
-
-For Docker-based workflows:
-
-```bash
-# Run resume generator with Docker
-just docker-run assets/example_resumes/software_engineer.yml modern-html
-``` 
 
 ## Templates
 
