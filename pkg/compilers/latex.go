@@ -110,7 +110,7 @@ func NewLaTeXCompiler(command string, logger *zap.SugaredLogger) Compiler {
 func NewAutoLaTeXCompiler(logger *zap.SugaredLogger) (Compiler, error) {
 	engine := DetectLaTeXEngine()
 	if engine == "" {
-		return nil, fmt.Errorf("no LaTeX engine found\n\nPlease install one of the following:\n  - TeX Live:   https://www.tug.org/texlive/\n  - MiKTeX:     https://miktex.org/\n  - MacTeX:     https://www.tug.org/mactex/ (macOS)\n\nOr use Docker which includes LaTeX:\n  docker run --rm -v $(pwd):/work texlive/texlive")
+		return nil, fmt.Errorf("no LaTeX engine found\n\nPlease install one of the following:\n  - TeX Live:   https://www.tug.org/texlive/\n  - MiKTeX:     https://miktex.org/\n  - MacTeX:     https://www.tug.org/mactex/ (macOS)")
 	}
 
 	logger.Infof("Auto-detected LaTeX engine: %s", engine)

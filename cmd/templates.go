@@ -171,9 +171,6 @@ var latexEnginesCmd = &cobra.Command{
 			fmt.Println("  - TeX Live:   https://www.tug.org/texlive/")
 			fmt.Println("  - MiKTeX:     https://miktex.org/")
 			fmt.Println("  - MacTeX:     https://www.tug.org/mactex/ (macOS)")
-			fmt.Println()
-			fmt.Println("Or use Docker which includes LaTeX:")
-			fmt.Println("  docker run --rm -v $(pwd):/work texlive/texlive")
 			return
 		}
 
