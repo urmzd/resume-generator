@@ -3,10 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import ThemeToggle from "./ThemeToggle";
-import type { ParseResult, TemplateInfo } from "@/types";
+import type { TemplateInfo } from "@/types";
 
 interface AppHeaderProps {
-  resumeInfo: ParseResult;
   selectedTemplate: TemplateInfo | null;
   onSavePdf: () => void;
   onSaveNative: () => void;
@@ -14,7 +13,6 @@ interface AppHeaderProps {
 }
 
 export default function AppHeader({
-  resumeInfo,
   selectedTemplate,
   onSavePdf,
   onSaveNative,
