@@ -106,6 +106,12 @@ var runCmd = &cobra.Command{
 			sugar.Fatalf("Error creating run output directory: %s", err)
 		}
 
+		// Pre-load the HTML fallback template for DOCX->PDF conversion
+		htmlFallbackTmpl, htmlFallbackErr := generators.LoadTemplate("modern-html")
+		if htmlFallbackErr != nil {
+			sugar.Warnf("Could not load HTML fallback template for DOCX PDF generation: %v", htmlFallbackErr)
+		}
+
 		type generationResult struct {
 			template string
 			tType    generators.TemplateType
@@ -139,6 +145,24 @@ var runCmd = &cobra.Command{
 
 				if err := os.WriteFile(docxOutputPath, docxBytes, 0644); err != nil {
 					sugar.Fatalf("Failed to write DOCX file: %v", err)
+				}
+
+				// Also generate a PDF via the HTML fallback template
+				if htmlFallbackTmpl != nil {
+					htmlContent, htmlErr := generator.GenerateWithTemplate(htmlFallbackTmpl, resumeData)
+					if htmlErr != nil {
+						sugar.Warnf("Failed to generate HTML for DOCX PDF fallback: %v", htmlErr)
+					} else {
+						pdfOutputPath := strings.TrimSuffix(docxOutputPath, ".docx") + ".pdf"
+						if err := utils.EnsureDir(debugDir); err != nil {
+							sugar.Warnf("Failed to create debug dir for DOCX PDF: %v", err)
+						}
+						if pdfErr := compileHTMLToPDF(sugar, htmlContent, pdfOutputPath, debugDir); pdfErr != nil {
+							sugar.Warnf("Failed to generate PDF for DOCX template %s: %v", tmpl.Name, pdfErr)
+						} else {
+							sugar.Infof("Generated PDF alongside DOCX: %s", pdfOutputPath)
+						}
+					}
 				}
 
 				results = append(results, generationResult{
@@ -218,7 +242,7 @@ func compileHTMLToPDF(logger *zap.SugaredLogger, htmlContent, outputPath, debugD
 		logger.Warnf("Failed to save HTML debug file: %v", err)
 	}
 
-	compiler := compilers.NewHTMLToPDFCompiler(logger)
+	compiler := compilers.NewRodHTMLToPDFCompiler(logger)
 	return compiler.Compile(htmlContent, outputPath)
 }
 
