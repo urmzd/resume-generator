@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/spf13/cobra"
 	"github.com/urmzd/resume-generator/pkg/compilers"
@@ -30,6 +31,8 @@ func initRunCmd() {
 	runCmd.Flags().StringVarP(&LaTeXEngine, "latex-engine", "e", "", "LaTeX engine to use (xelatex, pdflatex, lualatex, latex). Auto-detects if not specified.")
 
 	runCmd.MarkFlagRequired("input")
+
+	generators.SetEmbeddedFS(EmbeddedTemplatesFS)
 }
 
 var runCmd = &cobra.Command{
@@ -77,9 +80,8 @@ var runCmd = &cobra.Command{
 		sugar.Infof("Generating resumes for %d template(s)", len(selectedTemplates))
 
 		// Determine output folder and filenames
-		resumeSlug := generateResumeSlug(resumeData)
+		resumeSlug := generateFilenameSlug(inputPath)
 		currentTime := time.Now()
-		dateFolder := currentTime.Format("2006-01-02")
 
 		rootDirInput := strings.TrimSpace(OutputDir)
 		resolvedDir, err := utils.ResolvePath(rootDirInput)
@@ -96,10 +98,10 @@ var runCmd = &cobra.Command{
 		}
 
 		baseOutputDir := resolvedDir
-		desiredPDFBase := defaultResumeBaseName(resumeSlug)
+		desiredPDFBase := generateOutputBaseName(resumeData.Contact.Name, currentTime)
 		pdfExt := ".pdf"
 
-		runBaseDir := filepath.Join(baseOutputDir, resumeSlug, dateFolder)
+		runBaseDir := filepath.Join(baseOutputDir, resumeSlug)
 		if err := utils.EnsureDir(runBaseDir); err != nil {
 			sugar.Fatalf("Error creating run output directory: %s", err)
 		}
@@ -163,7 +165,17 @@ var runCmd = &cobra.Command{
 				sugar.Fatalf("Error creating debug directory for template %s: %v", tmpl.Name, err)
 			}
 
-			templateDir := filepath.Dir(tmpl.Path)
+			var templateDir string
+			if tmpl.Embedded && tmpl.EmbeddedDir != "" {
+				extractedDir, extractErr := generators.ExtractEmbeddedTemplateDir(tmpl.EmbeddedDir)
+				if extractErr != nil {
+					sugar.Fatalf("Failed to extract embedded template files for %s: %v", tmpl.Name, extractErr)
+				}
+				defer os.RemoveAll(extractedDir)
+				templateDir = extractedDir
+			} else {
+				templateDir = filepath.Dir(tmpl.Path)
+			}
 
 			var compileErr error
 			switch tmpl.Type {
@@ -263,43 +275,35 @@ func compileLaTeXToPDF(logger *zap.SugaredLogger, latexContent, outputPath, debu
 	return nil
 }
 
-func generateResumeSlug(resume *resume.Resume) string {
-	nameParts := strings.Fields(resume.Contact.Name)
-
-	var components []string
-	if len(nameParts) >= 1 {
-		if first := sanitizeNameComponent(nameParts[0]); first != "" {
-			components = append(components, first)
-		}
-	}
-	if len(nameParts) >= 3 {
-		if middle := sanitizeNameComponent(nameParts[1]); middle != "" {
-			components = append(components, middle)
-		}
-		remaining := sanitizeNameComponent(strings.Join(nameParts[2:], "_"))
-		if remaining != "" {
-			components = append(components, remaining)
-		}
-	} else if len(nameParts) >= 2 {
-		remaining := sanitizeNameComponent(strings.Join(nameParts[1:], "_"))
-		if remaining != "" {
-			components = append(components, remaining)
-		}
-	}
-
-	if len(components) == 0 {
+func generateFilenameSlug(inputPath string) string {
+	base := filepath.Base(inputPath)
+	name := strings.TrimSuffix(base, filepath.Ext(base))
+	slug := sanitizeNameComponent(name)
+	if slug == "" {
 		return "resume"
 	}
-
-	return strings.Join(components, "_")
+	return slug
 }
 
-func defaultResumeBaseName(resumeSlug string) string {
-	slug := strings.TrimSpace(resumeSlug)
-	if slug == "" || slug == "resume" {
-		return "resume"
+func generateOutputBaseName(contactName string, t time.Time) string {
+	parts := strings.Fields(contactName)
+	if len(parts) == 0 {
+		return fmt.Sprintf("Resume_%s", t.Format("01_02_2006"))
 	}
-	return slug + "_resume"
+	var nameParts []string
+	for _, p := range parts {
+		nameParts = append(nameParts, toProperCase(p))
+	}
+	return fmt.Sprintf("%s_%s", strings.Join(nameParts, "_"), t.Format("01_02_2006"))
+}
+
+func toProperCase(s string) string {
+	if s == "" {
+		return ""
+	}
+	runes := []rune(strings.ToLower(s))
+	runes[0] = unicode.ToUpper(runes[0])
+	return string(runes)
 }
 
 func sanitizeNameComponent(value string) string {
@@ -398,10 +402,7 @@ func ensureUniqueOutputPaths(runDir, desiredBase, extension string) (string, str
 	}
 
 	for attempt := 1; attempt <= 9999; attempt++ {
-		suffix := ""
-		if attempt > 1 {
-			suffix = fmt.Sprintf("_%d", attempt)
-		}
+		suffix := fmt.Sprintf("_%d", attempt)
 
 		candidateBase := base + suffix
 		pdfPath := filepath.Join(runDir, candidateBase+ext)
