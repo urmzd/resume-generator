@@ -1,0 +1,15 @@
+{
+  "fixed": {
+    "file_version": "1.0.0.0"
+  },
+  "info": {
+    "0000": {
+      "ProductVersion": "1.0.0.0",
+      "CompanyName": "urmzd",
+      "FileDescription": "Resume Generator",
+      "LegalCopyright": "Copyright urmzd. All rights reserved.",
+      "ProductName": "Resume Generator",
+      "Comments": "Generate resumes from structured data using templates"
+    }
+  }
+}

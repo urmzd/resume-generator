@@ -1,0 +1,14 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o tmp/resume-generator ."
+  bin = "tmp/resume-generator"
+  delay = 1000
+  include_ext = ["go", "html", "tmpl"]
+  exclude_dir = ["tmp", "assets", "vendor", ".git", "outputs", "frontend", "node_modules", "build"]
+  exclude_regex = ["_test\\.go$"]
+  kill_delay = 500
+
+[log]
+  main_only = true
