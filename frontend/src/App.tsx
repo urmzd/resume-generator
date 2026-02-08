@@ -60,7 +60,6 @@ export default function App() {
       )}
       {screen === "gallery" && resumeInfo && (
         <GalleryPage
-          resumeInfo={resumeInfo}
           templates={templates}
           error={error}
           onError={setError}

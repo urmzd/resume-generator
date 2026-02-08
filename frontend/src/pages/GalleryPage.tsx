@@ -3,10 +3,9 @@ import AppHeader from "@/components/AppHeader";
 import PdfViewer from "@/components/PdfViewer";
 import ThumbnailStrip from "@/components/ThumbnailStrip";
 import GalleryContainer from "@/containers/GalleryContainer";
-import type { ParseResult, TemplateInfo } from "@/types";
+import type { TemplateInfo } from "@/types";
 
 interface GalleryPageProps {
-  resumeInfo: ParseResult;
   templates: TemplateInfo[];
   error: string | null;
   onError: (msg: string) => void;
@@ -14,7 +13,6 @@ interface GalleryPageProps {
 }
 
 export default function GalleryPage({
-  resumeInfo,
   templates,
   error,
   onError,
@@ -34,7 +32,6 @@ export default function GalleryPage({
       }) => (
         <div className="flex h-screen flex-col">
           <AppHeader
-            resumeInfo={resumeInfo}
             selectedTemplate={selectedTemplate}
             onSavePdf={onSavePdf}
             onSaveNative={onSaveNative}

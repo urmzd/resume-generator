@@ -9,7 +9,7 @@ export default function PdfViewer({ pdfUrl, isLoading }: PdfViewerProps) {
   if (pdfUrl) {
     return (
       <div className="relative h-full w-full rounded-lg border bg-card overflow-hidden shadow-lg">
-        <iframe src={`${pdfUrl}#page=1&view=FitH&toolbar=0&navpanes=0`} className="h-full w-full" title="PDF Preview" />
+        <iframe src={`${pdfUrl}#page=1&view=Fit&toolbar=0&navpanes=0`} className="h-full w-full" title="PDF Preview" />
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-2">

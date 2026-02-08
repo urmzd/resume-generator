@@ -34,9 +34,10 @@ func main() {
 	// GUI mode: no arguments → launch Wails
 	app := NewApp()
 	err := wails.Run(&options.App{
-		Title:  "Resume Generator",
-		Width:  1024,
-		Height: 768,
+		Title:            "Resume Generator",
+		Width:            1024,
+		Height:           768,
+		WindowStartState: options.Maximised,
 		AssetServer: &assetserver.Options{
 			Assets: frontend,
 		},
