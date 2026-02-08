@@ -1,3 +1,8 @@
 resume-generator
 outputs/
 inputs/
+frontend/dist/
+frontend/node_modules/
+frontend/wailsjs/
+build/bin/
+tmp/

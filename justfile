@@ -10,13 +10,31 @@ default:
 # Install dependencies and tools
 init:
     go mod download && go mod tidy
-    go install github.com/goreleaser/goreleaser/v2@latest
+    cd frontend && npm install
 
-# Build the CLI binary for the current architecture
+# Install Air live-reload tool
+install-air:
+    go install github.com/air-verse/air@latest
+
+# Build CLI-only binary (no GUI, no CGO)
 install:
-    go build -trimpath -ldflags="-s -w" -o {{cli_binary}} .
+    CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o {{cli_binary}} .
+
+# Build desktop app (GUI + CLI, requires wails CLI)
+build-desktop:
+    wails build -trimpath -ldflags="-s -w"
 
 # Build (if needed) and generate a resume
 run input=example_input output=outputs_dir *args="": install
     @mkdir -p {{output}}
     ./{{cli_binary}} run -i {{input}} -o {{output}} {{args}}
+
+# Dev: Wails dev mode with hot reload
+dev:
+    wails dev
+
+# Dev: Clean frontend cache, rebuild, and start dev mode
+dev-clean:
+    rm -rf frontend/dist frontend/node_modules/.vite
+    cd frontend && npm run build
+    wails dev
