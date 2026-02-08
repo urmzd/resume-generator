@@ -108,12 +108,10 @@ func (c *HTMLToPDFCompiler) Compile(htmlContent, outputPath string) error {
 Please install one of the following:
   - ungoogled-chromium: brew install ungoogled-chromium (macOS)
                         apt install ungoogled-chromium  (Debian/Ubuntu)
-  - chromium:           apk add chromium               (Alpine/Docker)
+  - chromium:           apt install chromium            (Debian/Ubuntu)
+  - Chrome:             brew install google-chrome      (macOS)
 
-  - Chrome:       brew install google-chrome (macOS)
-
-Or use Docker which includes all dependencies:
-  docker run --rm -v $(pwd):/work resume-generator run -i /work/resume.yml -t modern-html`)
+Or set RESUME_HTML_TO_PDF_TOOL to the path of a Chromium-based browser.`)
 	}
 
 	// Create temporary HTML file
@@ -162,7 +160,7 @@ func (c *HTMLToPDFCompiler) compileWithChromium(htmlPath, outputPath string) err
 
 	// Headless browser command
 	args := []string{
-		"--headless=new",
+		"--headless",
 		"--disable-gpu",
 		"--disable-dev-shm-usage",
 		// Always skip Chrome's first-run and default browser flows — we spin up a fresh profile each run.
@@ -234,7 +232,7 @@ waitLoop:
 					if status, ok := exitErr.Sys().(syscall.WaitStatus); ok && status.Signaled() {
 						msg := fmt.Sprintf("%s exited with signal %s", c.toolName, status.Signal())
 						if runtime.GOOS == "darwin" {
-							msg += ". Headless Chromium from macOS app bundles often fails due to sandbox restrictions. Install wkhtmltopdf (brew install wkhtmltopdf) or run via Docker for reliable HTML→PDF conversion."
+							msg += ". Headless Chromium from macOS app bundles often fails due to sandbox restrictions. Try installing wkhtmltopdf (brew install wkhtmltopdf) or set RESUME_HTML_TO_PDF_TOOL to a different browser."
 						}
 						return fmt.Errorf("%s", msg)
 					}
@@ -278,6 +276,7 @@ waitLoop:
 
 	// Verify PDF was created
 	if _, err := os.Stat(absOutputPath); os.IsNotExist(err) {
+		c.logger.Errorf("%s exited successfully but produced no PDF. Output: %s", c.toolName, outputBuf.String())
 		return fmt.Errorf("PDF was not created at %s", absOutputPath)
 	}
 

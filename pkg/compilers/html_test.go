@@ -93,8 +93,11 @@ exit 0
 		t.Fatalf("failed to read log file: %v", err)
 	}
 	logContent := string(logData)
-	if !strings.Contains(logContent, "--headless=new") {
+	if !strings.Contains(logContent, "--headless") {
 		t.Errorf("chromium command missing headless flag: %s", logContent)
+	}
+	if strings.Contains(logContent, "--headless=new") {
+		t.Errorf("chromium command should use --headless, not --headless=new: %s", logContent)
 	}
 	if !strings.Contains(logContent, "--print-to-pdf="+outputPath) {
 		t.Errorf("chromium command missing print-to-pdf flag: %s", logContent)

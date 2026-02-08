@@ -34,7 +34,7 @@ Before contributing, ensure you have:
 - Git
 - LaTeX distribution (TeX Live, MacTeX, or MiKTeX) for LaTeX template development
 - Chromium/Chrome for HTML template testing
-- Docker (optional, for containerized testing)
+- [just](https://github.com/casey/just) (optional, for helper commands)
 
 ### Fork and Clone
 
@@ -59,7 +59,7 @@ Before contributing, ensure you have:
 go build -o resume-generator .
 
 # Or use the justfile
-just build-cli
+just install
 ```
 
 ### Installing Dependencies
@@ -69,7 +69,7 @@ just build-cli
 go mod tidy
 
 # Or use the justfile
-just deps
+just init
 ```
 
 ### Running Tests
@@ -84,21 +84,6 @@ go test -cover ./...
 # Run tests for specific package
 go test ./pkg/generators
 
-# Or use the justfile
-just go-test
-```
-
-### Using Docker for Development
-
-```bash
-# Build Docker image
-docker build -t resume-generator .
-
-# Or use the justfile
-just docker-build
-
-# Run tests
-just test
 ```
 
 ## Making Changes
