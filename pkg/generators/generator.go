@@ -1,7 +1,9 @@
 package generators
 
 import (
+	"embed"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,13 +27,15 @@ const (
 type Template struct {
 	Name        string
 	Type        TemplateType
-	Path        string
+	Path        string // filesystem path (empty when embedded)
 	DisplayName string
 	Description string
 	Version     string
 	Author      string
 	Tags        []string
 	Config      TemplateConfig
+	Embedded    bool   // true when loaded from embedded FS
+	EmbeddedDir string // e.g. "templates/modern-latex" for embedded reads
 }
 
 // TemplateConfig contains metadata about a template loaded from config.yml
@@ -51,26 +55,89 @@ type Generator struct {
 	logger *zap.SugaredLogger
 }
 
+var embeddedFS embed.FS
+
+// SetEmbeddedFS sets the embedded filesystem used to load templates.
+func SetEmbeddedFS(efs embed.FS) {
+	embeddedFS = efs
+}
+
 // NewGenerator creates a new template-based generator
 func NewGenerator(logger *zap.SugaredLogger) *Generator {
 	return &Generator{logger: logger}
 }
 
-// LoadTemplate loads a template by name from templates/
-// Uses config.yml metadata to determine template format and additional details
+// LoadTemplate loads a template by name.
+// It tries the filesystem first (via RESUME_TEMPLATES_DIR or local templates/ dir),
+// then falls back to the embedded FS.
 func LoadTemplate(templateName string) (*Template, error) {
-	// Resolve template directory path
+	// Try filesystem first
 	templateDir, err := utils.ResolveAssetPath(filepath.Join("templates", templateName))
+	if err == nil && utils.DirExists(templateDir) {
+		return loadTemplateFromFS(templateDir, templateName)
+	}
+
+	// Fall back to embedded FS
+	embeddedDir := "templates/" + templateName
+	return loadTemplateFromEmbed(embeddedDir, templateName)
+}
+
+// ListTemplates returns all available templates.
+// It tries the filesystem first, then falls back to the embedded FS.
+func ListTemplates() ([]Template, error) {
+	// Try filesystem first
+	templatesDir, err := utils.ResolveAssetPath("templates")
+	if err == nil && utils.DirExists(templatesDir) {
+		return listTemplatesFromFS(templatesDir)
+	}
+
+	// Fall back to embedded FS
+	return listTemplatesFromEmbed()
+}
+
+func listTemplatesFromFS(templatesDir string) ([]Template, error) {
+	entries, err := os.ReadDir(templatesDir)
 	if err != nil {
-		return nil, fmt.Errorf("failed to resolve template path: %w", err)
+		return nil, fmt.Errorf("failed to read templates directory: %w", err)
 	}
 
-	// Check if template directory exists
-	if !utils.DirExists(templateDir) {
-		return nil, fmt.Errorf("template not found: %s (searched in %s)", templateName, templateDir)
+	var templates []Template
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		tmpl, err := loadTemplateFromFS(filepath.Join(templatesDir, entry.Name()), entry.Name())
+		if err != nil {
+			continue
+		}
+		templates = append(templates, *tmpl)
+	}
+	return templates, nil
+}
+
+func listTemplatesFromEmbed() ([]Template, error) {
+	entries, err := fs.ReadDir(embeddedFS, "templates")
+	if err != nil {
+		return nil, fmt.Errorf("failed to read embedded templates: %w", err)
 	}
 
-	config, err := loadTemplateConfig(templateDir, templateName)
+	var templates []Template
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		embeddedDir := "templates/" + entry.Name()
+		tmpl, err := loadTemplateFromEmbed(embeddedDir, entry.Name())
+		if err != nil {
+			continue
+		}
+		templates = append(templates, *tmpl)
+	}
+	return templates, nil
+}
+
+func loadTemplateFromFS(templateDir, templateName string) (*Template, error) {
+	config, err := loadTemplateConfigFromFS(templateDir, templateName)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +147,7 @@ func LoadTemplate(templateName string) (*Template, error) {
 		return nil, err
 	}
 
-	templatePath, err := resolveTemplateFile(templateDir, tmplType, config.TemplateFile)
+	templatePath, err := resolveTemplateFileFS(templateDir, tmplType, config.TemplateFile)
 	if err != nil {
 		return nil, err
 	}
@@ -95,46 +162,46 @@ func LoadTemplate(templateName string) (*Template, error) {
 		Author:      config.Author,
 		Tags:        config.Tags,
 		Config:      config,
+		Embedded:    false,
 	}, nil
 }
 
-// ListTemplates returns all available templates
-func ListTemplates() ([]Template, error) {
-	// Resolve templates directory
-	templatesDir, err := utils.ResolveAssetPath("templates")
+func loadTemplateFromEmbed(embeddedDir, templateName string) (*Template, error) {
+	config, err := loadTemplateConfigFromEmbed(embeddedDir, templateName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to resolve templates directory: %w", err)
+		return nil, err
 	}
 
-	if !utils.DirExists(templatesDir) {
-		return nil, fmt.Errorf("templates directory not found: %s", templatesDir)
-	}
-
-	entries, err := os.ReadDir(templatesDir)
+	tmplType, err := parseTemplateType(config.Format)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read templates directory: %w", err)
+		return nil, err
 	}
 
-	var templates []Template
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			continue
+	// Verify template file exists in embedded FS (skip for DOCX)
+	if tmplType != TemplateTypeDOCX {
+		filename := resolveTemplateFilename(tmplType, config.TemplateFile)
+		embeddedPath := embeddedDir + "/" + filename
+		if _, err := fs.Stat(embeddedFS, embeddedPath); err != nil {
+			return nil, fmt.Errorf("embedded template file not found: %s", embeddedPath)
 		}
-
-		tmpl, err := LoadTemplate(entry.Name())
-		if err != nil {
-			// Skip invalid templates
-			continue
-		}
-
-		templates = append(templates, *tmpl)
 	}
 
-	return templates, nil
+	return &Template{
+		Name:        config.Name,
+		Type:        tmplType,
+		Path:        "",
+		DisplayName: config.DisplayName,
+		Description: config.Description,
+		Version:     config.Version,
+		Author:      config.Author,
+		Tags:        config.Tags,
+		Config:      config,
+		Embedded:    true,
+		EmbeddedDir: embeddedDir,
+	}, nil
 }
 
 // Generate renders a resume using the specified template name.
-// Returns the rendered content as a string.
 func (g *Generator) Generate(templateName string, resume *resume.Resume) (string, error) {
 	tmpl, err := LoadTemplate(templateName)
 	if err != nil {
@@ -144,17 +211,22 @@ func (g *Generator) Generate(templateName string, resume *resume.Resume) (string
 }
 
 // GenerateWithTemplate renders a resume using an already-loaded template.
-// Returns the rendered content as a string without re-loading template metadata.
 func (g *Generator) GenerateWithTemplate(tmpl *Template, resume *resume.Resume) (string, error) {
 	g.logger.Infof("Generating resume using template: %s (%s)", tmpl.Name, tmpl.Type)
 
-	// Read template content
-	content, err := os.ReadFile(tmpl.Path)
+	var content []byte
+	var err error
+
+	if tmpl.Embedded {
+		filename := resolveTemplateFilename(tmpl.Type, tmpl.Config.TemplateFile)
+		content, err = fs.ReadFile(embeddedFS, tmpl.EmbeddedDir+"/"+filename)
+	} else {
+		content, err = os.ReadFile(tmpl.Path)
+	}
 	if err != nil {
 		return "", fmt.Errorf("failed to read template: %w", err)
 	}
 
-	// Render based on type
 	switch tmpl.Type {
 	case TemplateTypeHTML:
 		return g.renderHTML(string(content), resume)
@@ -178,7 +250,6 @@ func (g *Generator) renderLaTeX(templateContent string, resume *resume.Resume) (
 }
 
 // GenerateDOCX generates a DOCX document from the resume.
-// Returns the document as bytes since DOCX is a binary format.
 func (g *Generator) GenerateDOCX(resume *resume.Resume) ([]byte, error) {
 	g.logger.Info("Generating DOCX resume")
 	docxGen := NewDOCXGenerator(g.logger)
@@ -195,19 +266,16 @@ func GetTemplateType(templateName string) (TemplateType, error) {
 }
 
 // FormatTemplateName formats a raw template name
-// e.g., "modern" -> "modern-html" (if modern-html exists)
 func FormatTemplateName(name string) string {
-	// If already properly formatted, return as-is
 	if strings.Contains(name, "-html") || strings.Contains(name, "-latex") {
 		return name
 	}
 
-	// Try common patterns
 	candidates := []string{
 		name + "-html",
 		name + "-latex",
-		"modern-html",  // fallback
-		"modern-latex", // fallback
+		"modern-html",
+		"modern-latex",
 	}
 
 	for _, candidate := range candidates {
@@ -216,11 +284,42 @@ func FormatTemplateName(name string) string {
 		}
 	}
 
-	// Return original if nothing found
 	return name
 }
 
-func loadTemplateConfig(templateDir, templateName string) (TemplateConfig, error) {
+// ExtractEmbeddedTemplateDir extracts all files from an embedded template directory
+// to a temporary directory on disk. Returns the temp directory path.
+func ExtractEmbeddedTemplateDir(embeddedDir string) (string, error) {
+	tmpDir, err := os.MkdirTemp("", "resume-template-*")
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp dir: %w", err)
+	}
+
+	entries, err := fs.ReadDir(embeddedFS, embeddedDir)
+	if err != nil {
+		os.RemoveAll(tmpDir)
+		return "", fmt.Errorf("failed to read embedded dir %s: %w", embeddedDir, err)
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		data, err := fs.ReadFile(embeddedFS, embeddedDir+"/"+entry.Name())
+		if err != nil {
+			os.RemoveAll(tmpDir)
+			return "", fmt.Errorf("failed to read embedded file %s: %w", entry.Name(), err)
+		}
+		if err := os.WriteFile(filepath.Join(tmpDir, entry.Name()), data, 0644); err != nil {
+			os.RemoveAll(tmpDir)
+			return "", fmt.Errorf("failed to write file %s: %w", entry.Name(), err)
+		}
+	}
+
+	return tmpDir, nil
+}
+
+func loadTemplateConfigFromFS(templateDir, templateName string) (TemplateConfig, error) {
 	configPath := filepath.Join(templateDir, "config.yml")
 	if !utils.FileExists(configPath) {
 		return TemplateConfig{}, fmt.Errorf("template %s is missing config.yml (expected at %s)", templateName, configPath)
@@ -231,6 +330,20 @@ func loadTemplateConfig(templateDir, templateName string) (TemplateConfig, error
 		return TemplateConfig{}, fmt.Errorf("failed to read template config for %s: %w", templateName, err)
 	}
 
+	return parseTemplateConfig(data, templateName)
+}
+
+func loadTemplateConfigFromEmbed(embeddedDir, templateName string) (TemplateConfig, error) {
+	configPath := embeddedDir + "/config.yml"
+	data, err := fs.ReadFile(embeddedFS, configPath)
+	if err != nil {
+		return TemplateConfig{}, fmt.Errorf("embedded template %s is missing config.yml", templateName)
+	}
+
+	return parseTemplateConfig(data, templateName)
+}
+
+func parseTemplateConfig(data []byte, templateName string) (TemplateConfig, error) {
 	var cfg TemplateConfig
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return TemplateConfig{}, fmt.Errorf("failed to parse template config for %s: %w", templateName, err)
@@ -266,22 +379,29 @@ func parseTemplateType(format string) (TemplateType, error) {
 	}
 }
 
-func resolveTemplateFile(templateDir string, tmplType TemplateType, override string) (string, error) {
-	// DOCX doesn't use template files - it's generated programmatically
+func resolveTemplateFilename(tmplType TemplateType, override string) string {
+	filename := strings.TrimSpace(override)
+	if filename != "" {
+		return filename
+	}
+	switch tmplType {
+	case TemplateTypeHTML:
+		return "template.html"
+	case TemplateTypeLaTeX:
+		return "template.tex"
+	default:
+		return ""
+	}
+}
+
+func resolveTemplateFileFS(templateDir string, tmplType TemplateType, override string) (string, error) {
 	if tmplType == TemplateTypeDOCX {
 		return "", nil
 	}
 
-	filename := strings.TrimSpace(override)
+	filename := resolveTemplateFilename(tmplType, override)
 	if filename == "" {
-		switch tmplType {
-		case TemplateTypeHTML:
-			filename = "template.html"
-		case TemplateTypeLaTeX:
-			filename = "template.tex"
-		default:
-			return "", fmt.Errorf("unknown template type: %s", tmplType)
-		}
+		return "", fmt.Errorf("unknown template type: %s", tmplType)
 	}
 
 	templatePath := filepath.Join(templateDir, filename)
