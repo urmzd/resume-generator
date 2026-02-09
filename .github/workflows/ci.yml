@@ -79,14 +79,12 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y poppler-utils texlive-xetex texlive-latex-extra texlive-fonts-extra chromium-browser
+          sudo apt-get install -y poppler-utils texlive-xetex texlive-latex-extra texlive-fonts-extra
 
       - name: Build frontend
         run: cd frontend && npm install && npm run build
 
       - name: Generate README previews
-        env:
-          ROD_BROWSER_BIN: /usr/bin/chromium-browser
         run: scripts/generate-readme-previews.sh
 
       - name: Ensure previews are committed
