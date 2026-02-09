@@ -10,6 +10,10 @@ export function GetTemplates() {
   return window['go']['main']['App']['GetTemplates']();
 }
 
+export function LoadFileFromPath(arg1) {
+  return window['go']['main']['App']['LoadFileFromPath'](arg1);
+}
+
 export function OpenFile() {
   return window['go']['main']['App']['OpenFile']();
 }
@@ -20,4 +24,8 @@ export function SaveNative(arg1) {
 
 export function SavePDF(arg1) {
   return window['go']['main']['App']['SavePDF'](arg1);
+}
+
+export function SavePDFToPath(arg1, arg2) {
+  return window['go']['main']['App']['SavePDFToPath'](arg1, arg2);
 }
