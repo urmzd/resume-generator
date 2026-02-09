@@ -27,7 +27,9 @@ func main() {
 
 	// CLI mode: any arguments → run Cobra
 	if len(os.Args) > 1 {
-		cmd.Execute()
+		if err := cmd.Execute(); err != nil {
+			os.Exit(1)
+		}
 		return
 	}
 

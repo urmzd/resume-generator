@@ -349,7 +349,7 @@ func (a *App) compileLaTeXToPDFBytes(tmpl *generators.Template) ([]byte, error) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp dir: %w", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	// Extract embedded template support files if needed
 	if tmpl.Embedded && tmpl.EmbeddedDir != "" {
@@ -357,7 +357,7 @@ func (a *App) compileLaTeXToPDFBytes(tmpl *generators.Template) ([]byte, error) 
 		if err != nil {
 			return nil, fmt.Errorf("failed to extract template files: %w", err)
 		}
-		defer os.RemoveAll(extractedDir)
+		defer func() { _ = os.RemoveAll(extractedDir) }()
 
 		entries, err := os.ReadDir(extractedDir)
 		if err == nil {
@@ -365,8 +365,11 @@ func (a *App) compileLaTeXToPDFBytes(tmpl *generators.Template) ([]byte, error) 
 				if !e.IsDir() {
 					src := filepath.Join(extractedDir, e.Name())
 					dst := filepath.Join(tmpDir, e.Name())
-					data, _ := os.ReadFile(src)
-					os.WriteFile(dst, data, 0644)
+					data, readErr := os.ReadFile(src)
+					if readErr != nil {
+						continue
+					}
+					_ = os.WriteFile(dst, data, 0644)
 				}
 			}
 		}
@@ -378,8 +381,11 @@ func (a *App) compileLaTeXToPDFBytes(tmpl *generators.Template) ([]byte, error) 
 			if !e.IsDir() {
 				src := filepath.Join(templateDir, e.Name())
 				dst := filepath.Join(tmpDir, e.Name())
-				data, _ := os.ReadFile(src)
-				os.WriteFile(dst, data, 0644)
+				data, readErr := os.ReadFile(src)
+				if readErr != nil {
+					continue
+				}
+				_ = os.WriteFile(dst, data, 0644)
 			}
 		}
 	}
