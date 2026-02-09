@@ -48,6 +48,7 @@ demo-cli:
 # Record desktop demo video (requires: wails dev running, npx playwright installed)
 demo-desktop:
     cd e2e/desktop && npx playwright test
+    cp "$(find assets/playwright-results -name 'video.webm' | head -1)" assets/demo-desktop.webm
 
 # Record all demos
 demo: demo-cli demo-desktop

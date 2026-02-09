@@ -181,7 +181,7 @@ The desktop app provides:
 
 ### Desktop App
 
-<video src="assets/demo-desktop.mp4" controls muted width="100%"></video>
+<video src="assets/demo-desktop.webm" controls muted width="100%"></video>
 
 ## Templates and Data
 
