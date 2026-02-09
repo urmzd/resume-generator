@@ -290,6 +290,54 @@ func (a *App) SaveNative(templateName string) error {
 	return os.WriteFile(path, data, 0644)
 }
 
+// LoadFileFromPath loads a resume from a given path (no native dialog).
+// Used by e2e tests and demo automation.
+func (a *App) LoadFileFromPath(path string) (*ParseResult, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
+	}
+
+	format := strings.TrimPrefix(filepath.Ext(path), ".")
+	inputData, err := resume.LoadResumeFromBytes(data, format)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse resume: %w", err)
+	}
+
+	if err := inputData.Validate(); err != nil {
+		return nil, fmt.Errorf("validation error: %w", err)
+	}
+
+	a.resume = inputData.ToResume()
+
+	return &ParseResult{
+		Name:   a.resume.Contact.Name,
+		Email:  a.resume.Contact.Email,
+		Format: inputData.GetFormat(),
+	}, nil
+}
+
+// SavePDFToPath generates a PDF and writes it to a given path (no native dialog).
+// Used by e2e tests and demo automation.
+func (a *App) SavePDFToPath(templateName, outputPath string) error {
+	b64, err := a.GeneratePDF(templateName)
+	if err != nil {
+		return err
+	}
+
+	pdfBytes, err := base64.StdEncoding.DecodeString(b64)
+	if err != nil {
+		return fmt.Errorf("failed to decode PDF: %w", err)
+	}
+
+	dir := filepath.Dir(outputPath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	return os.WriteFile(outputPath, pdfBytes, 0644)
+}
+
 // compileLaTeXToPDFBytes compiles a LaTeX template and returns PDF bytes.
 func (a *App) compileLaTeXToPDFBytes(tmpl *generators.Template) ([]byte, error) {
 	content, err := a.generator.GenerateWithTemplate(tmpl, a.resume)

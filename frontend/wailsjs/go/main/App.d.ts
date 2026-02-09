@@ -6,8 +6,12 @@ export function GeneratePDF(arg1:string):Promise<string>;
 
 export function GetTemplates():Promise<Array<main.TemplateInfo>>;
 
+export function LoadFileFromPath(arg1:string):Promise<main.ParseResult>;
+
 export function OpenFile():Promise<main.ParseResult>;
 
 export function SaveNative(arg1:string):Promise<void>;
 
 export function SavePDF(arg1:string):Promise<void>;
+
+export function SavePDFToPath(arg1:string,arg2:string):Promise<void>;
