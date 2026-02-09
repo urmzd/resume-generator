@@ -31,7 +31,7 @@ func initRunCmd() {
 	runCmd.Flags().StringSliceVarP(&TemplateNames, "template", "t", nil, "Template name(s). Repeat the flag or use comma-separated values. Defaults to all available templates.")
 	runCmd.Flags().StringVarP(&LaTeXEngine, "latex-engine", "e", "", "LaTeX engine to use (xelatex, pdflatex, lualatex, latex). Auto-detects if not specified.")
 
-	runCmd.MarkFlagRequired("input")
+	_ = runCmd.MarkFlagRequired("input")
 
 	generators.SetEmbeddedFS(EmbeddedTemplatesFS)
 }
@@ -196,7 +196,7 @@ var runCmd = &cobra.Command{
 				if extractErr != nil {
 					sugar.Fatalf("Failed to extract embedded template files for %s: %v", tmpl.Name, extractErr)
 				}
-				defer os.RemoveAll(extractedDir)
+				defer func() { _ = os.RemoveAll(extractedDir) }()
 				templateDir = extractedDir
 			} else {
 				templateDir = filepath.Dir(tmpl.Path)

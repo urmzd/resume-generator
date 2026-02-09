@@ -118,5 +118,5 @@ func (f *htmlFormatter) TemplateFuncs() template.FuncMap {
 
 // formatDateRange is a template-friendly version accepting individual args.
 func (f *htmlFormatter) formatDateRange(start time.Time, end *time.Time) string {
-	return f.baseFormatter.formatDateRangeInternal(start, end)
+	return f.formatDateRangeInternal(start, end)
 }

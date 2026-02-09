@@ -272,7 +272,7 @@ func TestResolveAssetPath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get current directory: %v", err)
 	}
-	defer os.Chdir(originalDir)
+	defer func() { _ = os.Chdir(originalDir) }()
 
 	// Change to temp dir
 	if err := os.Chdir(tmpDir); err != nil {
@@ -333,8 +333,7 @@ func TestResolveAssetPathWithEnvVar(t *testing.T) {
 	}
 
 	// Set environment variable
-	os.Setenv("RESUME_TEMPLATES_DIR", tmpDir)
-	defer os.Unsetenv("RESUME_TEMPLATES_DIR")
+	t.Setenv("RESUME_TEMPLATES_DIR", tmpDir)
 
 	got, err := ResolveAssetPath("custom-templates")
 	if err != nil {

@@ -297,7 +297,7 @@ func ExtractEmbeddedTemplateDir(embeddedDir string) (string, error) {
 
 	entries, err := fs.ReadDir(embeddedFS, embeddedDir)
 	if err != nil {
-		os.RemoveAll(tmpDir)
+		_ = os.RemoveAll(tmpDir)
 		return "", fmt.Errorf("failed to read embedded dir %s: %w", embeddedDir, err)
 	}
 
@@ -307,11 +307,11 @@ func ExtractEmbeddedTemplateDir(embeddedDir string) (string, error) {
 		}
 		data, err := fs.ReadFile(embeddedFS, embeddedDir+"/"+entry.Name())
 		if err != nil {
-			os.RemoveAll(tmpDir)
+			_ = os.RemoveAll(tmpDir)
 			return "", fmt.Errorf("failed to read embedded file %s: %w", entry.Name(), err)
 		}
 		if err := os.WriteFile(filepath.Join(tmpDir, entry.Name()), data, 0644); err != nil {
-			os.RemoveAll(tmpDir)
+			_ = os.RemoveAll(tmpDir)
 			return "", fmt.Errorf("failed to write file %s: %w", entry.Name(), err)
 		}
 	}
