@@ -177,7 +177,7 @@ The desktop app provides:
 
 ### CLI
 
-<!-- TODO: Add CLI demo GIF (assets/demo-cli.gif) -->
+![CLI Demo](assets/demo-cli.gif)
 
 ### Desktop App
 
