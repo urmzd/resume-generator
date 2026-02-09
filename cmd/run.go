@@ -25,8 +25,9 @@ var (
 func initRunCmd() {
 	rootCmd.AddCommand(runCmd)
 	runCmd.Flags().StringVarP(&InputFile, "input", "i", "", "Path to the resume data file (e.g., resume.yml)")
-	runCmd.Flags().StringVarP(&OutputDir, "output-dir", "o", "../outputs", "Root directory where generated resumes will be stored")
-	runCmd.Flags().StringVar(&OutputDir, "output-root", "../outputs", "Alias for --output-dir")
+	defaultOut := utils.DefaultOutputDir()
+	runCmd.Flags().StringVarP(&OutputDir, "output-dir", "o", defaultOut, "Root directory where generated resumes will be stored")
+	runCmd.Flags().StringVar(&OutputDir, "output-root", defaultOut, "Alias for --output-dir")
 	runCmd.Flags().StringSliceVarP(&TemplateNames, "template", "t", nil, "Template name(s). Repeat the flag or use comma-separated values. Defaults to all available templates.")
 	runCmd.Flags().StringVarP(&LaTeXEngine, "latex-engine", "e", "", "LaTeX engine to use (xelatex, pdflatex, lualatex, latex). Auto-detects if not specified.")
 
