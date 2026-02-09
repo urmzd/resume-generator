@@ -11,6 +11,8 @@ default:
 init:
     go mod download && go mod tidy
     cd frontend && npm install
+    brew install vhs
+    cd e2e/desktop && npm install && npx playwright install chromium
 
 # Install Air live-reload tool
 install-air:
@@ -38,3 +40,14 @@ dev-clean:
     rm -rf frontend/dist frontend/node_modules/.vite
     cd frontend && npm run build
     wails dev
+
+# Record CLI demo GIF (requires: brew install vhs)
+demo-cli:
+    vhs e2e/demo.tape
+
+# Record desktop demo video (requires: wails dev running, npx playwright installed)
+demo-desktop:
+    cd e2e/desktop && npx playwright test
+
+# Record all demos
+demo: demo-cli demo-desktop
