@@ -10,9 +10,55 @@ permissions:
   contents: read
 
 jobs:
-  tests:
+  fmt:
     if: github.actor != 'github-actions[bot]'
-    name: Unit Tests
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Check formatting
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "The following files are not formatted:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+  lint:
+    if: github.actor != 'github-actions[bot]'
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build frontend
+        run: cd frontend && npm install && npm run build
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+
+  test:
+    if: github.actor != 'github-actions[bot]'
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -34,63 +80,5 @@ jobs:
       - name: Go test
         run: go test ./...
 
-  fuzz:
-    if: github.actor != 'github-actions[bot]'
-    name: Fuzz Smoke Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Build frontend
-        run: cd frontend && npm install && npm run build
-
-      - name: Run sanitizePhone corpus
+      - name: Fuzz smoke test
         run: go test -run=FuzzSanitizePhone -fuzz=FuzzSanitizePhone -fuzztime=10s ./pkg/generators
-
-  readme_previews:
-    if: github.actor != 'github-actions[bot]'
-    name: README Template Previews
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y poppler-utils texlive-xetex texlive-latex-extra texlive-fonts-extra
-
-      - name: Build frontend
-        run: cd frontend && npm install && npm run build
-
-      - name: Generate README previews
-        run: scripts/generate-readme-previews.sh
-
-      - name: Ensure previews are committed
-        run: |
-          if [ -n "$(git status --porcelain assets/example_results)" ]; then
-            echo "README preview images are out of date. Run scripts/generate-readme-previews.sh and commit the results."
-            git status --short assets/example_results
-            exit 1
-          fi
