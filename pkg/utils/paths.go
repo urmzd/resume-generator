@@ -162,6 +162,15 @@ func ResolveAssetPath(relativePath string) (string, error) {
 	return filepath.Clean(relativePath), nil
 }
 
+// DefaultOutputDir returns the default output directory (~/$HOME/Documents/ResumeGeneratorOutputs).
+func DefaultOutputDir() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "outputs" // safe fallback
+	}
+	return filepath.Join(home, "Documents", "ResumeGeneratorOutputs")
+}
+
 // EnsureDir creates a directory if it doesn't exist
 func EnsureDir(path string) error {
 	return os.MkdirAll(path, 0755)

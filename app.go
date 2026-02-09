@@ -12,6 +12,7 @@ import (
 	"github.com/urmzd/resume-generator/pkg/compilers"
 	"github.com/urmzd/resume-generator/pkg/generators"
 	"github.com/urmzd/resume-generator/pkg/resume"
+	"github.com/urmzd/resume-generator/pkg/utils"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"go.uber.org/zap"
 )
@@ -200,9 +201,13 @@ func (a *App) SavePDF(templateName string) error {
 		return fmt.Errorf("failed to decode PDF: %w", err)
 	}
 
+	defaultDir := utils.DefaultOutputDir()
+	_ = utils.EnsureDir(defaultDir)
+
 	path, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
-		Title:           "Save PDF",
-		DefaultFilename: "resume.pdf",
+		DefaultDirectory: defaultDir,
+		Title:            "Save PDF",
+		DefaultFilename:  "resume.pdf",
 		Filters: []runtime.FileFilter{
 			{DisplayName: "PDF Files", Pattern: "*.pdf"},
 		},
@@ -264,9 +269,13 @@ func (a *App) SaveNative(templateName string) error {
 		return fmt.Errorf("unsupported template type: %s", tmpl.Type)
 	}
 
+	defaultDir := utils.DefaultOutputDir()
+	_ = utils.EnsureDir(defaultDir)
+
 	path, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
-		Title:           "Save " + strings.ToUpper(strings.TrimPrefix(ext, ".")),
-		DefaultFilename: "resume" + ext,
+		DefaultDirectory: defaultDir,
+		Title:            "Save " + strings.ToUpper(strings.TrimPrefix(ext, ".")),
+		DefaultFilename:  "resume" + ext,
 		Filters: []runtime.FileFilter{
 			{DisplayName: filterName, Pattern: "*" + ext},
 		},

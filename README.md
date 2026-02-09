@@ -2,43 +2,46 @@
 
 ## Introduction
 
-Resume Generator is a CLI-focused toolkit for turning structured configuration files into polished resumes. It supports multiple template formats and ships with a flexible template system so you can generate professional PDFs from LaTeX or HTML templates using YAML, JSON, or TOML data.
+Resume Generator is a hybrid CLI + desktop GUI application for turning structured configuration files into polished resumes. Run the binary with no arguments to launch the desktop app, or pass arguments to use the CLI. It supports multiple template formats — LaTeX, HTML, and DOCX — and ships with a flexible template system so you can generate professional PDFs and Word documents from YAML, JSON, or TOML data.
 
 ## Features
 
 ### Core Capabilities
-- **Multiple Template Types**: Generate PDFs from LaTeX or HTML templates with the same data model
-- **Data-Only Inputs**: Provide resume content as YAML, JSON, or TOML; the CLI selects templates and output targets
+- **Desktop GUI**: Native desktop app with drag-and-drop resume files, live PDF preview, template gallery, and save as PDF/DOCX
+- **Multiple Template Types**: Generate output from LaTeX, HTML, or DOCX templates with the same data model
+- **DOCX Support**: Native Word document generation for easy editing in Microsoft Word or Google Docs
+- **Data-Only Inputs**: Provide resume content as YAML, JSON, or TOML; the tool selects templates and output targets
 - **Template System**: Modular templates with embedded assets; customize or create new templates per project
 - **Robust Path Resolution**: Works from any directory, supports `~`, relative paths, and dated output workspaces
 
 ### Technical Features
-- **CLI Commands**: Validate inputs, preview data, list templates, generate outputs, and export JSON schema
+- **CLI Commands**: Validate inputs, preview data, list templates, generate outputs, and export JSON schema (the GUI is also available for all generation tasks)
 - **Schema Generation**: Generate JSON Schema for IDE integration and validation
 
 ## Prerequisites
 
-### For CLI Usage
-- Go 1.21+
-- Chromium/Chrome (for HTML → PDF conversion)
-- TeX Live or compatible LaTeX engine (for LaTeX → PDF conversion)
+### Required
+- **Go 1.24+**
+- **Node.js 22+** (for frontend build)
+- **TeX Live** or compatible LaTeX engine (only needed for LaTeX templates)
 
-#### HTML → PDF Tool Selection
-The generator auto-detects common converters (`wkhtmltopdf`, ungoogled-chromium, Chromium, Google Chrome). You can override the detection with the `RESUME_HTML_TO_PDF_TOOL` environment variable and point at a specific binary or `.app` bundle:
-
-```bash
-export RESUME_HTML_TO_PDF_TOOL="/Applications/ungoogled-chromium.app"
-just generate
-```
-
-Per-run flags for Chromium-based browsers can still be appended via `RESUME_CHROMIUM_FLAGS` (for example, to add `--no-first-run`).
+### For Desktop Development
+- [Wails CLI](https://wails.io) — required for building the desktop app and running dev mode
 
 ### Optional
 - [just](https://github.com/casey/just) for helper commands
 
+### Chromium (HTML → PDF)
+
+Rod auto-downloads a compatible Chromium binary on first use — no manual installation required. To use an existing browser instead (useful for CI), set the `ROD_BROWSER_BIN` environment variable:
+
+```bash
+export ROD_BROWSER_BIN="/usr/bin/chromium-browser"
+```
+
 ## Getting Started
 
-### Quick Start
+### Quick Start (CLI)
 
 1. **Clone the Repository**
    ```bash
@@ -56,17 +59,33 @@ Per-run flags for Chromium-based browsers can still be appended via `RESUME_CHRO
    ./resume-generator run -i assets/example_resumes/software_engineer.yml -t modern-html
    ```
 
-### CLI Usage
+### Desktop App
 
-1. **Build the Application**
+Pre-built desktop binaries for **macOS**, **Linux**, and **Windows** are available on the [Releases](https://github.com/urmzd/resume-generator/releases) page. Download the latest release for your platform and run it — no build tools required.
+
+To build from source instead (requires Wails CLI):
+
+1. **Build the desktop app**:
    ```bash
-   go build -o resume-generator .
+   wails build
    ```
 
-2. **Generate Resume**
+2. **Launch the GUI** by running the binary with no arguments:
+   ```bash
+   ./build/bin/resume-generator
+   ```
+
+> **Note:** `go build` produces a CLI-only binary (no GUI). Use `wails build` for the full desktop app with embedded frontend.
+
+## CLI Usage
+
+1. **Generate Resume**
    ```bash
    # Generate PDF from an HTML template
    ./resume-generator run -i assets/example_resumes/software_engineer.yml -t modern-html
+
+   # Generate an editable DOCX
+   ./resume-generator run -i assets/example_resumes/software_engineer.yml -t modern-docx
 
    # Generate with multiple templates (creates separate outputs for each)
    ./resume-generator run -i assets/example_resumes/software_engineer.yml -t modern-html -t modern-latex
@@ -93,9 +112,9 @@ Per-run flags for Chromium-based browsers can still be appended via `RESUME_CHRO
    ./resume-generator templates engines
    ```
 
-3. **Path Resolution**
+2. **Path Resolution**
 
-   The CLI now supports flexible path resolution:
+   The CLI supports flexible path resolution:
    - **Relative paths**: `./assets/example_resumes/software_engineer.yml`, `../data/resume.yml`
    - **Absolute paths**: `/Users/name/Documents/resume.yml`
    - **Home directory**: `~/Documents/resume.yml`
@@ -125,7 +144,7 @@ Per-run flags for Chromium-based browsers can still be appended via `RESUME_CHRO
 
    For example, when generating with multiple templates:
    ```
-   outputs/
+   ~/Documents/ResumeGeneratorOutputs/
    └── john_doe/
        └── 2025-10-25/
            ├── modern_html/
@@ -140,25 +159,38 @@ Per-run flags for Chromium-based browsers can still be appended via `RESUME_CHRO
                    └── john_doe_resume.aux
    ```
 
-## Template Previews
+## Desktop App
 
-Generated from `assets/example_resumes/software_engineer.yml`. Run `scripts/generate-readme-previews.sh` to refresh the PNGs in `assets/example_results/`.
+Run the binary with no arguments to launch the GUI:
 
-### Modern HTML
+```bash
+./resume-generator
+```
 
-![Modern HTML Preview](assets/example_results/modern-html.png)
+The desktop app provides:
+- **Template gallery** — browse and select from available templates
+- **Live PDF preview** — see your resume rendered in real time
+- **Native file picker** — open resume data files (YAML, JSON, TOML) via drag-and-drop or file dialog
+- **Export** — save output as PDF or DOCX
 
-### Modern LaTeX
+## Demo
 
-![Modern LaTeX Preview](assets/example_results/modern-latex.png)
+### CLI
+
+<!-- TODO: Add CLI demo GIF (assets/demo-cli.gif) -->
+
+### Desktop App
+
+<video src="assets/demo-desktop.mp4" controls muted width="100%"></video>
 
 ## Templates and Data
 
-- **PDF Templates**: LaTeX-based templates in `templates/*-latex/`
 - **HTML Templates**: Modern responsive templates in `templates/*-html/`
+- **LaTeX Templates**: LaTeX-based templates in `templates/*-latex/`
+- **DOCX Templates**: Editable Word document templates in `templates/*-docx/`
 - **Custom Templates**: Create your own templates following the provided patterns
 
-Resume inputs should contain only the data you want to render—template selection, output formats, and destination paths are handled entirely by the CLI or the consuming system.
+Resume inputs should contain only the data you want to render — template selection, output formats, and destination paths are handled entirely by the CLI or the desktop app.
 
 Use the CLI to explore or apply templates:
 
@@ -181,24 +213,33 @@ To customize your resume, edit the source data file (e.g., `software_engineer.ym
 The project includes a `justfile` with convenient commands:
 
 ```bash
-# Install Go dependencies and tools
+# Install Go deps + npm packages
 just init
 
-# Build the CLI binary
+# Build CLI-only binary (no GUI, no CGO)
 just install
 
-# Build and generate a resume (default example input)
+# Build desktop app with Wails
+just build-desktop
+
+# Build CLI and generate a resume (default example input)
 just run
 
 # Generate with custom input/output/template
 just run assets/example_resumes/software_engineer.yml outputs -t modern-html
+
+# Wails dev mode with hot reload
+just dev
+
+# Clean frontend cache and rebuild, then start dev mode
+just dev-clean
 ```
 
 > The preview helpers look for `magick`, `convert`, or `pdftoppm`. Install ImageMagick or poppler-utils to enable the conversion.
 
 ## Templates
 
-Built-in templates live in the `templates/` directory, one folder per template (for example, `templates/modern-html/template.html` or `templates/modern-latex/template.tex`). Each template ships with a `config.yml` describing its format (`html` or `latex`) and any supporting metadata. LaTeX templates bundle their required `.cls` or helper files directly alongside the template, so no additional classes directory is needed.
+Built-in templates live in the `templates/` directory, one folder per template (for example, `templates/modern-html/template.html` or `templates/modern-latex/template.tex`). Each template ships with a `config.yml` describing its format (`html`, `latex`, or `docx`) and any supporting metadata. LaTeX templates bundle their required `.cls` or helper files directly alongside the template, so no additional classes directory is needed.
 
 ## Contributing
 
