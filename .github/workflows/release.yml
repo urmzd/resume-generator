@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Re-release the current tag (use when a previous release partially failed)"
+        type: boolean
+        default: false
 
 concurrency:
   group: release
@@ -19,6 +25,7 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
       should-release: ${{ steps.version.outputs.should-release }}
+      force: ${{ steps.version.outputs.force }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,15 +43,33 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          NEXT=$(sr version --short 2>/dev/null || true)
-          if [ -z "$NEXT" ]; then
-            echo "No releasable commits found"
-            echo "should-release=false" >> "$GITHUB_OUTPUT"
-            echo "version=" >> "$GITHUB_OUTPUT"
+          FORCE="${{ github.event.inputs.force || 'false' }}"
+          echo "force=${FORCE}" >> "$GITHUB_OUTPUT"
+
+          if [ "$FORCE" = "true" ]; then
+            # In force mode, read version from the latest git tag
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+            if [ -z "$LATEST_TAG" ]; then
+              echo "No tags found — nothing to force-release"
+              echo "should-release=false" >> "$GITHUB_OUTPUT"
+              echo "version=" >> "$GITHUB_OUTPUT"
+            else
+              VERSION="${LATEST_TAG#v}"
+              echo "Force re-releasing: $VERSION"
+              echo "should-release=true" >> "$GITHUB_OUTPUT"
+              echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+            fi
           else
-            echo "Next version: $NEXT"
-            echo "should-release=true" >> "$GITHUB_OUTPUT"
-            echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+            NEXT=$(sr version --short 2>/dev/null || true)
+            if [ -z "$NEXT" ]; then
+              echo "No releasable commits found"
+              echo "should-release=false" >> "$GITHUB_OUTPUT"
+              echo "version=" >> "$GITHUB_OUTPUT"
+            else
+              echo "Next version: $NEXT"
+              echo "should-release=true" >> "$GITHUB_OUTPUT"
+              echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+            fi
           fi
 
   test:
@@ -164,9 +189,10 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          path: artifacts
+          path: release-assets
           merge-multiple: true
 
       - uses: urmzd/semantic-release@v0
         with:
-          artifacts: "artifacts/*"
+          artifacts: "release-assets/*"
+          force: ${{ needs.plan.outputs.force }}
