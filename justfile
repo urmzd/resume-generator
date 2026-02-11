@@ -45,10 +45,38 @@ dev-clean:
 demo-cli:
     vhs e2e/demo.tape
 
-# Record desktop demo video (requires: wails dev running, npx playwright installed)
+# Record desktop demo (video + screenshot). Starts and stops wails dev automatically.
 demo-desktop:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    # Start Wails dev server in background
+    wails dev &
+    WAILS_PID=$!
+    trap 'kill $WAILS_PID 2>/dev/null; wait $WAILS_PID 2>/dev/null' EXIT
+
+    # Wait for dev server to become ready (up to 120s for first-time builds)
+    echo "Waiting for Wails dev server on :34115..."
+    for i in $(seq 1 120); do
+        if curl -sf http://localhost:34115 > /dev/null 2>&1; then
+            echo "Dev server ready."
+            break
+        fi
+        if [ "$i" -eq 120 ]; then
+            echo "Timeout: dev server did not start within 120s."
+            exit 1
+        fi
+        sleep 1
+    done
+
+    # Run Playwright test (produces video + screenshot)
     cd e2e/desktop && npx playwright test
-    cp "$(find assets/playwright-results -name 'video.webm' | head -1)" assets/demo-desktop.webm
+
+    # Copy recorded video
+    VIDEO=$(find ../../assets/playwright-results -name 'video.webm' | head -1)
+    if [ -n "$VIDEO" ]; then
+        cp "$VIDEO" ../../assets/demo-desktop.webm
+    fi
 
 # Record all demos
 demo: demo-cli demo-desktop
