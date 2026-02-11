@@ -179,8 +179,41 @@ jobs:
           name: resume-generator-windows.exe
           path: build/bin/resume-generator.exe
 
+  demo:
+    needs: [plan, test]
+    if: needs.plan.outputs.should-release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build frontend
+        run: cd frontend && npm install && npm run build
+
+      - name: Install vhs
+        uses: charmbracelet/vhs-action@v2
+
+      - name: Install tree
+        run: sudo apt-get update && sudo apt-get install -y tree
+
+      - name: Record demo
+        run: vhs doc/demo.tape
+
+      - name: Upload demo artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-cli.gif
+          path: assets/demo-cli.gif
+
   release:
-    needs: [plan, build]
+    needs: [plan, build, demo]
     if: needs.plan.outputs.should-release == 'true'
     runs-on: ubuntu-latest
     steps:
