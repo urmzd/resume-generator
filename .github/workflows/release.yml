@@ -149,6 +149,7 @@ jobs:
         shell: bash
         run: >
           wails build -trimpath
+          ${{ matrix.platform == 'linux' && '-tags webkit2_41' || '' }}
           -ldflags "-X main.version=${{ needs.plan.outputs.version }}
           -X main.commit=${{ github.sha }}
           -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
