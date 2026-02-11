@@ -121,6 +121,12 @@ test("Desktop app demo — load, browse templates, save", async ({ page }) => {
     await page.waitForTimeout(PAUSE_MS);
   }
 
+  // Capture a screenshot for the README (static fallback for the video demo)
+  await page.screenshot({
+    path: path.resolve(__dirname, '../../assets/demo-desktop.png'),
+    fullPage: true,
+  });
+
   // 4. Save PDF via the test-only binding (bypasses native Save dialog)
   await page.evaluate(
     async ({ templateName, outputPath }: { templateName: string; outputPath: string }) => {
