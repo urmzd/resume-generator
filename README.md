@@ -4,6 +4,30 @@
 
 Resume Generator is a hybrid CLI + desktop GUI application for turning structured configuration files into polished resumes. Run the binary with no arguments to launch the desktop app, or pass arguments to use the CLI. It supports multiple template formats — LaTeX, HTML, and DOCX — and ships with a flexible template system so you can generate professional PDFs and Word documents from YAML, JSON, or TOML data.
 
+## Showcase
+
+### Output Examples
+
+<p align="center">
+  <img src="assets/example_results/modern-html.png" alt="Modern HTML template" width="45%">
+  &nbsp;&nbsp;
+  <img src="assets/example_results/modern-latex.png" alt="Modern LaTeX template" width="45%">
+</p>
+<p align="center"><em>Left: Modern HTML template | Right: Modern LaTeX template</em></p>
+
+### Desktop App
+
+<p align="center">
+  <img src="assets/demo-desktop.png" alt="Desktop app with template gallery and live PDF preview" width="80%">
+</p>
+<p align="center"><em>Native desktop app with template gallery and live PDF preview</em></p>
+
+### CLI
+
+<p align="center">
+  <img src="assets/demo-cli.gif" alt="CLI Demo" width="80%">
+</p>
+
 ## Features
 
 ### Core Capabilities
@@ -172,16 +196,6 @@ The desktop app provides:
 - **Live PDF preview** — see your resume rendered in real time
 - **Native file picker** — open resume data files (YAML, JSON, TOML) via drag-and-drop or file dialog
 - **Export** — save output as PDF or DOCX
-
-## Demo
-
-### CLI
-
-![CLI Demo](assets/demo-cli.gif)
-
-### Desktop App
-
-<video src="assets/demo-desktop.webm" controls muted width="100%"></video>
 
 ## Templates and Data
 
