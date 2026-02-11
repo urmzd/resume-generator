@@ -226,7 +226,7 @@ jobs:
           path: release-assets
           merge-multiple: true
 
-      - uses: urmzd/semantic-release@v0
+      - uses: urmzd/semantic-release@v1
         with:
           artifacts: "release-assets/*"
           force: ${{ needs.plan.outputs.force }}
