@@ -267,11 +267,3 @@ Contributions to the Resume Generator project are welcome. Please read [CONTRIBU
 - Documentation standards
 
 Submit pull requests for any enhancements, bug fixes, or documentation improvements.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE). Feel free to use, modify, and distribute the code as per the license terms.
-
-## Acknowledgments
-
-Thanks to all the contributors who have helped in building and maintaining this tool. Special thanks to the LaTeX community for the underlying typesetting system.
