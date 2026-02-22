@@ -10,3 +10,9 @@ e2e/desktop/test-results/
 assets/playwright-results/
 assets/demo-output.pdf
 assets/demo-desktop.mp4
+.claude/
+.vscode/
+.env
+.env.*
+.DS_Store
+.idea/
