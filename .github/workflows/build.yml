@@ -1,0 +1,115 @@
+name: Build
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.platform }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - os: macos-latest
+            platform: darwin
+            artifact: resume-generator.app
+          - os: ubuntu-latest
+            platform: linux
+            artifact: resume-generator
+          - os: windows-latest
+            platform: windows
+            artifact: resume-generator.exe
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      - name: Build desktop app
+        shell: bash
+        run: >
+          wails build -trimpath
+          ${{ matrix.platform == 'linux' && '-tags webkit2_41' || '' }}
+          -ldflags "-X main.version=${GITHUB_REF_NAME#v}
+          -X main.commit=${{ github.sha }}
+          -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+      - name: Package macOS app
+        if: matrix.platform == 'darwin'
+        run: cd build/bin && zip -r resume-generator-darwin.zip resume-generator.app
+
+      - name: Upload to release (macOS)
+        if: matrix.platform == 'darwin'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          gh release upload "$TAG" "build/bin/resume-generator-darwin.zip" --clobber
+
+      - name: Upload to release (Linux)
+        if: matrix.platform == 'linux'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          gh release upload "$TAG" "build/bin/resume-generator" --clobber
+
+      - name: Upload to release (Windows)
+        if: matrix.platform == 'windows'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          gh release upload "$TAG" "build/bin/resume-generator.exe" --clobber
+        shell: bash
+
+  demo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build frontend
+        run: cd frontend && npm install && npm run build
+
+      - name: Install vhs
+        uses: charmbracelet/vhs-action@v2
+
+      - name: Install tree
+        run: sudo apt-get update && sudo apt-get install -y tree
+
+      - name: Record demo
+        run: vhs doc/demo.tape
+
+      - name: Upload demo to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          gh release upload "$TAG" "assets/demo-cli.gif" --clobber
