@@ -22,10 +22,7 @@ Sleep 10s
 Type "export PS1='❯ '"
 Enter
 Sleep 500ms
-Type "splash() { echo ''; echo '  ╔══════════════════════════════════════════════╗'; echo '  ║                                              ║'; echo '  ║          Resume Generator (resume-generator)       ║'; echo '  ║                                              ║'; echo '  ║         github.com/urmzd · urmzd.com         ║'; echo '  ║                                              ║'; echo '  ╚══════════════════════════════════════════════╝'; echo ''; }"
-Enter
-Sleep 500ms
-Type "clear"
+Type "splash() { clear; print ''; print '  \e[90m╭──────────────────────────────────────────────╮\e[0m'; print '  \e[90m│\e[0m                                              \e[90m│\e[0m'; print '  \e[90m│\e[0m          \e[35m✦\e[0m  \e[1;36mResume Generator\e[0m  \e[35m✦\e[0m              \e[90m│\e[0m'; print '  \e[90m│\e[0m                                              \e[90m│\e[0m'; print '  \e[90m│\e[0m         \e[34mgithub.com/urmzd\e[0m \e[90m·\e[0m \e[34murmzd.com\e[0m         \e[90m│\e[0m'; print '  \e[90m│\e[0m                                              \e[90m│\e[0m'; print '  \e[90m╰──────────────────────────────────────────────╯\e[0m'; print ''; }"
 Enter
 Sleep 500ms
 Type "splash"
@@ -36,12 +33,21 @@ Show
 # ── Splash pause ──────────────────────────────────
 Sleep 3s
 
+# ── CLI overview ──────────────────────────────────
+Type "./resume-generator --help"
+Enter
+Sleep 4s
+
 # ── List available templates ──────────────────────
+Ctrl+L
+Sleep 500ms
 Type "./resume-generator templates list"
 Enter
 Sleep 3s
 
 # ── Generate a resume ─────────────────────────────
+Ctrl+L
+Sleep 500ms
 Type "./resume-generator run -i assets/example_resumes/software_engineer.yml -t modern-html -o /tmp/demo-output"
 Enter
 Sleep 8s
