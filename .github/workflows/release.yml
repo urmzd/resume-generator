@@ -166,11 +166,11 @@ jobs:
       - name: Build frontend
         run: cd frontend && npm install && npm run build
 
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg tree
+
       - name: Install vhs
         uses: charmbracelet/vhs-action@v2
-
-      - name: Install tree
-        run: sudo apt-get update && sudo apt-get install -y tree
 
       - name: Record demo
         run: vhs doc/demo.tape
