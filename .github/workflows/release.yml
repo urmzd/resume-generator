@@ -167,10 +167,15 @@ jobs:
         run: cd frontend && npm install && npm run build
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg tree
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg ttyd tree
 
       - name: Install vhs
-        uses: charmbracelet/vhs-action@v2
+        run: |
+          VHS_VERSION="0.10.0"
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL "https://github.com/charmbracelet/vhs/releases/download/v${VHS_VERSION}/vhs_${VHS_VERSION}_Linux_x86_64.tar.gz" \
+            | tar xz --strip-components=1 -C "$HOME/.local/bin" "vhs_${VHS_VERSION}_Linux_x86_64/vhs"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Record demo
         run: vhs doc/demo.tape
