@@ -9,6 +9,7 @@ default:
 
 # Install dependencies and tools
 init:
+    git config core.hooksPath .githooks
     go mod download && go mod tidy
     cd frontend && npm install
     brew install vhs
