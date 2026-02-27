@@ -37,6 +37,64 @@ func (f *htmlFormatter) FormatLink(link string) string {
 	return fmt.Sprintf(`<a href="%s">%s</a>`, template.HTMLEscapeString(url), template.HTMLEscapeString(url))
 }
 
+// layoutClass returns CSS class names derived from a *resume.Layout.
+// A nil layout returns the default classes.
+func (f *htmlFormatter) layoutClass(layout *resume.Layout) string {
+	density := "standard"
+	typography := "classic"
+	header := "centered"
+	skillCols := ""
+
+	if layout != nil {
+		if layout.Density == "compact" || layout.Density == "detailed" {
+			density = layout.Density
+		}
+		if layout.Typography == "modern" || layout.Typography == "elegant" {
+			typography = layout.Typography
+		}
+		if layout.Header == "split" || layout.Header == "minimal" {
+			header = layout.Header
+		}
+		if layout.SkillColumns >= 2 {
+			skillCols = " skills-columns"
+		}
+	}
+
+	return fmt.Sprintf("density-%s typo-%s header-%s%s", density, typography, header, skillCols)
+}
+
+// hasSection checks whether a named section has data in the resume.
+func (f *htmlFormatter) hasSection(name string, r *resume.Resume) bool {
+	switch name {
+	case "summary":
+		return r.Summary != ""
+	case "certifications":
+		return r.Certifications != nil && len(r.Certifications.Items) > 0
+	case "education":
+		return len(r.Education.Institutions) > 0
+	case "skills":
+		return len(r.Skills.Categories) > 0
+	case "experience":
+		return len(r.Experience.Positions) > 0
+	case "projects":
+		return r.Projects != nil && len(r.Projects.Projects) > 0
+	case "languages":
+		return r.Languages != nil && len(r.Languages.Languages) > 0
+	default:
+		return false
+	}
+}
+
+// containsSection checks if a section name is in a string slice.
+func (f *htmlFormatter) containsSection(name string, sections []string) bool {
+	for _, s := range sections {
+		if s == name {
+			return true
+		}
+	}
+	return false
+}
+
 // TemplateFuncs exposes helper functions for HTML templates.
 func (f *htmlFormatter) TemplateFuncs() template.FuncMap {
 	return template.FuncMap{
@@ -49,6 +107,7 @@ func (f *htmlFormatter) TemplateFuncs() template.FuncMap {
 		"formatDateShort":   func(t time.Time) string { return t.Format("Jan 2006") },
 		"formatDateRange":   f.formatDateRange,
 		"fmtDateRange":      f.FormatDateRange,
+		"fmtOptDateRange":   f.FormatOptionalDateRange,
 		"calculateDuration": f.CalculateDuration,
 
 		// Location formatting
@@ -113,6 +172,11 @@ func (f *htmlFormatter) TemplateFuncs() template.FuncMap {
 			}
 			return value
 		},
+
+		// Layout helpers
+		"layoutClass":     f.layoutClass,
+		"hasSection":      f.hasSection,
+		"containsSection": f.containsSection,
 	}
 }
 

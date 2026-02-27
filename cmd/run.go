@@ -132,6 +132,31 @@ var runCmd = &cobra.Command{
 				sugar.Fatalf("Error creating template output directory %s: %v", templateRunDir, err)
 			}
 
+			// Markdown outputs a .md file directly (no PDF compilation)
+			if tmpl.Type == generators.TemplateTypeMarkdown {
+				content, err := generator.GenerateWithTemplate(tmpl, resumeData)
+				if err != nil {
+					sugar.Fatalf("Failed to generate Markdown with template %s: %v", tmpl.Name, err)
+				}
+
+				mdOutputPath, debugDir, err := ensureUniqueOutputPaths(templateRunDir, desiredPDFBase, ".md")
+				if err != nil {
+					sugar.Fatalf("Error determining output filename for template %s: %v", tmpl.Name, err)
+				}
+
+				if err := os.WriteFile(mdOutputPath, []byte(content), 0644); err != nil {
+					sugar.Fatalf("Failed to write Markdown file: %v", err)
+				}
+
+				results = append(results, generationResult{
+					template: tmpl.Name,
+					tType:    tmpl.Type,
+					pdfPath:  mdOutputPath,
+					debugDir: debugDir,
+				})
+				continue
+			}
+
 			// DOCX has a different flow - it generates bytes directly
 			if tmpl.Type == generators.TemplateTypeDOCX {
 				docxBytes, err := generator.GenerateDOCX(resumeData)

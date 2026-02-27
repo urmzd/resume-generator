@@ -1,5 +1,18 @@
 \documentclass{default}
 
+{{- if .Layout }}
+{{- if eq (default "standard" .Layout.Density) "compact" }}
+\AtBeginDocument{\setdensitycompact}
+{{- else if eq .Layout.Density "detailed" }}
+\AtBeginDocument{\setdensityrelaxed}
+{{- end }}
+{{- if eq (default "classic" .Layout.Typography) "modern" }}
+\AtBeginDocument{\settypographymodern}
+{{- else if eq .Layout.Typography "elegant" }}
+\AtBeginDocument{\settypographyelegant}
+{{- end }}
+{{- end }}
+
 \begin{document}
 
 % ============================================================================
@@ -19,17 +32,48 @@
 {{- end }}
 }
 
-% ============================================================================
-% EXPERIENCE
-% ============================================================================
+{{/* ============================================================================
+     SECTION DEFINITIONS
+     ============================================================================ */}}
+
+{{- define "latex-section-summary" -}}
+{{- if .Summary }}
+
+% SUMMARY
+\section*{Professional Summary}
+{{ escape .Summary }}
+{{- end }}
+{{- end -}}
+
+{{- define "latex-section-certifications" -}}
+{{- if .Certifications }}
+{{- if .Certifications.Items }}
+
+% CERTIFICATIONS
+\section*{{ "{" }}{{ default "Certifications" .Certifications.Title }}{{ "}" }}
+\begin{itemize}
+{{- range .Certifications.Items }}
+    \item {{ escape .Name }}{{- if .Issuer }} --- {{ escape .Issuer }}{{- end }}{{- if .Notes }} ({{ escape .Notes }}){{- end }}
+{{- end }}
+\end{itemize}
+{{- end }}
+{{- end }}
+{{- end -}}
+
+{{- define "latex-section-experience" -}}
 {{- if .Experience.Positions }}
+
+% EXPERIENCE
 \section*{{ "{" }}{{ default "Experience" .Experience.Title }}{{ "}" }}
 {{- range .Experience.Positions }}
 {{- if .Location }}
-% User req: Location hidden by default. Use resumeentry (Title, Company, Dates)
 \resumeentry{ {{- escape .Title -}} }{ {{- escape .Company -}} }{ {{- fmtDates .Dates -}} }
 {{- else }}
 \resumeentry{ {{- escape .Title -}} }{ {{- escape .Company -}} }{ {{- fmtDates .Dates -}} }
+{{- end }}
+{{- if .Technologies }}
+\vspace{1pt}
+\noindent\textit{ {{- formatList .Technologies -}} }
 {{- end }}
 {{- $high := filterEmpty .Highlights }}
 {{- if $high }}
@@ -41,11 +85,12 @@
 {{- end }}
 {{- end }}
 {{- end }}
+{{- end -}}
 
-% ============================================================================
-% EDUCATION
-% ============================================================================
+{{- define "latex-section-education" -}}
 {{- if .Education.Institutions }}
+
+% EDUCATION
 \section*{{ "{" }}{{ default "Education" .Education.Title }}{{ "}" }}
 {{- range .Education.Institutions }}
 {{- if .Location }}
@@ -80,11 +125,12 @@
 {{- end }}
 {{- end }}
 {{- end }}
+{{- end -}}
 
-% ============================================================================
-% SKILLS
-% ============================================================================
+{{- define "latex-section-skills" -}}
 {{- if .Skills.Categories }}
+
+% SKILLS
 \section*{{ "{" }}{{ default "Skills" .Skills.Title }}{{ "}" }}
 \begin{description}
 {{- range .Skills.Categories }}
@@ -92,18 +138,22 @@
 {{- end }}
 \end{description}
 {{- end }}
+{{- end -}}
 
-% ============================================================================
-% PROJECTS
-% ============================================================================
+{{- define "latex-section-projects" -}}
 {{- if .Projects }}
 {{- if .Projects.Projects }}
+
+% PROJECTS
 \section*{{ "{" }}{{ default "Projects" .Projects.Title }}{{ "}" }}
 {{- range .Projects.Projects }}
 {{- if .Link.URI }}
 \noindent \textbf{ {{ escape .Name }} } \hfill \href{ {{- .Link.URI -}} }{ {{- extractDisplayURL .Link.URI -}} } \par
 {{- else }}
 \noindent \textbf{ {{ escape .Name }} } \par
+{{- end }}
+{{- if .Technologies }}
+\noindent\textit{ {{- formatList .Technologies -}} }
 {{- end }}
 {{- $high := filterEmpty .Highlights }}
 {{- if $high }}
@@ -116,5 +166,47 @@
 {{- end }}
 {{- end }}
 {{- end }}
+{{- end -}}
+
+{{- define "latex-section-languages" -}}
+{{- if .Languages }}
+{{- if .Languages.Languages }}
+
+% LANGUAGES
+\section*{{ "{" }}{{ default "Languages" .Languages.Title }}{{ "}" }}
+\begin{itemize}
+{{- range .Languages.Languages }}
+    \item {{ escape .Name }}{{- if .Proficiency }} --- {{ escape .Proficiency }}{{- end }}
+{{- end }}
+\end{itemize}
+{{- end }}
+{{- end }}
+{{- end -}}
+
+{{/* ============================================================================
+     SECTION DISPATCH
+     ============================================================================ */}}
+
+{{- if and .Layout .Layout.Sections -}}
+{{- $root := . -}}
+{{- range .Layout.Sections -}}
+{{- if eq . "summary"}}{{template "latex-section-summary" $root}}
+{{- else if eq . "certifications"}}{{template "latex-section-certifications" $root}}
+{{- else if eq . "experience"}}{{template "latex-section-experience" $root}}
+{{- else if eq . "education"}}{{template "latex-section-education" $root}}
+{{- else if eq . "skills"}}{{template "latex-section-skills" $root}}
+{{- else if eq . "projects"}}{{template "latex-section-projects" $root}}
+{{- else if eq . "languages"}}{{template "latex-section-languages" $root}}
+{{- end}}
+{{- end}}
+{{- else -}}
+{{template "latex-section-summary" .}}
+{{template "latex-section-certifications" .}}
+{{template "latex-section-experience" .}}
+{{template "latex-section-education" .}}
+{{template "latex-section-skills" .}}
+{{template "latex-section-projects" .}}
+{{template "latex-section-languages" .}}
+{{- end}}
 
 \end{document}

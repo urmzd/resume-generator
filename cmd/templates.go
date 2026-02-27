@@ -46,11 +46,15 @@ var templatesListCmd = &cobra.Command{
 		// Group by type
 		htmlTemplates := []generators.Template{}
 		latexTemplates := []generators.Template{}
+		markdownTemplates := []generators.Template{}
 
 		for _, tmpl := range templates {
-			if tmpl.Type == generators.TemplateTypeHTML {
+			switch tmpl.Type {
+			case generators.TemplateTypeHTML:
 				htmlTemplates = append(htmlTemplates, tmpl)
-			} else {
+			case generators.TemplateTypeMarkdown:
+				markdownTemplates = append(markdownTemplates, tmpl)
+			default:
 				latexTemplates = append(latexTemplates, tmpl)
 			}
 		}
@@ -63,7 +67,7 @@ var templatesListCmd = &cobra.Command{
 				if name == "" {
 					name = tmpl.Name
 				}
-				fmt.Printf("  📄 %s (%s)\n", name, tmpl.Name)
+				fmt.Printf("  %s (%s)\n", name, tmpl.Name)
 				if tmpl.Description != "" {
 					fmt.Printf("      %s\n", tmpl.Description)
 				}
@@ -79,7 +83,23 @@ var templatesListCmd = &cobra.Command{
 				if name == "" {
 					name = tmpl.Name
 				}
-				fmt.Printf("  📝 %s (%s)\n", name, tmpl.Name)
+				fmt.Printf("  %s (%s)\n", name, tmpl.Name)
+				if tmpl.Description != "" {
+					fmt.Printf("      %s\n", tmpl.Description)
+				}
+			}
+			fmt.Println()
+		}
+
+		// Display Markdown templates
+		if len(markdownTemplates) > 0 {
+			fmt.Println("Markdown Templates:")
+			for _, tmpl := range markdownTemplates {
+				name := tmpl.DisplayName
+				if name == "" {
+					name = tmpl.Name
+				}
+				fmt.Printf("  %s (%s)\n", name, tmpl.Name)
 				if tmpl.Description != "" {
 					fmt.Printf("      %s\n", tmpl.Description)
 				}
@@ -90,6 +110,7 @@ var templatesListCmd = &cobra.Command{
 		fmt.Println("Usage:")
 		fmt.Println("  resume-generator run -i resume.yml -t modern-html")
 		fmt.Println("  resume-generator run -i resume.yml -t modern-latex")
+		fmt.Println("  resume-generator run -i resume.yml -t modern-markdown")
 	},
 }
 
@@ -144,6 +165,12 @@ var templatesValidateCmd = &cobra.Command{
 				fmt.Println("Warning: Template doesn't appear to use Go template syntax")
 			}
 			fmt.Println("✓ LaTeX template appears valid")
+
+		case ".md":
+			if !strings.Contains(templateStr, "{{") {
+				fmt.Println("Warning: Template doesn't appear to use Go template syntax")
+			}
+			fmt.Println("OK Markdown template appears valid")
 
 		default:
 			fmt.Printf("Warning: Unknown template type: %s\n", ext)

@@ -1,3 +1,181 @@
+{{define "section-summary"}}
+{{if .Summary}}
+<div class="section summary">
+    <div class="section-title">Professional Summary</div>
+    <p>{{.Summary}}</p>
+</div>
+{{end}}
+{{end}}
+
+{{define "section-certifications"}}
+{{if .Certifications}}
+{{if .Certifications.Items}}
+<div class="section">
+    <div class="section-title">{{default "Certifications" .Certifications.Title}}</div>
+    <ul class="cert-list">
+        {{range .Certifications.Items}}
+        <li>
+            {{- .Name -}}
+            {{- if .Issuer}} — {{.Issuer}}{{end -}}
+            {{- if .Notes}} ({{.Notes}}){{end -}}
+        </li>
+        {{end}}
+    </ul>
+</div>
+{{end}}
+{{end}}
+{{end}}
+
+{{define "section-education"}}
+{{if .Education.Institutions}}
+<div class="section">
+    <div class="section-title">{{default "Education" .Education.Title}}</div>
+    <table class="education-table">
+        {{range .Education.Institutions}}
+        <tr>
+            <td class="institution">
+                {{.Institution}}
+                {{- if .Degree.Name}}, {{.Degree.Name}}{{end -}}
+                {{- if .GPA}}{{$gpa := formatGPA .GPA}}{{if $gpa}} <span class="details">(GPA: {{$gpa}})</span>{{end}}{{end -}}
+            </td>
+            <td class="dates">{{fmtDateRange .Dates}}</td>
+        </tr>
+        {{- $descriptions := filterEmpty .Degree.Descriptions -}}
+        {{- if $descriptions }}
+        <tr>
+            <td colspan="2">
+                <ul class="education-details">
+                    {{- range $descriptions}}<li>{{.}}</li>{{- end}}
+                </ul>
+            </td>
+        </tr>
+        {{- end }}
+        {{if .Thesis}}
+        <tr>
+            <td colspan="2">
+                <ul class="job-duties">
+                    {{if .Thesis.Title}}
+                    <li>Thesis: {{.Thesis.Title}}
+                        {{- if .Thesis.Link.URI}} <a href="{{.Thesis.Link.URI}}">{{if .Thesis.Link.Label}}{{.Thesis.Link.Label}}{{else}}{{.Thesis.Link.URI}}{{end}}</a>{{end -}}
+                    </li>
+                    {{end}}
+                    {{range .Thesis.Highlights}}
+                    <li>{{.}}</li>
+                    {{end}}
+                </ul>
+            </td>
+        </tr>
+        {{end}}
+        {{end}}
+    </table>
+</div>
+{{end}}
+{{end}}
+
+{{define "section-skills"}}
+{{if .Skills.Categories}}
+<div class="section">
+    <div class="section-title">{{default "Skills" .Skills.Title}}</div>
+    <ul class="skills-list">
+        {{range .Skills.Categories}}
+        <li><strong>{{.Category}}:</strong> {{formatList .Items}}</li>
+        {{end}}
+    </ul>
+</div>
+{{end}}
+{{end}}
+
+{{define "section-experience"}}
+{{if .Experience.Positions}}
+<div class="section">
+    <div class="section-title">{{default "Experience" .Experience.Title}}</div>
+    {{range .Experience.Positions}}
+    <div class="job">
+        <div class="job-header">
+            <div class="job-title">{{.Title}}</div>
+            <div class="job-dates">{{fmtDateRange .Dates}}</div>
+        </div>
+        {{if or .Company .Location}}
+        <div class="job-company">
+            {{- if .Company}}{{.Company}}{{end -}}
+            {{- if and .Company .Location}} | {{end -}}
+            {{- if .Location}}{{formatLocation .Location}}{{end -}}
+        </div>
+        {{end}}
+
+        {{if .Technologies}}
+        <div class="job-technologies"><em>{{formatList .Technologies}}</em></div>
+        {{end}}
+
+        {{$high := filterEmpty .Highlights}}
+        {{if $high}}
+        <ul class="job-duties">
+            {{range $high}}
+            <li>{{.}}</li>
+            {{end}}
+        </ul>
+        {{end}}
+    </div>
+    {{end}}
+</div>
+{{end}}
+{{end}}
+
+{{define "section-projects"}}
+{{if .Projects}}
+{{if .Projects.Projects}}
+<div class="section">
+    <div class="section-title">{{default "Projects" .Projects.Title}}</div>
+    {{range .Projects.Projects}}
+    <div class="project">
+        <div class="project-header">
+            <div class="project-name">{{.Name}}</div>
+            {{if .Dates}}<div class="project-dates">{{fmtOptDateRange .Dates}}</div>{{end}}
+        </div>
+
+        {{if .Technologies}}
+        <div class="job-technologies"><em>{{formatList .Technologies}}</em></div>
+        {{end}}
+
+        {{$high := filterEmpty .Highlights}}
+        {{if $high}}
+        <ul class="project-description">
+            {{range $high}}
+            <li>{{.}}</li>
+            {{end}}
+        </ul>
+        {{end}}
+
+        {{if .Link.URI}}
+        <ul class="project-links">
+            <li><a href="{{.Link.URI}}">{{if .Link.Label}}{{.Link.Label}}{{else}}{{.Link.URI}}{{end}}</a></li>
+        </ul>
+        {{end}}
+    </div>
+    {{end}}
+</div>
+{{end}}
+{{end}}
+{{end}}
+
+{{define "section-languages"}}
+{{if .Languages}}
+{{if .Languages.Languages}}
+<div class="section">
+    <div class="section-title">{{default "Languages" .Languages.Title}}</div>
+    <ul class="lang-list">
+        {{range .Languages.Languages}}
+        <li>
+            {{- .Name -}}
+            {{- if .Proficiency}} — {{.Proficiency}}{{end -}}
+        </li>
+        {{end}}
+    </ul>
+</div>
+{{end}}
+{{end}}
+{{end}}
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -6,6 +184,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Contact.Name}} Resume</title>
     <style>
+        /* ================================================================
+           DENSITY: CSS Custom Properties
+           ================================================================ */
+        :root {
+            /* Standard (default) */
+            --body-font-size: 11pt;
+            --body-line-height: 1.4;
+            --page-margin: 0.5in;
+            --section-margin-bottom: 16px;
+            --job-margin-bottom: 12px;
+            --list-item-margin: 2px;
+            --header-name-size: 18pt;
+            --section-title-size: 12pt;
+        }
+
+        .density-compact {
+            --body-font-size: 9.5pt;
+            --body-line-height: 1.25;
+            --page-margin: 0.35in;
+            --section-margin-bottom: 8px;
+            --job-margin-bottom: 6px;
+            --list-item-margin: 0px;
+            --header-name-size: 14pt;
+            --section-title-size: 10pt;
+        }
+
+        .density-detailed {
+            --body-font-size: 12pt;
+            --body-line-height: 1.55;
+            --page-margin: 0.75in;
+            --section-margin-bottom: 28px;
+            --job-margin-bottom: 22px;
+            --list-item-margin: 4px;
+            --header-name-size: 22pt;
+            --section-title-size: 13pt;
+        }
+
+        /* ================================================================
+           TYPOGRAPHY
+           ================================================================ */
+        .typo-classic {
+            --heading-font: 'Times New Roman', Georgia, serif;
+            --body-font: 'Times New Roman', Georgia, serif;
+        }
+
+        .typo-modern {
+            --heading-font: 'Calibri', 'Helvetica Neue', Arial, sans-serif;
+            --body-font: 'Calibri', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .typo-elegant {
+            --heading-font: 'Garamond', 'Palatino', 'Palatino Linotype', Georgia, serif;
+            --body-font: 'Gill Sans', 'Calibri', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* ================================================================
+           BASE STYLES
+           ================================================================ */
         @page {
             size: 8.5in 11in;
             margin: 0;
@@ -25,14 +261,13 @@
             }
 
             body {
-                padding: 0.5in !important;
+                padding: var(--page-margin) !important;
             }
 
             .no-print {
                 display: none;
             }
 
-            /* Keep section titles and single jobs together on a page when possible. */
             .section-title {
                 break-after: avoid;
                 page-break-after: avoid;
@@ -49,39 +284,41 @@
         }
 
         body {
-            font-family: 'Times New Roman', serif;
-            font-size: 11pt;
-            line-height: 1.4;
+            font-family: var(--body-font);
+            font-size: var(--body-font-size);
+            line-height: var(--body-line-height);
             max-width: 8.5in;
             margin: 0 auto;
-            padding: 0.5in;
+            padding: var(--page-margin);
             background: white;
             color: #000;
             overflow-wrap: anywhere;
         }
 
+        /* ================================================================
+           HEADER VARIANTS
+           ================================================================ */
         .header {
-            text-align: center;
-            border-bottom: 2px solid #000;
             padding-bottom: 10px;
-            margin-bottom: 20px;
+            margin-bottom: var(--section-margin-bottom);
         }
 
         .header h1 {
-            font-size: 18pt;
+            font-family: var(--heading-font);
+            font-size: var(--header-name-size);
             font-weight: bold;
             margin: 0 0 5px 0;
             text-transform: uppercase;
         }
 
         .header .title {
-            font-size: 12pt;
+            font-size: calc(var(--section-title-size));
             font-style: italic;
             margin: 0 0 5px 0;
         }
 
         .header .contact {
-            font-size: 11pt;
+            font-size: var(--body-font-size);
             margin: 0;
         }
 
@@ -94,21 +331,67 @@
             text-decoration: underline;
         }
 
+        /* Centered (default) */
+        .header-centered .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+        }
+
+        /* Split: name left, contact stacked right */
+        .header-split .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #000;
+        }
+
+        .header-split .header-left h1 {
+            text-align: left;
+        }
+
+        .header-split .header-right {
+            text-align: right;
+        }
+
+        .header-split .header-right .contact {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .header-split .header-right .contact-item {
+            white-space: nowrap;
+        }
+
+        /* Minimal: name left, no border, subdued contact */
+        .header-minimal .header {
+            text-align: left;
+            border-bottom: none;
+        }
+
+        .header-minimal .header .contact {
+            color: #444;
+        }
+
+        /* ================================================================
+           SECTIONS
+           ================================================================ */
         .section {
-            margin-bottom: 20px;
+            margin-bottom: var(--section-margin-bottom);
         }
 
         .section-title {
-            font-size: 12pt;
+            font-family: var(--heading-font);
+            font-size: var(--section-title-size);
             font-weight: bold;
             text-transform: uppercase;
             border-bottom: 1px solid #000;
-            margin-bottom: 12px;
+            margin-bottom: calc(var(--section-margin-bottom) * 0.75);
             padding-bottom: 2px;
         }
 
         .summary {
-            margin-bottom: 20px;
+            margin-bottom: var(--section-margin-bottom);
         }
 
         .summary p {
@@ -116,6 +399,9 @@
             text-align: justify;
         }
 
+        /* ================================================================
+           EDUCATION
+           ================================================================ */
         .education-table {
             width: 100%;
             border-collapse: collapse;
@@ -147,24 +433,36 @@
         }
 
         .education-details li {
-            margin-bottom: 2px;
+            margin-bottom: var(--list-item-margin);
         }
 
+        /* ================================================================
+           SKILLS
+           ================================================================ */
         .skills-list {
             margin: 0;
             padding-left: 20px;
         }
 
         .skills-list li {
-            margin-bottom: 4px;
+            margin-bottom: var(--list-item-margin);
         }
 
         .skills-list strong {
             font-weight: bold;
         }
 
+        /* Two-column skills */
+        .skills-columns .skills-list {
+            column-count: 2;
+            column-gap: 2em;
+        }
+
+        /* ================================================================
+           EXPERIENCE / JOBS
+           ================================================================ */
         .job {
-            margin-bottom: 15px;
+            margin-bottom: var(--job-margin-bottom);
         }
 
         .job-header {
@@ -176,17 +474,22 @@
 
         .job-title {
             font-weight: bold;
-            font-size: 11pt;
+            font-size: var(--body-font-size);
         }
 
         .job-dates {
             font-weight: bold;
-            font-size: 11pt;
+            font-size: var(--body-font-size);
         }
 
         .job-company {
             font-style: italic;
             margin-bottom: 5px;
+        }
+
+        .job-technologies {
+            margin-bottom: 4px;
+            font-size: calc(var(--body-font-size) - 0.5pt);
         }
 
         .job-duties {
@@ -195,11 +498,14 @@
         }
 
         .job-duties li {
-            margin-bottom: 2px;
+            margin-bottom: var(--list-item-margin);
         }
 
+        /* ================================================================
+           PROJECTS
+           ================================================================ */
         .project {
-            margin-bottom: 15px;
+            margin-bottom: var(--job-margin-bottom);
         }
 
         .project-header {
@@ -211,12 +517,12 @@
 
         .project-name {
             font-weight: bold;
-            font-size: 11pt;
+            font-size: var(--body-font-size);
         }
 
         .project-dates {
             font-weight: bold;
-            font-size: 11pt;
+            font-size: var(--body-font-size);
         }
 
         .project-meta {
@@ -230,7 +536,7 @@
         }
 
         .project-description li {
-            margin-bottom: 2px;
+            margin-bottom: var(--list-item-margin);
         }
 
         .project-links {
@@ -252,15 +558,33 @@
             text-decoration: underline;
         }
 
+        /* ================================================================
+           CERTIFICATIONS
+           ================================================================ */
         .cert-list {
             margin: 0;
             padding-left: 20px;
         }
 
         .cert-list li {
-            margin-bottom: 4px;
+            margin-bottom: var(--list-item-margin);
         }
 
+        /* ================================================================
+           LANGUAGES
+           ================================================================ */
+        .lang-list {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .lang-list li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+        /* ================================================================
+           RESPONSIVE / SCREEN
+           ================================================================ */
         @media screen {
             body {
                 box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -288,151 +612,62 @@
     </style>
 </head>
 
-<body>
+<body class="{{layoutClass .Layout}}">
     <div class="header">
-        <h1>{{.Contact.Name}}</h1>
-        <p class="contact">
-            {{- $sep := false -}}
-            {{- if .Contact.Email -}}
-            {{if $sep}} | {{end}}<a href="mailto:{{.Contact.Email}}">{{.Contact.Email}}</a>
-            {{- $sep = true -}}
-            {{- end -}}
-
-            {{- if .Contact.Phone -}}
-            {{if $sep}} | {{end}}<a href="tel:{{sanitizePhone .Contact.Phone}}">{{.Contact.Phone}}</a>
-            {{- $sep = true -}}
-            {{- end -}}
-
-            {{- if .Contact.Location -}}
-            {{- $loc := formatLocation .Contact.Location -}}
-            {{- if $loc -}}
-            {{if $sep}} | {{end}}{{$loc}}
-            {{- $sep = true -}}
-            {{- end -}}
-            {{- end -}}
-
-            {{- range .Contact.Links -}}
-            {{- if .URI -}}
-            {{if $sep}} | {{end}}<a href="{{.URI}}">{{.URI}}</a>
-            {{- $sep = true -}}
-            {{- end -}}
-            {{- end -}}
-        </p>
-    </div>
-
-    {{if .Education.Institutions}}
-    <div class="section">
-        <div class="section-title">{{default "Education" .Education.Title}}</div>
-        <table class="education-table">
-            {{range .Education.Institutions}}
-            <tr>
-                <td class="institution">
-                    {{.Institution}}
-                    {{- if .Degree.Name}}, {{.Degree.Name}}{{end -}}
-                    {{- if .GPA}}{{$gpa := formatGPA .GPA}}{{if $gpa}} <span class="details">(GPA: {{$gpa}})</span>{{end}}{{end -}}
-                </td>
-                <td class="dates">{{fmtDateRange .Dates}}</td>
-            </tr>
-            {{- $descriptions := filterEmpty .Degree.Descriptions -}}
-            {{- if $descriptions }}
-            <tr>
-                <td colspan="2">
-                    <ul class="education-details">
-                        {{- range $descriptions}}<li>{{.}}</li>{{- end}}
-                    </ul>
-                </td>
-            </tr>
-            {{- end }}
-            {{if .Thesis}}
-            <tr>
-                <td colspan="2">
-                    <ul class="job-duties">
-                        {{if .Thesis.Title}}
-                        <li>Thesis: {{.Thesis.Title}}
-                            {{- if .Thesis.Link.URI}} <a href="{{.Thesis.Link.URI}}">({{.Thesis.Link.URI}})</a>{{end -}}
-                        </li>
-                        {{end}}
-                        {{range .Thesis.Highlights}}
-                        <li>{{.}}</li>
-                        {{end}}
-                    </ul>
-                </td>
-            </tr>
-            {{end}}
-            {{end}}
-        </table>
-    </div>
-    {{end}}
-
-    {{if .Skills.Categories}}
-    <div class="section">
-        <div class="section-title">{{default "Skills" .Skills.Title}}</div>
-        <ul class="skills-list">
-            {{range .Skills.Categories}}
-            <li><strong>{{.Category}}:</strong> {{formatList .Items}}</li>
-            {{end}}
-        </ul>
-    </div>
-    {{end}}
-
-    {{if .Experience.Positions}}
-    <div class="section">
-        <div class="section-title">{{default "Experience" .Experience.Title}}</div>
-        {{range .Experience.Positions}}
-        <div class="job">
-            <div class="job-header">
-                <div class="job-title">{{.Title}}</div>
-                <div class="job-dates">{{fmtDateRange .Dates}}</div>
-            </div>
-            {{if or .Company .Location}}
-            <div class="job-company">
-                {{- if .Company}}{{.Company}}{{end -}}
-                {{- if and .Company .Location}} | {{end -}}
-                {{- if .Location}}{{formatLocation .Location}}{{end -}}
-            </div>
-            {{end}}
-
-            {{$high := filterEmpty .Highlights}}
-            {{if $high}}
-            <ul class="job-duties">
-                {{range $high}}
-                <li>{{.}}</li>
-                {{end}}
-            </ul>
-            {{end}}
+        <div class="header-left">
+            <h1>{{.Contact.Name}}</h1>
         </div>
-        {{end}}
-    </div>
-    {{end}}
+        <div class="header-right">
+            <p class="contact">
+                {{- $sep := false -}}
+                {{- if .Contact.Email -}}
+                {{if $sep}} | {{end}}<a href="mailto:{{.Contact.Email}}">{{.Contact.Email}}</a>
+                {{- $sep = true -}}
+                {{- end -}}
 
-    {{if .Projects}}
-    {{if .Projects.Projects}}
-    <div class="section">
-        <div class="section-title">{{default "Projects" .Projects.Title}}</div>
-        {{range .Projects.Projects}}
-        <div class="project">
-            <div class="project-header">
-                <div class="project-name">{{.Name}}</div>
-            </div>
+                {{- if .Contact.Phone -}}
+                {{if $sep}} | {{end}}<a href="tel:{{sanitizePhone .Contact.Phone}}">{{.Contact.Phone}}</a>
+                {{- $sep = true -}}
+                {{- end -}}
 
-            {{$high := filterEmpty .Highlights}}
-            {{if $high}}
-            <ul class="project-description">
-                {{range $high}}
-                <li>{{.}}</li>
-                {{end}}
-            </ul>
-            {{end}}
+                {{- if .Contact.Location -}}
+                {{- $loc := formatLocation .Contact.Location -}}
+                {{- if $loc -}}
+                {{if $sep}} | {{end}}{{$loc}}
+                {{- $sep = true -}}
+                {{- end -}}
+                {{- end -}}
 
-            {{if .Link.URI}}
-            <ul class="project-links">
-                <li><a href="{{.Link.URI}}">{{.Link.URI}}</a></li>
-            </ul>
-            {{end}}
+                {{- range .Contact.Links -}}
+                {{- if .URI -}}
+                {{if $sep}} | {{end}}<a href="{{.URI}}">{{if .Label}}{{.Label}}{{else}}{{.URI}}{{end}}</a>
+                {{- $sep = true -}}
+                {{- end -}}
+                {{- end -}}
+            </p>
         </div>
-        {{end}}
     </div>
-    {{end}}
+
+    {{if and .Layout .Layout.Sections}}
+        {{$root := .}}
+        {{range .Layout.Sections}}
+            {{if eq . "summary"}}{{template "section-summary" $root}}
+            {{else if eq . "certifications"}}{{template "section-certifications" $root}}
+            {{else if eq . "education"}}{{template "section-education" $root}}
+            {{else if eq . "skills"}}{{template "section-skills" $root}}
+            {{else if eq . "experience"}}{{template "section-experience" $root}}
+            {{else if eq . "projects"}}{{template "section-projects" $root}}
+            {{else if eq . "languages"}}{{template "section-languages" $root}}
+            {{end}}
+        {{end}}
+    {{else}}
+        {{template "section-summary" .}}
+        {{template "section-certifications" .}}
+        {{template "section-education" .}}
+        {{template "section-skills" .}}
+        {{template "section-experience" .}}
+        {{template "section-projects" .}}
+        {{template "section-languages" .}}
     {{end}}
 </body>
 
