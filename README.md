@@ -65,6 +65,16 @@ export ROD_BROWSER_BIN="/usr/bin/chromium-browser"
 
 ## Getting Started
 
+### Install (Pre-built Binary)
+
+Download and install the latest release binary to `~/.local/bin`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/urmzd/resume-generator/main/install.sh | bash
+```
+
+Supports **macOS** (Apple Silicon) and **Linux** (x86_64). After installation, run `resume-generator` from anywhere.
+
 ### Quick Start (CLI)
 
 1. **Clone the Repository**
