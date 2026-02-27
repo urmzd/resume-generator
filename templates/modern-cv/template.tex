@@ -71,7 +71,7 @@
 
 {{- define "cv-section-experience" -}}
 {{- if .Experience.Positions }}
-\resumesection{Professional Experience}
+\resumesection{ {{- escape (default "Professional Experience" .Experience.Title) -}} }
 
 {{- range $exp := .Experience.Positions }}
 \needspace{6\baselineskip}
@@ -126,7 +126,7 @@
 
 {{- define "cv-section-education" -}}
 {{- if .Education.Institutions }}
-\resumesection{Education}
+\resumesection{ {{- escape (default "Education" .Education.Title) -}} }
 
 {{- range $edu := .Education.Institutions }}
 \needspace{3\baselineskip}
@@ -171,7 +171,7 @@
 
 {{- define "cv-section-skills" -}}
 {{- if .Skills.Categories }}
-\resumesection{Skills}
+\resumesection{ {{- escape (default "Skills" .Skills.Title) -}} }
 \begin{description}
 {{- range .Skills.Categories }}
     \item[{{ escape .Category }}:] {{ join ", " .Items }}
@@ -183,7 +183,7 @@
 {{- define "cv-section-projects" -}}
 {{- if .Projects }}
 {{- if .Projects.Projects }}
-\resumesection{Projects}
+\resumesection{ {{- escape (default "Projects" .Projects.Title) -}} }
 
 {{- range .Projects.Projects }}
 
