@@ -69,8 +69,16 @@ func LoadResumeFromBytes(data []byte, format string) (InputData, error) {
 		}
 		serializationFmt = "toml"
 
+	case "md", "markdown":
+		parsed, err := parseMarkdown(data)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse Markdown: %w", err)
+		}
+		resumeData = *parsed
+		serializationFmt = "md"
+
 	default:
-		return nil, fmt.Errorf("unsupported format: %s (supported: yaml, yml, json, toml)", format)
+		return nil, fmt.Errorf("unsupported format: %s (supported: yaml, yml, json, toml, md, markdown)", format)
 	}
 
 	// Basic validation

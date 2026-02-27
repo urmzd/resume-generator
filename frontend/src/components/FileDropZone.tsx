@@ -9,7 +9,7 @@ interface FileDropZoneProps {
   error?: string | null;
 }
 
-const ACCEPTED_EXTENSIONS = ["yml", "yaml", "json", "toml"];
+const ACCEPTED_EXTENSIONS = ["yml", "yaml", "json", "toml", "md", "markdown"];
 
 function getExtension(filename: string): string {
   const dot = filename.lastIndexOf(".");
@@ -77,14 +77,14 @@ export default function FileDropZone({ onFile, onOpenNative, error }: FileDropZo
           <div className="text-center">
             <p className="text-sm text-muted-foreground">
               Drag & drop <strong>.yml</strong>, <strong>.yaml</strong>,{" "}
-              <strong>.json</strong>, or <strong>.toml</strong>
+              <strong>.json</strong>, <strong>.toml</strong>, or <strong>.md</strong>
             </p>
             <p className="text-xs text-muted-foreground/70 mt-1">or click to open file picker</p>
           </div>
           <input
             ref={inputRef}
             type="file"
-            accept=".yml,.yaml,.json,.toml"
+            accept=".yml,.yaml,.json,.toml,.md,.markdown"
             className="hidden"
             onChange={(e) => {
               if (e.target.files?.length) handleFile(e.target.files[0]);
