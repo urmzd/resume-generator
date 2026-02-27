@@ -12,9 +12,6 @@ import (
 // latexFormatter provides LaTeX-specific formatting, embedding shared logic from baseFormatter.
 type latexFormatter struct {
 	baseFormatter
-	// autoEscaped is set when all resume string data has been pre-escaped.
-	// When true, EscapeText becomes identity to prevent double-escaping.
-	autoEscaped bool
 }
 
 func newLaTeXFormatter() *latexFormatter {
@@ -36,11 +33,7 @@ var latexEscaper = strings.NewReplacer(
 )
 
 // EscapeText escapes LaTeX special characters.
-// When autoEscaped is set, returns the input unchanged (data is already escaped).
 func (f *latexFormatter) EscapeText(value string) string {
-	if f.autoEscaped {
-		return value
-	}
 	return latexEscaper.Replace(value)
 }
 
