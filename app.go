@@ -74,7 +74,7 @@ func (a *App) OpenFile() (*ParseResult, error) {
 	path, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
 		Title: "Open Resume File",
 		Filters: []runtime.FileFilter{
-			{DisplayName: "Resume Files", Pattern: "*.yml;*.yaml;*.json;*.toml"},
+			{DisplayName: "Resume Files", Pattern: "*.yml;*.yaml;*.json;*.toml;*.md;*.markdown"},
 		},
 	})
 	if err != nil {
@@ -150,6 +150,13 @@ func (a *App) SaveResumeFile() error {
 		var buf bytes.Buffer
 		err = toml.NewEncoder(&buf).Encode(a.resume)
 		data = buf.Bytes()
+	case "md", "markdown":
+		// Markdown input cannot be losslessly serialized back; save as YAML instead
+		data, err = yaml.Marshal(a.resume)
+		if err == nil {
+			a.resumePath = strings.TrimSuffix(a.resumePath, filepath.Ext(a.resumePath)) + ".yml"
+			a.resumeFmt = "yaml"
+		}
 	default:
 		return fmt.Errorf("unsupported format: %s", a.resumeFmt)
 	}

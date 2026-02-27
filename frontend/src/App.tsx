@@ -34,7 +34,7 @@ export default function App() {
     (_data: Uint8Array, format: string) => {
       if (format.startsWith("__invalid:")) {
         const ext = format.replace("__invalid:", "");
-        setError(`Unsupported format ".${ext}". Use .yml, .yaml, .json, or .toml.`);
+        setError(`Unsupported format ".${ext}". Use .yml, .yaml, .json, .toml, or .md.`);
         return;
       }
       handleOpenNative();
