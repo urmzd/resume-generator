@@ -22,6 +22,7 @@ type Layout struct {
 	Header       string   `json:"header,omitempty" yaml:"header,omitempty" toml:"header,omitempty"`
 	Sections     []string `json:"sections,omitempty" yaml:"sections,omitempty" toml:"sections,omitempty"`
 	SkillColumns int      `json:"skill_columns,omitempty" yaml:"skill_columns,omitempty" toml:"skill_columns,omitempty"`
+	References   bool     `json:"references,omitempty" yaml:"references,omitempty" toml:"references,omitempty"`
 }
 
 type LanguageList struct {

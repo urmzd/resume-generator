@@ -70,6 +70,12 @@ func (g *DOCXGenerator) Generate(r *resume.Resume) ([]byte, error) {
 		}
 	}
 
+	if r.Layout != nil && r.Layout.References {
+		doc.AddParagraph() // spacing
+		refPara := doc.AddParagraph().Justification("center")
+		refPara.AddText("References available upon request").Italic().Size("20")
+	}
+
 	var buf bytes.Buffer
 	if _, err := doc.WriteTo(&buf); err != nil {
 		return nil, err

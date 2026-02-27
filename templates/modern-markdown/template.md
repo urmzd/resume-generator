@@ -145,3 +145,9 @@
 {{- template "section-certifications" .}}
 {{- template "section-languages" .}}
 {{- end}}
+{{- if and .Layout .Layout.References }}
+
+---
+
+*References available upon request*
+{{- end }}
