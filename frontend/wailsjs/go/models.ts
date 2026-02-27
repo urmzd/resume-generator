@@ -534,11 +534,12 @@ export namespace resume {
 	    header?: string;
 	    sections?: string[];
 	    skill_columns?: number;
-	
+	    references?: boolean;
+
 	    static createFrom(source: any = {}) {
 	        return new Layout(source);
 	    }
-	
+
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.density = source["density"];
@@ -546,6 +547,7 @@ export namespace resume {
 	        this.header = source["header"];
 	        this.sections = source["sections"];
 	        this.skill_columns = source["skill_columns"];
+	        this.references = source["references"];
 	    }
 	}
 	

@@ -674,6 +674,12 @@
         {{template "section-projects" .}}
         {{template "section-languages" .}}
     {{end}}
+
+    {{if and .Layout .Layout.References}}
+    <div class="references" style="text-align:center; margin-top:var(--section-margin-bottom); font-style:italic;">
+        References available upon request
+    </div>
+    {{end}}
 </body>
 
 </html>
