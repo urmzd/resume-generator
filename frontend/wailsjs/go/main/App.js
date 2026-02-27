@@ -6,6 +6,10 @@ export function GeneratePDF(arg1) {
   return window['go']['main']['App']['GeneratePDF'](arg1);
 }
 
+export function GetResume() {
+  return window['go']['main']['App']['GetResume']();
+}
+
 export function GetTemplates() {
   return window['go']['main']['App']['GetTemplates']();
 }
@@ -28,4 +32,12 @@ export function SavePDF(arg1) {
 
 export function SavePDFToPath(arg1, arg2) {
   return window['go']['main']['App']['SavePDFToPath'](arg1, arg2);
+}
+
+export function SaveResumeFile() {
+  return window['go']['main']['App']['SaveResumeFile']();
+}
+
+export function UpdateResume(arg1) {
+  return window['go']['main']['App']['UpdateResume'](arg1);
 }

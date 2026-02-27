@@ -15,6 +15,7 @@ interface GalleryRenderProps {
   onSavePdf: () => void;
   onSaveNative: () => void;
   getCachedUrl: (name: string) => string | null;
+  invalidateCache: () => void;
 }
 
 interface GalleryContainerProps {
@@ -179,6 +180,14 @@ export default function GalleryContainer({ templates, onError, children }: Galle
     [cacheVersion]
   );
 
+  const invalidateCache = useCallback(() => {
+    cacheRef.current.clear();
+    bgGenerationStarted.current = false;
+    setPdfUrl(null);
+    setCacheVersion((v) => v + 1);
+    generateForTemplate(selectedIndex);
+  }, [selectedIndex, generateForTemplate]);
+
   return (
     <>
       {children({
@@ -193,6 +202,7 @@ export default function GalleryContainer({ templates, onError, children }: Galle
         onSavePdf,
         onSaveNative,
         getCachedUrl,
+        invalidateCache,
       })}
     </>
   );
