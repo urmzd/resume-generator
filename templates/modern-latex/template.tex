@@ -26,6 +26,10 @@
     \sep%
     \phone{ {{- escape .Contact.Phone -}} }%
     {{- end }}
+    {{- if .Contact.Credentials }}
+    \sep%
+    {{ escape .Contact.Credentials }}%
+    {{- end }}
 {{- range .Contact.Links }}
     \sep%
     {{ fmtLinkWithDomain . }}%
@@ -50,7 +54,7 @@
 {{- if .Certifications.Items }}
 
 % CERTIFICATIONS
-\section*{{ "{" }}{{ default "Certifications" .Certifications.Title }}{{ "}" }}
+\section*{{ "{" }}{{ escape (default "Certifications" .Certifications.Title) }}{{ "}" }}
 \begin{itemize}
 {{- range .Certifications.Items }}
     \item {{ escape .Name }}{{- if .Issuer }} --- {{ escape .Issuer }}{{- end }}{{- if .Notes }} ({{ escape .Notes }}){{- end }}
@@ -64,7 +68,7 @@
 {{- if .Experience.Positions }}
 
 % EXPERIENCE
-\section*{{ "{" }}{{ default "Experience" .Experience.Title }}{{ "}" }}
+\section*{{ "{" }}{{ escape (default "Experience" .Experience.Title) }}{{ "}" }}
 {{- range .Experience.Positions }}
 {{- if .Location }}
 \resumeentry{ {{- escape .Title -}} }{ {{- escape .Company -}} }{ {{- fmtDates .Dates -}} }
@@ -91,7 +95,7 @@
 {{- if .Education.Institutions }}
 
 % EDUCATION
-\section*{{ "{" }}{{ default "Education" .Education.Title }}{{ "}" }}
+\section*{{ "{" }}{{ escape (default "Education" .Education.Title) }}{{ "}" }}
 {{- range .Education.Institutions }}
 {{- if .Location }}
 \resumeeducation{ {{- escape .Institution -}} }{ {{- escape .Degree.Name -}} }{ {{- fmtDates .Dates -}} }{ {{- fmtLocation .Location -}} }
@@ -131,7 +135,7 @@
 {{- if .Skills.Categories }}
 
 % SKILLS
-\section*{{ "{" }}{{ default "Skills" .Skills.Title }}{{ "}" }}
+\section*{{ "{" }}{{ escape (default "Skills" .Skills.Title) }}{{ "}" }}
 \begin{description}
 {{- range .Skills.Categories }}
     \item[{{ escape .Category }}:] {{ formatList .Items }}
@@ -145,7 +149,7 @@
 {{- if .Projects.Projects }}
 
 % PROJECTS
-\section*{{ "{" }}{{ default "Projects" .Projects.Title }}{{ "}" }}
+\section*{{ "{" }}{{ escape (default "Projects" .Projects.Title) }}{{ "}" }}
 {{- range .Projects.Projects }}
 {{- if .Link.URI }}
 \noindent \textbf{ {{ escape .Name }} } \hfill \href{ {{- .Link.URI -}} }{ {{- extractDisplayURL .Link.URI -}} } \par
@@ -173,7 +177,7 @@
 {{- if .Languages.Languages }}
 
 % LANGUAGES
-\section*{{ "{" }}{{ default "Languages" .Languages.Title }}{{ "}" }}
+\section*{{ "{" }}{{ escape (default "Languages" .Languages.Title) }}{{ "}" }}
 \begin{itemize}
 {{- range .Languages.Languages }}
     \item {{ escape .Name }}{{- if .Proficiency }} --- {{ escape .Proficiency }}{{- end }}

@@ -40,6 +40,7 @@ export default function GalleryPage({
         selectedTemplate,
         pdfUrl,
         isLoading,
+        pageCount,
         onSelectTemplate,
         onSavePdf,
         onSaveNative,
@@ -68,6 +69,16 @@ export default function GalleryPage({
               <div className="px-4 pt-2">
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              </div>
+            )}
+
+            {pageCount !== null && pageCount > 1 && (
+              <div className="px-4 pt-2">
+                <Alert>
+                  <AlertDescription>
+                    Resume is {pageCount} pages. Consider using a compact density or reducing content to fit on one page.
+                  </AlertDescription>
                 </Alert>
               </div>
             )}

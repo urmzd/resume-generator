@@ -105,6 +105,10 @@
 {{if $sep}} | {{end}}{{.Contact.Phone}}
 {{- $sep = true -}}
 {{- end -}}
+{{- if .Contact.Credentials -}}
+{{if $sep}} | {{end}}{{.Contact.Credentials}}
+{{- $sep = true -}}
+{{- end -}}
 {{- if .Contact.Location -}}
 {{- $loc := fmtLocation .Contact.Location -}}
 {{- if $loc -}}

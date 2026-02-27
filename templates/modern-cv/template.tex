@@ -38,6 +38,7 @@
 {\LARGE\bfseries {{ escape .Contact.Name }}}\\[4pt]
 {{ escape .Contact.Email }}
 {{- if .Contact.Phone }} $|$ {{ escape .Contact.Phone }}{{ end -}}
+{{- if .Contact.Credentials }} $|$ {{ escape .Contact.Credentials }}{{ end -}}
 {{- if .Contact.Links }}\\{{ end }}
 {{- range $i, $link := .Contact.Links }}{{ if $i }} $|$ {{ end }}\url{ {{- $link.URI -}} }{{ end }}
 \end{center}
@@ -58,7 +59,7 @@
 {{- define "cv-section-certifications" -}}
 {{- if .Certifications }}
 {{- if .Certifications.Items }}
-\resumesection{ {{- default "Certifications" .Certifications.Title -}} }
+\resumesection{ {{- escape (default "Certifications" .Certifications.Title) -}} }
 \begin{itemize}[leftmargin=*,nosep]
 {{- range .Certifications.Items }}
 \item {{ escape .Name }}{{- if .Issuer }} --- {{ escape .Issuer }}{{- end }}{{- if .Notes }} ({{ escape .Notes }}){{- end }}
@@ -209,7 +210,7 @@
 {{- define "cv-section-languages" -}}
 {{- if .Languages }}
 {{- if .Languages.Languages }}
-\resumesection{ {{- default "Languages" .Languages.Title -}} }
+\resumesection{ {{- escape (default "Languages" .Languages.Title) -}} }
 \begin{itemize}[leftmargin=*,nosep]
 {{- range .Languages.Languages }}
 \item {{ escape .Name }}{{- if .Proficiency }} --- {{ escape .Proficiency }}{{- end }}

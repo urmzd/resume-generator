@@ -60,11 +60,12 @@ type Link struct {
 }
 
 type Contact struct {
-	Name     string    `json:"name" yaml:"name" toml:"name"`
-	Email    string    `json:"email" yaml:"email" toml:"email"`
-	Phone    string    `json:"phone,omitempty" yaml:"phone,omitempty" toml:"phone,omitempty"`
-	Location *Location `json:"location,omitempty" yaml:"location,omitempty" toml:"location,omitempty"`
-	Links    []Link    `json:"links,omitempty" yaml:"links,omitempty" toml:"links,omitempty"`
+	Name        string    `json:"name" yaml:"name" toml:"name"`
+	Email       string    `json:"email" yaml:"email" toml:"email"`
+	Phone       string    `json:"phone,omitempty" yaml:"phone,omitempty" toml:"phone,omitempty"`
+	Credentials string    `json:"credentials,omitempty" yaml:"credentials,omitempty" toml:"credentials,omitempty"`
+	Location    *Location `json:"location,omitempty" yaml:"location,omitempty" toml:"location,omitempty"`
+	Links       []Link    `json:"links,omitempty" yaml:"links,omitempty" toml:"links,omitempty"`
 }
 
 type Skills struct {
