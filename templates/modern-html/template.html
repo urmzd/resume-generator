@@ -43,8 +43,10 @@
         {{- $descriptions := filterEmpty .Degree.Descriptions -}}
         {{- if $descriptions }}
         <tr>
-            <td colspan="2" class="education-subtitle">
-                {{- range $i, $d := $descriptions}}{{if $i}} | {{end}}{{$d}}{{end -}}
+            <td colspan="2">
+                <ul class="education-details">
+                    {{- range $descriptions}}<li>{{.}}</li>{{- end}}
+                </ul>
             </td>
         </tr>
         {{- end }}
@@ -404,6 +406,15 @@
         .education-table .details {
             font-weight: normal;
             font-style: italic;
+        }
+
+        .education-details {
+            margin: 2px 0 0 16px;
+            padding: 0;
+        }
+
+        .education-details li {
+            margin-bottom: var(--list-item-margin);
         }
 
         .education-subtitle {
