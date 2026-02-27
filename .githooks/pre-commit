@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Pre-commit hook: mirrors CI checks locally.
+
+failed=0
+
+# 1. Check gofmt on staged .go files
+staged_go=$(git diff --cached --name-only --diff-filter=ACM -- '*.go' || true)
+if [ -n "$staged_go" ]; then
+    unformatted=$(echo "$staged_go" | xargs gofmt -l 2>/dev/null || true)
+    if [ -n "$unformatted" ]; then
+        echo "gofmt: these files need formatting:"
+        echo "$unformatted"
+        echo "Run: gofmt -w <file>"
+        failed=1
+    fi
+fi
+
+# 2. Run tests
+if ! go test ./... > /dev/null 2>&1; then
+    echo "go test ./... failed"
+    failed=1
+fi
+
+exit $failed
