@@ -85,12 +85,19 @@ jobs:
         include:
           - os: macos-latest
             platform: darwin
-            artifact: resume-generator.app
+            build: wails
+            artifact: resume-generator-darwin.zip
           - os: ubuntu-latest
-            platform: linux
-            artifact: resume-generator
+            platform: linux-gnu
+            build: wails
+            artifact: resume-generator-gnu
+          - os: ubuntu-latest
+            platform: linux-musl
+            build: static
+            artifact: resume-generator-musl
           - os: windows-latest
             platform: windows
+            build: wails
             artifact: resume-generator.exe
     steps:
       - uses: actions/checkout@v4
@@ -106,22 +113,33 @@ jobs:
           node-version: '22'
 
       - name: Install Wails CLI
+        if: matrix.build == 'wails'
         run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
       - name: Install Linux dependencies
-        if: matrix.platform == 'linux'
+        if: matrix.platform == 'linux-gnu'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
 
-      - name: Build desktop app
+      - name: Build desktop app (Wails)
+        if: matrix.build == 'wails'
         shell: bash
         run: >
           wails build -trimpath
-          ${{ matrix.platform == 'linux' && '-tags webkit2_41' || '' }}
+          ${{ matrix.platform == 'linux-gnu' && '-tags webkit2_41' || '' }}
           -ldflags "-X main.version=${{ needs.release.outputs.version }}
           -X main.commit=${{ github.sha }}
           -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+      - name: Build static CLI binary (musl)
+        if: matrix.build == 'static'
+        shell: bash
+        run: |
+          cd frontend && npm install && npm run build && cd ..
+          CGO_ENABLED=0 go build -trimpath \
+            -ldflags "-X main.version=${{ needs.release.outputs.version }} -X main.commit=${{ github.sha }} -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            -o build/bin/resume-generator-musl .
 
       - name: Package macOS app
         if: matrix.platform == 'darwin'
@@ -133,11 +151,19 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload "${{ needs.release.outputs.tag }}" "build/bin/resume-generator-darwin.zip" --clobber
 
-      - name: Upload to release (Linux)
-        if: matrix.platform == 'linux'
+      - name: Upload to release (Linux GNU)
+        if: matrix.platform == 'linux-gnu'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ needs.release.outputs.tag }}" "build/bin/resume-generator" --clobber
+        run: |
+          mv build/bin/resume-generator build/bin/resume-generator-gnu
+          gh release upload "${{ needs.release.outputs.tag }}" "build/bin/resume-generator-gnu" --clobber
+
+      - name: Upload to release (Linux musl)
+        if: matrix.platform == 'linux-musl'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ needs.release.outputs.tag }}" "build/bin/resume-generator-musl" --clobber
 
       - name: Upload to release (Windows)
         if: matrix.platform == 'windows'

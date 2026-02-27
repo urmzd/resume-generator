@@ -49,7 +49,8 @@ if [ "$PLATFORM" = "darwin" ]; then
   unzip -q "$TMPDIR_INSTALL/resume-generator-darwin.zip" -d "$TMPDIR_INSTALL"
   BINARY="$TMPDIR_INSTALL/resume-generator.app/Contents/MacOS/resume-generator"
 else
-  ASSET_URL="https://github.com/$REPO/releases/download/$TAG/resume-generator"
+  VARIANT="${RESUME_GENERATOR_VARIANT:-musl}"
+  ASSET_URL="https://github.com/$REPO/releases/download/$TAG/resume-generator-${VARIANT}"
   echo "Downloading $ASSET_URL..."
   curl -fsSL -o "$TMPDIR_INSTALL/resume-generator" "$ASSET_URL"
   BINARY="$TMPDIR_INSTALL/resume-generator"
