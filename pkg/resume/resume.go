@@ -5,11 +5,45 @@ import (
 )
 
 type Resume struct {
-	Contact    Contact        `json:"contact" yaml:"contact" toml:"contact"`
-	Skills     Skills         `json:"skills" yaml:"skills" toml:"skills"`
-	Experience ExperienceList `json:"experience" yaml:"experience" toml:"experience"`
-	Projects   *ProjectList   `json:"projects,omitempty" yaml:"projects,omitempty" toml:"projects,omitempty"`
-	Education  EducationList  `json:"education" yaml:"education" toml:"education"`
+	Contact        Contact         `json:"contact" yaml:"contact" toml:"contact"`
+	Summary        string          `json:"summary,omitempty" yaml:"summary,omitempty" toml:"summary,omitempty"`
+	Certifications *Certifications `json:"certifications,omitempty" yaml:"certifications,omitempty" toml:"certifications,omitempty"`
+	Skills         Skills          `json:"skills" yaml:"skills" toml:"skills"`
+	Experience     ExperienceList  `json:"experience" yaml:"experience" toml:"experience"`
+	Projects       *ProjectList    `json:"projects,omitempty" yaml:"projects,omitempty" toml:"projects,omitempty"`
+	Education      EducationList   `json:"education" yaml:"education" toml:"education"`
+	Languages      *LanguageList   `json:"languages,omitempty" yaml:"languages,omitempty" toml:"languages,omitempty"`
+	Layout         *Layout         `json:"layout,omitempty" yaml:"layout,omitempty" toml:"layout,omitempty"`
+}
+
+type Layout struct {
+	Density      string   `json:"density,omitempty" yaml:"density,omitempty" toml:"density,omitempty"`
+	Typography   string   `json:"typography,omitempty" yaml:"typography,omitempty" toml:"typography,omitempty"`
+	Header       string   `json:"header,omitempty" yaml:"header,omitempty" toml:"header,omitempty"`
+	Sections     []string `json:"sections,omitempty" yaml:"sections,omitempty" toml:"sections,omitempty"`
+	SkillColumns int      `json:"skill_columns,omitempty" yaml:"skill_columns,omitempty" toml:"skill_columns,omitempty"`
+}
+
+type LanguageList struct {
+	Title     string     `json:"title,omitempty" yaml:"title,omitempty" toml:"title,omitempty"`
+	Languages []Language `json:"languages" yaml:"languages" toml:"languages"`
+}
+
+type Language struct {
+	Name        string `json:"name" yaml:"name" toml:"name"`
+	Proficiency string `json:"proficiency,omitempty" yaml:"proficiency,omitempty" toml:"proficiency,omitempty"`
+}
+
+type Certifications struct {
+	Title string          `json:"title,omitempty" yaml:"title,omitempty" toml:"title,omitempty"`
+	Items []Certification `json:"items" yaml:"items" toml:"items"`
+}
+
+type Certification struct {
+	Name   string     `json:"name" yaml:"name" toml:"name"`
+	Issuer string     `json:"issuer,omitempty" yaml:"issuer,omitempty" toml:"issuer,omitempty"`
+	Notes  string     `json:"notes,omitempty" yaml:"notes,omitempty" toml:"notes,omitempty"`
+	Date   *time.Time `json:"date,omitempty" yaml:"date,omitempty" toml:"date,omitempty"`
 }
 
 type Location struct {
@@ -21,7 +55,8 @@ type Location struct {
 }
 
 type Link struct {
-	URI string `json:"uri" yaml:"uri" toml:"uri"`
+	URI   string `json:"uri" yaml:"uri" toml:"uri"`
+	Label string `json:"label,omitempty" yaml:"label,omitempty" toml:"label,omitempty"`
 }
 
 type Contact struct {
@@ -56,6 +91,7 @@ type Experience struct {
 	Notes          string    `json:"notes,omitempty" yaml:"notes,omitempty" toml:"notes,omitempty"`
 	Dates          DateRange `json:"dates" yaml:"dates" toml:"dates"`
 	Location       *Location `json:"location,omitempty" yaml:"location,omitempty" toml:"location,omitempty"`
+	Technologies   []string  `json:"technologies,omitempty" yaml:"technologies,omitempty" toml:"technologies,omitempty"`
 }
 type ExperienceGroup struct {
 	Name      string `json:"name" yaml:"name" toml:"name"`
@@ -72,9 +108,11 @@ type ProjectList struct {
 	Projects []Project `json:"projects" yaml:"projects" toml:"projects"`
 }
 type Project struct {
-	Name       string   `json:"name" yaml:"name" toml:"name"`
-	Link       Link     `json:"link,omitempty" yaml:"link,omitempty" toml:"link,omitempty"`
-	Highlights []string `json:"highlights,omitempty" yaml:"highlights,omitempty" toml:"highlights,omitempty"`
+	Name         string     `json:"name" yaml:"name" toml:"name"`
+	Link         Link       `json:"link,omitempty" yaml:"link,omitempty" toml:"link,omitempty"`
+	Highlights   []string   `json:"highlights,omitempty" yaml:"highlights,omitempty" toml:"highlights,omitempty"`
+	Dates        *DateRange `json:"dates,omitempty" yaml:"dates,omitempty" toml:"dates,omitempty"`
+	Technologies []string   `json:"technologies,omitempty" yaml:"technologies,omitempty" toml:"technologies,omitempty"`
 }
 
 type EducationList struct {

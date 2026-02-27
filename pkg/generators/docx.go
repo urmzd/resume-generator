@@ -24,15 +24,50 @@ func NewDOCXGenerator(logger *zap.SugaredLogger) *DOCXGenerator {
 }
 
 // Generate creates a DOCX document from the resume and returns it as bytes.
-func (g *DOCXGenerator) Generate(resume *resume.Resume) ([]byte, error) {
+func (g *DOCXGenerator) Generate(r *resume.Resume) ([]byte, error) {
 	doc := docx.New().WithDefaultTheme()
 
-	g.addHeader(doc, resume.Contact)
-	g.addEducation(doc, resume.Education)
-	g.addSkills(doc, resume.Skills)
-	g.addExperience(doc, resume.Experience)
-	if resume.Projects != nil {
-		g.addProjects(doc, *resume.Projects)
+	g.addHeader(doc, r.Contact)
+
+	if r.Layout != nil && len(r.Layout.Sections) > 0 {
+		for _, section := range r.Layout.Sections {
+			switch section {
+			case "summary":
+				g.addSummary(doc, r.Summary)
+			case "certifications":
+				if r.Certifications != nil {
+					g.addCertifications(doc, *r.Certifications)
+				}
+			case "education":
+				g.addEducation(doc, r.Education)
+			case "skills":
+				g.addSkills(doc, r.Skills)
+			case "experience":
+				g.addExperience(doc, r.Experience)
+			case "projects":
+				if r.Projects != nil {
+					g.addProjects(doc, *r.Projects)
+				}
+			case "languages":
+				if r.Languages != nil {
+					g.addLanguages(doc, *r.Languages)
+				}
+			}
+		}
+	} else {
+		g.addSummary(doc, r.Summary)
+		if r.Certifications != nil {
+			g.addCertifications(doc, *r.Certifications)
+		}
+		g.addEducation(doc, r.Education)
+		g.addSkills(doc, r.Skills)
+		g.addExperience(doc, r.Experience)
+		if r.Projects != nil {
+			g.addProjects(doc, *r.Projects)
+		}
+		if r.Languages != nil {
+			g.addLanguages(doc, *r.Languages)
+		}
 	}
 
 	var buf bytes.Buffer
@@ -75,6 +110,62 @@ func (g *DOCXGenerator) addHeader(doc *docx.Docx, contact resume.Contact) {
 	}
 
 	// Add spacing after header
+	doc.AddParagraph()
+}
+
+// addSummary adds the professional summary section.
+func (g *DOCXGenerator) addSummary(doc *docx.Docx, summary string) {
+	if summary == "" {
+		return
+	}
+	g.addSectionHeader(doc, "Professional Summary")
+	para := doc.AddParagraph()
+	para.AddText(summary).Size("22")
+	doc.AddParagraph()
+}
+
+// addCertifications adds the certifications section.
+func (g *DOCXGenerator) addCertifications(doc *docx.Docx, certs resume.Certifications) {
+	if len(certs.Items) == 0 {
+		return
+	}
+	title := certs.Title
+	if title == "" {
+		title = "Certifications"
+	}
+	g.addSectionHeader(doc, title)
+	for _, cert := range certs.Items {
+		bulletPara := doc.AddParagraph()
+		line := cert.Name
+		if cert.Issuer != "" {
+			line += " — " + cert.Issuer
+		}
+		if cert.Notes != "" {
+			line += " (" + cert.Notes + ")"
+		}
+		bulletPara.AddText("• " + line).Size("22")
+	}
+	doc.AddParagraph()
+}
+
+// addLanguages adds the languages section.
+func (g *DOCXGenerator) addLanguages(doc *docx.Docx, languages resume.LanguageList) {
+	if len(languages.Languages) == 0 {
+		return
+	}
+	title := languages.Title
+	if title == "" {
+		title = "Languages"
+	}
+	g.addSectionHeader(doc, title)
+	for _, lang := range languages.Languages {
+		bulletPara := doc.AddParagraph()
+		line := lang.Name
+		if lang.Proficiency != "" {
+			line += " — " + lang.Proficiency
+		}
+		bulletPara.AddText("• " + line).Size("22")
+	}
 	doc.AddParagraph()
 }
 

@@ -18,9 +18,10 @@ import (
 type TemplateType string
 
 const (
-	TemplateTypeLaTeX TemplateType = "latex"
-	TemplateTypeHTML  TemplateType = "html"
-	TemplateTypeDOCX  TemplateType = "docx"
+	TemplateTypeLaTeX    TemplateType = "latex"
+	TemplateTypeHTML     TemplateType = "html"
+	TemplateTypeDOCX     TemplateType = "docx"
+	TemplateTypeMarkdown TemplateType = "markdown"
 )
 
 // Template represents a resume template including metadata from config.yml
@@ -232,6 +233,8 @@ func (g *Generator) GenerateWithTemplate(tmpl *Template, resume *resume.Resume) 
 		return g.renderHTML(string(content), resume)
 	case TemplateTypeLaTeX:
 		return g.renderLaTeX(string(content), resume)
+	case TemplateTypeMarkdown:
+		return g.renderMarkdown(string(content), resume)
 	default:
 		return "", fmt.Errorf("unknown template type: %s", tmpl.Type)
 	}
@@ -247,6 +250,12 @@ func (g *Generator) renderHTML(templateContent string, resume *resume.Resume) (s
 func (g *Generator) renderLaTeX(templateContent string, resume *resume.Resume) (string, error) {
 	latexGen := NewLaTeXGenerator(g.logger)
 	return latexGen.Generate(templateContent, resume)
+}
+
+// renderMarkdown renders a Markdown template
+func (g *Generator) renderMarkdown(templateContent string, resume *resume.Resume) (string, error) {
+	mdGen := NewMarkdownGenerator(g.logger)
+	return mdGen.Generate(templateContent, resume)
 }
 
 // GenerateDOCX generates a DOCX document from the resume.
@@ -267,13 +276,14 @@ func GetTemplateType(templateName string) (TemplateType, error) {
 
 // FormatTemplateName formats a raw template name
 func FormatTemplateName(name string) string {
-	if strings.Contains(name, "-html") || strings.Contains(name, "-latex") {
+	if strings.Contains(name, "-html") || strings.Contains(name, "-latex") || strings.Contains(name, "-markdown") {
 		return name
 	}
 
 	candidates := []string{
 		name + "-html",
 		name + "-latex",
+		name + "-markdown",
 		"modern-html",
 		"modern-latex",
 	}
@@ -374,6 +384,8 @@ func parseTemplateType(format string) (TemplateType, error) {
 		return TemplateTypeLaTeX, nil
 	case string(TemplateTypeDOCX):
 		return TemplateTypeDOCX, nil
+	case string(TemplateTypeMarkdown):
+		return TemplateTypeMarkdown, nil
 	default:
 		return "", fmt.Errorf("unsupported template format: %s", format)
 	}
@@ -389,6 +401,8 @@ func resolveTemplateFilename(tmplType TemplateType, override string) string {
 		return "template.html"
 	case TemplateTypeLaTeX:
 		return "template.tex"
+	case TemplateTypeMarkdown:
+		return "template.md"
 	default:
 		return ""
 	}

@@ -13,6 +13,24 @@
 % Section styling with underline for clear separation
 \newcommand{\resumesection}[1]{\needspace{5\baselineskip}\section*{#1}\vspace{-4pt}\hrule\vspace{6pt}}
 
+{{- if .Layout }}
+{{- if eq (default "standard" .Layout.Density) "compact" }}
+% Compact density overrides
+\geometry{margin=0.5in}
+\setlength{\parskip}{2pt}
+{{- else if eq .Layout.Density "detailed" }}
+% Detailed density overrides
+\geometry{margin=1in}
+\setlength{\parskip}{6pt}
+{{- end }}
+{{- if eq (default "classic" .Layout.Typography) "modern" }}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+{{- else if eq .Layout.Typography "elegant" }}
+\usepackage{charter}
+{{- end }}
+{{- end }}
+
 \begin{document}
 
 % Header
@@ -26,7 +44,32 @@
 
 \vspace{8pt}
 
-% Professional Experience
+{{/* ============================================================================
+     SECTION DEFINITIONS
+     ============================================================================ */}}
+
+{{- define "cv-section-summary" -}}
+{{- if .Summary }}
+\resumesection{Professional Summary}
+{{ escape .Summary }}
+{{- end }}
+{{- end -}}
+
+{{- define "cv-section-certifications" -}}
+{{- if .Certifications }}
+{{- if .Certifications.Items }}
+\resumesection{ {{- default "Certifications" .Certifications.Title -}} }
+\begin{itemize}[leftmargin=*,nosep]
+{{- range .Certifications.Items }}
+\item {{ escape .Name }}{{- if .Issuer }} --- {{ escape .Issuer }}{{- end }}{{- if .Notes }} ({{ escape .Notes }}){{- end }}
+{{- end }}
+\end{itemize}
+{{- end }}
+{{- end }}
+{{- end -}}
+
+{{- define "cv-section-experience" -}}
+{{- if .Experience.Positions }}
 \resumesection{Professional Experience}
 
 {{- range $exp := .Experience.Positions }}
@@ -43,6 +86,11 @@
 {{- if $exp.Notes }}
 
 \textit{Note: {{ escape $exp.Notes }}}
+{{- end }}
+
+{{- if $exp.Technologies }}
+
+\textit{Technologies: {{ join ", " $exp.Technologies }}}
 {{- end }}
 
 {{- $duties := $exp.Duties }}
@@ -72,8 +120,11 @@
 \vspace{6pt plus 4pt minus 2pt}
 \pagebreak[2]
 {{- end }}
+{{- end }}
+{{- end -}}
 
-% Education
+{{- define "cv-section-education" -}}
+{{- if .Education.Institutions }}
 \resumesection{Education}
 
 {{- range $edu := .Education.Institutions }}
@@ -114,8 +165,10 @@
 
 \vspace{6pt plus 4pt minus 2pt}
 {{- end }}
+{{- end }}
+{{- end -}}
 
-% Skills
+{{- define "cv-section-skills" -}}
 {{- if .Skills.Categories }}
 \resumesection{Skills}
 \begin{description}
@@ -124,8 +177,9 @@
 {{- end }}
 \end{description}
 {{- end }}
+{{- end -}}
 
-% Projects
+{{- define "cv-section-projects" -}}
 {{- if .Projects }}
 {{- if .Projects.Projects }}
 \resumesection{Projects}
@@ -134,6 +188,10 @@
 
 \noindent\textbf{ {{- escape .Name -}} }
 {{- if .Link.URI }} --- \url{ {{- .Link.URI -}} }{{ end }}
+{{- if .Technologies }}
+
+\textit{Technologies: {{ join ", " .Technologies }}}
+{{- end }}
 {{- if .Highlights }}
 \begin{itemize}[leftmargin=*,nosep]
 {{- range .Highlights }}
@@ -146,5 +204,45 @@
 {{- end }}
 {{- end }}
 {{- end }}
+{{- end -}}
+
+{{- define "cv-section-languages" -}}
+{{- if .Languages }}
+{{- if .Languages.Languages }}
+\resumesection{ {{- default "Languages" .Languages.Title -}} }
+\begin{itemize}[leftmargin=*,nosep]
+{{- range .Languages.Languages }}
+\item {{ escape .Name }}{{- if .Proficiency }} --- {{ escape .Proficiency }}{{- end }}
+{{- end }}
+\end{itemize}
+{{- end }}
+{{- end }}
+{{- end -}}
+
+{{/* ============================================================================
+     SECTION DISPATCH
+     ============================================================================ */}}
+
+{{- if and .Layout .Layout.Sections -}}
+{{- $root := . -}}
+{{- range .Layout.Sections -}}
+{{- if eq . "summary"}}{{template "cv-section-summary" $root}}
+{{- else if eq . "certifications"}}{{template "cv-section-certifications" $root}}
+{{- else if eq . "experience"}}{{template "cv-section-experience" $root}}
+{{- else if eq . "education"}}{{template "cv-section-education" $root}}
+{{- else if eq . "skills"}}{{template "cv-section-skills" $root}}
+{{- else if eq . "projects"}}{{template "cv-section-projects" $root}}
+{{- else if eq . "languages"}}{{template "cv-section-languages" $root}}
+{{- end}}
+{{- end}}
+{{- else -}}
+{{template "cv-section-summary" .}}
+{{template "cv-section-certifications" .}}
+{{template "cv-section-experience" .}}
+{{template "cv-section-education" .}}
+{{template "cv-section-skills" .}}
+{{template "cv-section-projects" .}}
+{{template "cv-section-languages" .}}
+{{- end}}
 
 \end{document}

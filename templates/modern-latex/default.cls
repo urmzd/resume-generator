@@ -212,6 +212,36 @@
 }
 
 % ============================================================================
+% DENSITY COMMANDS
+% ============================================================================
+\newcommand{\setdensitycompact}{%
+    \newgeometry{left=0.3in,right=0.3in,top=0.15in,bottom=0.2in}%
+    \setlength{\resumeitemsep}{3pt plus 1pt minus 1pt}%
+    \titlespacing*{\section}{0pt}{5pt plus 1pt minus 1pt}{2pt plus 1pt}%
+    \setlist[itemize]{itemsep=1pt,topsep=2pt}%
+    \linespread{1.0}\selectfont%
+}
+
+\newcommand{\setdensityrelaxed}{%
+    \newgeometry{left=0.6in,right=0.6in,top=0.4in,bottom=0.5in}%
+    \setlength{\resumeitemsep}{10pt plus 2pt minus 2pt}%
+    \titlespacing*{\section}{0pt}{12pt plus 2pt minus 2pt}{5pt plus 1pt}%
+    \setlist[itemize]{itemsep=3pt,topsep=5pt}%
+    \linespread{1.15}\selectfont%
+}
+
+% Typography switching
+\newcommand{\settypographymodern}{%
+    \RequirePackage{helvet}%
+    \renewcommand{\familydefault}{\sfdefault}%
+}
+
+\newcommand{\settypographyelegant}{%
+    \RequirePackage{charter}%
+    \renewcommand{\familydefault}{\rmdefault}%
+}
+
+% ============================================================================
 % CONVENIENCE MACROS
 % ============================================================================
 

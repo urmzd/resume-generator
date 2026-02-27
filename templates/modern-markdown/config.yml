@@ -1,0 +1,11 @@
+name: modern-markdown
+display_name: Modern Markdown
+description: Clean Markdown resume for GitHub, READMEs, and plain-text contexts
+format: markdown
+version: "1.0.0"
+author: Resume Generator Team
+tags:
+  - markdown
+  - plain-text
+  - github
+  - portable
