@@ -9,6 +9,7 @@ interface GalleryRenderProps {
   pdfUrl: string | null;
   isLoading: boolean;
   cacheVersion: number;
+  pageCount: number | null;
   onSelectTemplate: (index: number) => void;
   onPrev: () => void;
   onNext: () => void;
@@ -29,6 +30,7 @@ export default function GalleryContainer({ templates, onError, children }: Galle
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [cacheVersion, setCacheVersion] = useState(0);
+  const [pageCount, setPageCount] = useState<number | null>(null);
   const cacheRef = useRef(new PdfCache());
   const generationIdRef = useRef(0);
   const bgGenerationStarted = useRef(false);
@@ -48,11 +50,12 @@ export default function GalleryContainer({ templates, onError, children }: Galle
       const genId = ++generationIdRef.current;
 
       try {
-        const b64 = await GeneratePDF(template.name);
+        const result = await GeneratePDF(template.name);
         // Guard against stale responses from fast navigation
         if (genId !== generationIdRef.current) return;
-        const url = cacheRef.current.set(template.name, b64);
+        const url = cacheRef.current.set(template.name, result.data);
         setPdfUrl(url);
+        setPageCount(result.pageCount);
       } catch (e) {
         if (genId !== generationIdRef.current) return;
         onError(e instanceof Error ? e.message : String(e));
@@ -72,8 +75,8 @@ export default function GalleryContainer({ templates, onError, children }: Galle
       if (cacheRef.current.get(template.name)) return;
 
       try {
-        const b64 = await GeneratePDF(template.name);
-        cacheRef.current.set(template.name, b64);
+        const result = await GeneratePDF(template.name);
+        cacheRef.current.set(template.name, result.data);
         setCacheVersion((v) => v + 1);
       } catch {
         // Silently skip failed background generation
@@ -196,6 +199,7 @@ export default function GalleryContainer({ templates, onError, children }: Galle
         pdfUrl,
         isLoading,
         cacheVersion,
+        pageCount,
         onSelectTemplate,
         onPrev,
         onNext,

@@ -98,6 +98,9 @@ func (g *DOCXGenerator) addHeader(doc *docx.Docx, contact resume.Contact) {
 	if contact.Phone != "" {
 		contactParts = append(contactParts, contact.Phone)
 	}
+	if contact.Credentials != "" {
+		contactParts = append(contactParts, contact.Credentials)
+	}
 	for _, link := range contact.Links {
 		if link.URI != "" {
 			contactParts = append(contactParts, link.URI)

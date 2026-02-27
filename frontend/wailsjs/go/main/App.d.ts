@@ -3,7 +3,7 @@
 import {resume} from '../models';
 import {main} from '../models';
 
-export function GeneratePDF(arg1:string):Promise<string>;
+export function GeneratePDF(arg1:string):Promise<main.GeneratePDFResult>;
 
 export function GetResume():Promise<resume.Resume>;
 

@@ -252,6 +252,15 @@ var runCmd = &cobra.Command{
 		for _, result := range results {
 			sugar.Infof("Successfully generated resume (%s) using %s at %s", result.tType, result.template, result.pdfPath)
 			sugar.Infof("Render artifacts for %s available in %s", result.template, result.debugDir)
+
+			// Warn if the generated PDF exceeds one page
+			if strings.HasSuffix(result.pdfPath, ".pdf") {
+				if pdfData, readErr := os.ReadFile(result.pdfPath); readErr == nil {
+					if pages := compilers.CountPDFPages(pdfData); pages > 1 {
+						sugar.Warnf("Resume generated with template %s has %d pages (exceeds 1 page)", result.template, pages)
+					}
+				}
+			}
 		}
 	},
 }

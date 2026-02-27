@@ -36,6 +36,13 @@ type TemplateInfo struct {
 	Description string `json:"description"`
 }
 
+// GeneratePDFResult is returned by GeneratePDF with the base64-encoded PDF
+// and metadata such as the page count.
+type GeneratePDFResult struct {
+	Data      string `json:"data"`
+	PageCount int    `json:"pageCount"`
+}
+
 // App is the Wails application struct. Its exported methods are
 // automatically bound as frontend-callable functions.
 type App struct {
@@ -187,15 +194,16 @@ func (a *App) GetTemplates() ([]TemplateInfo, error) {
 	return result, nil
 }
 
-// GeneratePDF generates a PDF for the given template and returns base64-encoded bytes.
-func (a *App) GeneratePDF(templateName string) (string, error) {
+// GeneratePDF generates a PDF for the given template and returns base64-encoded bytes
+// along with metadata such as page count.
+func (a *App) GeneratePDF(templateName string) (*GeneratePDFResult, error) {
 	if a.resume == nil {
-		return "", fmt.Errorf("no resume loaded")
+		return nil, fmt.Errorf("no resume loaded")
 	}
 
 	tmpl, err := generators.LoadTemplate(templateName)
 	if err != nil {
-		return "", fmt.Errorf("failed to load template: %w", err)
+		return nil, fmt.Errorf("failed to load template: %w", err)
 	}
 
 	var pdfBytes []byte
@@ -204,65 +212,73 @@ func (a *App) GeneratePDF(templateName string) (string, error) {
 	case generators.TemplateTypeHTML:
 		html, err := a.generator.GenerateWithTemplate(tmpl, a.resume)
 		if err != nil {
-			return "", fmt.Errorf("failed to generate HTML: %w", err)
+			return nil, fmt.Errorf("failed to generate HTML: %w", err)
 		}
 		pdfBytes, err = a.compiler.CompileToBytes(html)
 		if err != nil {
-			return "", fmt.Errorf("failed to compile PDF: %w", err)
+			return nil, fmt.Errorf("failed to compile PDF: %w", err)
 		}
 
 	case generators.TemplateTypeDOCX:
 		// Use HTML fallback for PDF
 		htmlTmpl, err := generators.LoadTemplate("modern-html")
 		if err != nil {
-			return "", fmt.Errorf("no HTML fallback template available: %w", err)
+			return nil, fmt.Errorf("no HTML fallback template available: %w", err)
 		}
 		html, err := a.generator.GenerateWithTemplate(htmlTmpl, a.resume)
 		if err != nil {
-			return "", fmt.Errorf("failed to generate HTML fallback: %w", err)
+			return nil, fmt.Errorf("failed to generate HTML fallback: %w", err)
 		}
 		pdfBytes, err = a.compiler.CompileToBytes(html)
 		if err != nil {
-			return "", fmt.Errorf("failed to compile PDF: %w", err)
+			return nil, fmt.Errorf("failed to compile PDF: %w", err)
 		}
 
 	case generators.TemplateTypeLaTeX:
 		if a.hasLatex {
 			pdfBytes, err = a.compileLaTeXToPDFBytes(tmpl)
 			if err != nil {
-				return "", err
+				return nil, err
 			}
 		} else {
 			// Fallback to HTML template
 			htmlTmpl, err := generators.LoadTemplate("modern-html")
 			if err != nil {
-				return "", fmt.Errorf("no HTML fallback for LaTeX: %w", err)
+				return nil, fmt.Errorf("no HTML fallback for LaTeX: %w", err)
 			}
 			html, err := a.generator.GenerateWithTemplate(htmlTmpl, a.resume)
 			if err != nil {
-				return "", fmt.Errorf("failed to generate HTML fallback: %w", err)
+				return nil, fmt.Errorf("failed to generate HTML fallback: %w", err)
 			}
 			pdfBytes, err = a.compiler.CompileToBytes(html)
 			if err != nil {
-				return "", fmt.Errorf("failed to compile PDF: %w", err)
+				return nil, fmt.Errorf("failed to compile PDF: %w", err)
 			}
 		}
 
 	default:
-		return "", fmt.Errorf("unsupported template type: %s", tmpl.Type)
+		return nil, fmt.Errorf("unsupported template type: %s", tmpl.Type)
 	}
 
-	return base64.StdEncoding.EncodeToString(pdfBytes), nil
+	pageCount := compilers.CountPDFPages(pdfBytes)
+	if pageCount > 1 {
+		a.logger.Warnf("Resume exceeds 1 page (%d pages) with template %s", pageCount, templateName)
+	}
+
+	return &GeneratePDFResult{
+		Data:      base64.StdEncoding.EncodeToString(pdfBytes),
+		PageCount: pageCount,
+	}, nil
 }
 
 // SavePDF generates a PDF and opens a native Save dialog.
 func (a *App) SavePDF(templateName string) error {
-	b64, err := a.GeneratePDF(templateName)
+	result, err := a.GeneratePDF(templateName)
 	if err != nil {
 		return err
 	}
 
-	pdfBytes, err := base64.StdEncoding.DecodeString(b64)
+	pdfBytes, err := base64.StdEncoding.DecodeString(result.Data)
 	if err != nil {
 		return fmt.Errorf("failed to decode PDF: %w", err)
 	}
@@ -388,12 +404,12 @@ func (a *App) LoadFileFromPath(path string) (*ParseResult, error) {
 // SavePDFToPath generates a PDF and writes it to a given path (no native dialog).
 // Used by e2e tests and demo automation.
 func (a *App) SavePDFToPath(templateName, outputPath string) error {
-	b64, err := a.GeneratePDF(templateName)
+	result, err := a.GeneratePDF(templateName)
 	if err != nil {
 		return err
 	}
 
-	pdfBytes, err := base64.StdEncoding.DecodeString(b64)
+	pdfBytes, err := base64.StdEncoding.DecodeString(result.Data)
 	if err != nil {
 		return fmt.Errorf("failed to decode PDF: %w", err)
 	}

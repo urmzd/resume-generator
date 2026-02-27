@@ -630,6 +630,11 @@
                 {{- $sep = true -}}
                 {{- end -}}
 
+                {{- if .Contact.Credentials -}}
+                {{if $sep}} | {{end}}{{.Contact.Credentials}}
+                {{- $sep = true -}}
+                {{- end -}}
+
                 {{- if .Contact.Location -}}
                 {{- $loc := formatLocation .Contact.Location -}}
                 {{- if $loc -}}

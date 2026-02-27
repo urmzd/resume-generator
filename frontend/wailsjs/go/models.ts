@@ -1,5 +1,19 @@
 export namespace main {
-	
+
+	export class GeneratePDFResult {
+	    data: string;
+	    pageCount: number;
+
+	    static createFrom(source: any = {}) {
+	        return new GeneratePDFResult(source);
+	    }
+
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.data = source["data"];
+	        this.pageCount = source["pageCount"];
+	    }
+	}
 	export class ParseResult {
 	    name: string;
 	    email: string;
