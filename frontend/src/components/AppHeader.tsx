@@ -1,4 +1,4 @@
-import { Download, FileText, FolderOpen } from "lucide-react";
+import { Download, FileText, FolderOpen, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -10,6 +10,8 @@ interface AppHeaderProps {
   onSavePdf: () => void;
   onSaveNative: () => void;
   onChangeFile: () => void;
+  editorOpen?: boolean;
+  onToggleEditor?: () => void;
 }
 
 export default function AppHeader({
@@ -17,6 +19,8 @@ export default function AppHeader({
   onSavePdf,
   onSaveNative,
   onChangeFile,
+  editorOpen,
+  onToggleEditor,
 }: AppHeaderProps) {
   return (
     <header className="flex items-center justify-between border-b px-4 py-2">
@@ -29,6 +33,24 @@ export default function AppHeader({
 
       <div className="flex items-center gap-1">
         <ThemeToggle />
+
+        {onToggleEditor && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={editorOpen ? "default" : "outline"}
+                size="sm"
+                onClick={onToggleEditor}
+              >
+                <Pencil className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {editorOpen ? "Close editor" : "Open resume editor"}
+            </TooltipContent>
+          </Tooltip>
+        )}
 
         <Tooltip>
           <TooltipTrigger asChild>

@@ -1,20 +1,24 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
+	"github.com/BurntSushi/toml"
 	"github.com/urmzd/resume-generator/pkg/compilers"
 	"github.com/urmzd/resume-generator/pkg/generators"
 	"github.com/urmzd/resume-generator/pkg/resume"
 	"github.com/urmzd/resume-generator/pkg/utils"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"go.uber.org/zap"
+	"gopkg.in/yaml.v3"
 )
 
 // ParseResult is returned by OpenFile with parsed resume info.
@@ -35,12 +39,14 @@ type TemplateInfo struct {
 // App is the Wails application struct. Its exported methods are
 // automatically bound as frontend-callable functions.
 type App struct {
-	ctx       context.Context
-	logger    *zap.SugaredLogger
-	generator *generators.Generator
-	compiler  *compilers.RodHTMLToPDFCompiler
-	resume    *resume.Resume
-	hasLatex  bool
+	ctx        context.Context
+	logger     *zap.SugaredLogger
+	generator  *generators.Generator
+	compiler   *compilers.RodHTMLToPDFCompiler
+	resume     *resume.Resume
+	resumePath string
+	resumeFmt  string
+	hasLatex   bool
 }
 
 // NewApp creates a new App instance.
@@ -94,12 +100,65 @@ func (a *App) OpenFile() (*ParseResult, error) {
 	}
 
 	a.resume = inputData.ToResume()
+	a.resumePath = path
+	a.resumeFmt = inputData.GetFormat()
 
 	return &ParseResult{
 		Name:   a.resume.Contact.Name,
 		Email:  a.resume.Contact.Email,
 		Format: inputData.GetFormat(),
 	}, nil
+}
+
+// GetResume returns the full resume struct as JSON.
+func (a *App) GetResume() (*resume.Resume, error) {
+	if a.resume == nil {
+		return nil, fmt.Errorf("no resume loaded")
+	}
+	return a.resume, nil
+}
+
+// UpdateResume validates and replaces the in-memory resume.
+// Returns validation errors on failure.
+func (a *App) UpdateResume(updated resume.Resume) ([]resume.ValidationError, error) {
+	errors := resume.Validate(&updated)
+	if len(errors) > 0 {
+		return errors, nil
+	}
+	a.resume = &updated
+	return nil, nil
+}
+
+// SaveResumeFile serializes the in-memory resume back to the original file.
+func (a *App) SaveResumeFile() error {
+	if a.resume == nil {
+		return fmt.Errorf("no resume loaded")
+	}
+	if a.resumePath == "" {
+		return fmt.Errorf("no file path stored")
+	}
+
+	var data []byte
+	var err error
+
+	switch a.resumeFmt {
+	case "yaml", "yml":
+		data, err = yaml.Marshal(a.resume)
+	case "json":
+		data, err = json.MarshalIndent(a.resume, "", "  ")
+	case "toml":
+		var buf bytes.Buffer
+		err = toml.NewEncoder(&buf).Encode(a.resume)
+		data = buf.Bytes()
+	default:
+		return fmt.Errorf("unsupported format: %s", a.resumeFmt)
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to serialize resume: %w", err)
+	}
+
+	return os.WriteFile(a.resumePath, data, 0644)
 }
 
 // GetTemplates returns the list of available templates.
@@ -309,6 +368,8 @@ func (a *App) LoadFileFromPath(path string) (*ParseResult, error) {
 	}
 
 	a.resume = inputData.ToResume()
+	a.resumePath = path
+	a.resumeFmt = inputData.GetFormat()
 
 	return &ParseResult{
 		Name:   a.resume.Contact.Name,
