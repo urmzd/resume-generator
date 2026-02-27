@@ -43,26 +43,19 @@
         {{- $descriptions := filterEmpty .Degree.Descriptions -}}
         {{- if $descriptions }}
         <tr>
-            <td colspan="2">
-                <ul class="education-details">
-                    {{- range $descriptions}}<li>{{.}}</li>{{- end}}
-                </ul>
+            <td colspan="2" class="education-subtitle">
+                {{- range $i, $d := $descriptions}}{{if $i}} | {{end}}{{$d}}{{end -}}
             </td>
         </tr>
         {{- end }}
         {{if .Thesis}}
         <tr>
-            <td colspan="2">
-                <ul class="job-duties">
-                    {{if .Thesis.Title}}
-                    <li>Thesis: {{.Thesis.Title}}
-                        {{- if .Thesis.Link.URI}} <a href="{{.Thesis.Link.URI}}">{{if .Thesis.Link.Label}}{{.Thesis.Link.Label}}{{else}}{{.Thesis.Link.URI}}{{end}}</a>{{end -}}
-                    </li>
-                    {{end}}
-                    {{range .Thesis.Highlights}}
-                    <li>{{.}}</li>
-                    {{end}}
-                </ul>
+            <td colspan="2" class="education-subtitle">
+                {{- if .Thesis.Title -}}
+                Thesis: <em>{{.Thesis.Title}}</em>
+                {{- if .Thesis.Link.URI}} — <a href="{{.Thesis.Link.URI}}">{{if .Thesis.Link.Label}}{{.Thesis.Link.Label}}{{else}}{{.Thesis.Link.URI}}{{end}}</a>{{end -}}
+                {{- end -}}
+                {{- range .Thesis.Highlights}}. {{.}}{{end -}}
             </td>
         </tr>
         {{end}}
@@ -92,17 +85,9 @@
     {{range .Experience.Positions}}
     <div class="job">
         <div class="job-header">
-            <div class="job-title">{{.Title}}</div>
+            <div class="job-title">{{.Title}}{{if .Company}} <span class="job-company">— {{.Company}}</span>{{end}}</div>
             <div class="job-dates">{{fmtDateRange .Dates}}</div>
         </div>
-        {{if or .Company .Location}}
-        <div class="job-company">
-            {{- if .Company}}{{.Company}}{{end -}}
-            {{- if and .Company .Location}} | {{end -}}
-            {{- if .Location}}{{formatLocation .Location}}{{end -}}
-        </div>
-        {{end}}
-
         {{if .Technologies}}
         <div class="job-technologies"><em>{{formatList .Technologies}}</em></div>
         {{end}}
@@ -129,7 +114,7 @@
     {{range .Projects.Projects}}
     <div class="project">
         <div class="project-header">
-            <div class="project-name">{{.Name}}</div>
+            <div class="project-name">{{.Name}}{{if .Link.URI}} — <a class="project-link" href="{{.Link.URI}}">{{if .Link.Label}}{{.Link.Label}}{{else}}{{.Link.URI}}{{end}}</a>{{end}}</div>
             {{if .Dates}}<div class="project-dates">{{fmtOptDateRange .Dates}}</div>{{end}}
         </div>
 
@@ -143,12 +128,6 @@
             {{range $high}}
             <li>{{.}}</li>
             {{end}}
-        </ul>
-        {{end}}
-
-        {{if .Link.URI}}
-        <ul class="project-links">
-            <li><a href="{{.Link.URI}}">{{if .Link.Label}}{{.Link.Label}}{{else}}{{.Link.URI}}{{end}}</a></li>
         </ul>
         {{end}}
     </div>
@@ -189,14 +168,14 @@
            ================================================================ */
         :root {
             /* Standard (default) */
-            --body-font-size: 11pt;
-            --body-line-height: 1.4;
-            --page-margin: 0.5in;
-            --section-margin-bottom: 16px;
-            --job-margin-bottom: 12px;
-            --list-item-margin: 2px;
-            --header-name-size: 18pt;
-            --section-title-size: 12pt;
+            --body-font-size: 10pt;
+            --body-line-height: 1.3;
+            --page-margin: 0.4in;
+            --section-margin-bottom: 10px;
+            --job-margin-bottom: 8px;
+            --list-item-margin: 1px;
+            --header-name-size: 16pt;
+            --section-title-size: 11pt;
         }
 
         .density-compact {
@@ -299,15 +278,15 @@
            HEADER VARIANTS
            ================================================================ */
         .header {
-            padding-bottom: 10px;
-            margin-bottom: var(--section-margin-bottom);
+            padding-bottom: 4px;
+            margin-bottom: calc(var(--section-margin-bottom) * 0.5);
         }
 
         .header h1 {
             font-family: var(--heading-font);
             font-size: var(--header-name-size);
             font-weight: bold;
-            margin: 0 0 5px 0;
+            margin: 0 0 2px 0;
             text-transform: uppercase;
         }
 
@@ -386,7 +365,7 @@
             font-weight: bold;
             text-transform: uppercase;
             border-bottom: 1px solid #000;
-            margin-bottom: calc(var(--section-margin-bottom) * 0.75);
+            margin-bottom: calc(var(--section-margin-bottom) * 0.5);
             padding-bottom: 2px;
         }
 
@@ -427,13 +406,16 @@
             font-style: italic;
         }
 
-        .education-details {
-            margin: 4px 0 0 20px;
-            padding: 0;
+        .education-subtitle {
+            font-style: italic;
+            padding-top: 0 !important;
+            padding-bottom: 2px !important;
+            font-size: calc(var(--body-font-size) - 0.5pt);
         }
 
-        .education-details li {
-            margin-bottom: var(--list-item-margin);
+        .education-subtitle a {
+            color: #000;
+            text-decoration: underline;
         }
 
         /* ================================================================
@@ -441,7 +423,7 @@
            ================================================================ */
         .skills-list {
             margin: 0;
-            padding-left: 20px;
+            padding-left: 16px;
         }
 
         .skills-list li {
@@ -450,12 +432,6 @@
 
         .skills-list strong {
             font-weight: bold;
-        }
-
-        /* Two-column skills */
-        .skills-columns .skills-list {
-            column-count: 2;
-            column-gap: 2em;
         }
 
         /* ================================================================
@@ -469,32 +445,35 @@
             display: flex;
             justify-content: space-between;
             align-items: baseline;
-            margin-bottom: 3px;
+            margin-bottom: 1px;
         }
 
         .job-title {
             font-weight: bold;
             font-size: var(--body-font-size);
+            flex-shrink: 0;
         }
 
         .job-dates {
             font-weight: bold;
             font-size: var(--body-font-size);
+            flex-shrink: 0;
+            text-align: right;
         }
 
         .job-company {
             font-style: italic;
-            margin-bottom: 5px;
+            font-weight: normal;
         }
 
         .job-technologies {
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             font-size: calc(var(--body-font-size) - 0.5pt);
         }
 
         .job-duties {
             margin: 0;
-            padding-left: 20px;
+            padding-left: 16px;
         }
 
         .job-duties li {
@@ -512,7 +491,7 @@
             display: flex;
             justify-content: space-between;
             align-items: baseline;
-            margin-bottom: 3px;
+            margin-bottom: 1px;
         }
 
         .project-name {
@@ -532,30 +511,18 @@
 
         .project-description {
             margin: 0;
-            padding-left: 20px;
+            padding-left: 16px;
         }
 
         .project-description li {
             margin-bottom: var(--list-item-margin);
         }
 
-        .project-links {
-            margin: 5px 0 0 20px;
-            padding: 0;
-            list-style: none;
-        }
-
-        .project-links li {
-            display: inline;
-        }
-
-        .project-links li:not(:last-child)::after {
-            content: " | ";
-        }
-
-        .project-links a {
+        .project-link {
             color: #000;
             text-decoration: underline;
+            font-weight: normal;
+            font-size: calc(var(--body-font-size) - 0.5pt);
         }
 
         /* ================================================================
@@ -608,6 +575,16 @@
                 font-size: 10pt;
                 margin-top: 2px;
             }
+        }
+
+        /* ================================================================
+           REFERENCES FOOTER
+           ================================================================ */
+        .references {
+            text-align: center;
+            font-style: italic;
+            font-size: var(--body-font-size);
+            margin-top: var(--section-margin-bottom);
         }
     </style>
 </head>
@@ -676,7 +653,7 @@
     {{end}}
 
     {{if and .Layout .Layout.References}}
-    <div class="references" style="text-align:center; margin-top:var(--section-margin-bottom); font-style:italic;">
+    <div class="references">
         References available upon request
     </div>
     {{end}}
