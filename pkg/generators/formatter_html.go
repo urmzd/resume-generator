@@ -158,11 +158,11 @@ func (f *htmlFormatter) TemplateFuncs() template.FuncMap {
 		// Phone sanitization
 		"sanitizePhone": f.SanitizePhone,
 
-		// Sort functions (preserved for template compatibility - return input unchanged)
+		// Sort functions
 		"sortSkillsByOrder":     func(categories []resume.SkillCategory) []resume.SkillCategory { return categories },
-		"sortExperienceByOrder": func(experiences []resume.Experience) []resume.Experience { return experiences },
-		"sortProjectsByOrder":   func(projects []resume.Project) []resume.Project { return projects },
-		"sortEducationByOrder":  func(education []resume.Education) []resume.Education { return education },
+		"sortExperienceByOrder": f.SortExperienceByDate,
+		"sortProjectsByOrder":   f.SortProjectsByDate,
+		"sortEducationByOrder":  f.SortEducationByDate,
 		"sortLinksByOrder":      func(links []string) []string { return links },
 
 		// Default value helper

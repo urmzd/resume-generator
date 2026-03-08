@@ -175,6 +175,11 @@ func (f *markdownFormatter) TemplateFuncs() template.FuncMap {
 			return "*" + s + "*"
 		},
 
+		// Sort functions
+		"sortExperienceByOrder": f.SortExperienceByDate,
+		"sortProjectsByOrder":   f.SortProjectsByDate,
+		"sortEducationByOrder":  f.SortEducationByDate,
+
 		// Math utilities
 		"add": func(a, b int) int { return a + b },
 	}

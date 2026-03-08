@@ -2,6 +2,7 @@ package generators
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -196,6 +197,49 @@ func (f *baseFormatter) CalculateDuration(start time.Time, end *time.Time) strin
 	default:
 		return "< 1 mo"
 	}
+}
+
+// SortExperienceByDate returns a copy of experiences sorted by start date descending.
+// Entries with no end date (current) sort first.
+func (f *baseFormatter) SortExperienceByDate(experiences []resume.Experience) []resume.Experience {
+	sorted := make([]resume.Experience, len(experiences))
+	copy(sorted, experiences)
+	sort.SliceStable(sorted, func(i, j int) bool {
+		return sorted[i].Dates.Start.After(sorted[j].Dates.Start)
+	})
+	return sorted
+}
+
+// SortEducationByDate returns a copy of education entries sorted by start date descending.
+func (f *baseFormatter) SortEducationByDate(education []resume.Education) []resume.Education {
+	sorted := make([]resume.Education, len(education))
+	copy(sorted, education)
+	sort.SliceStable(sorted, func(i, j int) bool {
+		return sorted[i].Dates.Start.After(sorted[j].Dates.Start)
+	})
+	return sorted
+}
+
+// SortProjectsByDate returns a copy of projects sorted by start date descending.
+// Projects without dates sort to the end.
+func (f *baseFormatter) SortProjectsByDate(projects []resume.Project) []resume.Project {
+	sorted := make([]resume.Project, len(projects))
+	copy(sorted, projects)
+	sort.SliceStable(sorted, func(i, j int) bool {
+		di := sorted[i].Dates
+		dj := sorted[j].Dates
+		if di == nil && dj == nil {
+			return false
+		}
+		if di == nil {
+			return false
+		}
+		if dj == nil {
+			return true
+		}
+		return di.Start.After(dj.Start)
+	})
+	return sorted
 }
 
 // containsIgnoreCase checks if a slice contains a value (case-insensitive).

@@ -197,7 +197,7 @@ func (g *DOCXGenerator) addEducation(doc *docx.Docx, education resume.EducationL
 	}
 	g.addSectionHeader(doc, title)
 
-	for _, inst := range education.Institutions {
+	for _, inst := range g.formatter.SortEducationByDate(education.Institutions) {
 		// Institution and dates on same logical line
 		entryPara := doc.AddParagraph()
 
@@ -288,7 +288,7 @@ func (g *DOCXGenerator) addExperience(doc *docx.Docx, experience resume.Experien
 	}
 	g.addSectionHeader(doc, title)
 
-	for _, pos := range experience.Positions {
+	for _, pos := range g.formatter.SortExperienceByDate(experience.Positions) {
 		// Title and dates
 		headerPara := doc.AddParagraph()
 		dates := g.formatter.FormatDateRange(pos.Dates)
@@ -337,7 +337,7 @@ func (g *DOCXGenerator) addProjects(doc *docx.Docx, projects resume.ProjectList)
 	}
 	g.addSectionHeader(doc, title)
 
-	for _, proj := range projects.Projects {
+	for _, proj := range g.formatter.SortProjectsByDate(projects.Projects) {
 		// Project name
 		headerPara := doc.AddParagraph()
 		headerPara.AddText(proj.Name).Bold().Size("22")

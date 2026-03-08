@@ -73,7 +73,7 @@
 {{- if .Experience.Positions }}
 \resumesection{ {{- escape (default "Professional Experience" .Experience.Title) -}} }
 
-{{- range $exp := .Experience.Positions }}
+{{- range $exp := sortExperienceByOrder .Experience.Positions }}
 \needspace{6\baselineskip}
 \noindent\textbf{ {{- escape $exp.Title -}} }{{ if $exp.EmploymentType }} ({{ employmentType $exp.EmploymentType }}){{ end }} \hfill {{ fmtDateLegal $exp.Dates.Start }} - {{ if $exp.Dates.End }}{{ fmtDateLegal $exp.Dates.End }}{{ else }}Present{{ end }}\nopagebreak
 
@@ -128,7 +128,7 @@
 {{- if .Education.Institutions }}
 \resumesection{ {{- escape (default "Education" .Education.Title) -}} }
 
-{{- range $edu := .Education.Institutions }}
+{{- range $edu := sortEducationByOrder .Education.Institutions }}
 \needspace{3\baselineskip}
 \noindent\textbf{ {{- escape $edu.Institution -}} } \hfill {{ fmtDateLegal $edu.Dates.Start }} - {{ if $edu.Dates.End }}{{ fmtDateLegal $edu.Dates.End }}{{ else }}In Progress{{ end }}
 {{- if $edu.Location }}
@@ -185,7 +185,7 @@
 {{- if .Projects.Projects }}
 \resumesection{ {{- escape (default "Projects" .Projects.Title) -}} }
 
-{{- range .Projects.Projects }}
+{{- range sortProjectsByOrder .Projects.Projects }}
 
 \noindent\textbf{ {{- escape .Name -}} }
 {{- if .Link.URI }} --- \url{ {{- .Link.URI -}} }{{ end }}
