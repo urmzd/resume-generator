@@ -25,6 +25,7 @@ func initRootCmd() {
 	initTemplatesCmd()
 	initPreviewCmd()
 	initSchemaCmd()
+	initScreenshotsCmd()
 	rootCmd.PersistentFlags().StringVarP(&GeneratorType, "generator", "g", "base", "The type of generator to use (e.g., base, json-resume)")
 }
 

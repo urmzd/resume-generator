@@ -210,3 +210,106 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload "${{ needs.release.outputs.tag }}" "assets/demo-cli.gif" --clobber
+
+  screenshots:
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build frontend
+        run: cd frontend && npm install && npm run build
+
+      - name: Build CLI
+        run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o resume-generator .
+
+      - name: Generate screenshots
+        run: ./resume-generator screenshots --input assets/example_resumes/software_engineer.yml
+
+      - name: Upload screenshots to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for png in assets/example_results/*.png; do
+            [ -f "$png" ] && gh release upload "${{ needs.release.outputs.tag }}" "$png" --clobber
+          done
+
+  demo-desktop:
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev xvfb
+
+      - name: Install Playwright browsers
+        run: cd e2e/desktop && npm install && npx playwright install chromium --with-deps
+
+      - name: Start Wails dev server and run Playwright
+        env:
+          CI: "true"
+        run: |
+          xvfb-run wails dev &
+          WAILS_PID=$!
+          trap 'kill $WAILS_PID 2>/dev/null; wait $WAILS_PID 2>/dev/null' EXIT
+
+          echo "Waiting for Wails dev server on :34115..."
+          for i in $(seq 1 120); do
+            if curl -sf http://localhost:34115 > /dev/null 2>&1; then
+              echo "Dev server ready."
+              break
+            fi
+            if [ "$i" -eq 120 ]; then
+              echo "Timeout: dev server did not start within 120s."
+              exit 1
+            fi
+            sleep 1
+          done
+
+          cd e2e/desktop && npx playwright test
+
+      - name: Copy demo screenshot
+        run: |
+          SCREENSHOT=$(find assets/playwright-results -name '*.png' | head -1)
+          if [ -n "$SCREENSHOT" ]; then
+            cp "$SCREENSHOT" assets/demo-desktop.png
+          fi
+
+      - name: Upload desktop demo to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          [ -f assets/demo-desktop.png ] && gh release upload "${{ needs.release.outputs.tag }}" "assets/demo-desktop.png" --clobber
+          VIDEO=$(find assets/playwright-results -name 'video.webm' | head -1)
+          if [ -n "$VIDEO" ]; then
+            cp "$VIDEO" assets/demo-desktop.webm
+            gh release upload "${{ needs.release.outputs.tag }}" "assets/demo-desktop.webm" --clobber
+          fi

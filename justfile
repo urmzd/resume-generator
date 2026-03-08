@@ -79,5 +79,9 @@ demo-desktop:
         cp "$VIDEO" ../../assets/demo-desktop.webm
     fi
 
+# Generate PNG screenshots for each template
+screenshots: install
+    ./{{cli_binary}} screenshots --input {{example_input}}
+
 # Record all demos
 demo: demo-cli demo-desktop

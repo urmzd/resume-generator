@@ -81,3 +81,38 @@ jobs:
 
       - name: Fuzz smoke test
         run: go test -run=FuzzSanitizePhone -fuzz=FuzzSanitizePhone -fuzztime=10s ./pkg/generators
+
+  screenshots:
+    if: github.actor != 'github-actions[bot]'
+    name: Screenshots staleness check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build frontend
+        run: cd frontend && npm install && npm run build
+
+      - name: Build CLI
+        run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o resume-generator .
+
+      - name: Regenerate screenshots
+        run: ./resume-generator screenshots --input assets/example_resumes/software_engineer.yml
+
+      - name: Check for stale screenshots
+        run: |
+          if ! git diff --quiet assets/example_results/; then
+            echo "::error::Screenshots are stale. Run 'just screenshots' and commit the updated PNGs."
+            git diff --stat assets/example_results/
+            exit 1
+          fi
