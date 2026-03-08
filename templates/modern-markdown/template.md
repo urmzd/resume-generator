@@ -22,7 +22,7 @@
 
 ## {{default "Education" .Education.Title}}
 
-{{range .Education.Institutions}}### {{.Institution}}{{if .Degree.Name}} — {{.Degree.Name}}{{end}}
+{{range sortEducationByOrder .Education.Institutions}}### {{.Institution}}{{if .Degree.Name}} — {{.Degree.Name}}{{end}}
 
 {{fmtDateRange .Dates}}{{if .Location}} | {{fmtLocation .Location}}{{end}}{{if .GPA}}{{$gpa := formatGPA .GPA}}{{if $gpa}} | GPA: {{$gpa}}{{end}}{{end}}
 {{$descriptions := filterEmpty .Degree.Descriptions}}{{if $descriptions}}
@@ -51,7 +51,7 @@
 
 ## {{default "Experience" .Experience.Title}}
 
-{{range .Experience.Positions}}### {{.Title}}
+{{range sortExperienceByOrder .Experience.Positions}}### {{.Title}}
 
 **{{.Company}}** | {{fmtDateRange .Dates}}{{if .Location}} | {{fmtLocation .Location}}{{end}}
 {{if .Technologies}}
@@ -69,7 +69,7 @@
 
 ## {{default "Projects" .Projects.Title}}
 
-{{range .Projects.Projects}}### {{.Name}}{{if .Link.URI}} — [{{if .Link.Label}}{{.Link.Label}}{{else}}Link{{end}}]({{.Link.URI}}){{end}}
+{{range sortProjectsByOrder .Projects.Projects}}### {{.Name}}{{if .Link.URI}} — [{{if .Link.Label}}{{.Link.Label}}{{else}}Link{{end}}]({{.Link.URI}}){{end}}
 
 {{- if .Dates}}
 {{fmtOptDateRange .Dates}}

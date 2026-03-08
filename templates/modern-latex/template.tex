@@ -69,7 +69,7 @@
 
 % EXPERIENCE
 \section*{{ "{" }}{{ escape (default "Experience" .Experience.Title) }}{{ "}" }}
-{{- range .Experience.Positions }}
+{{- range sortExperienceByOrder .Experience.Positions }}
 {{- if .Location }}
 \resumeentry{ {{- escape .Title -}} }{ {{- escape .Company -}} }{ {{- fmtDates .Dates -}} }
 {{- else }}
@@ -96,7 +96,7 @@
 
 % EDUCATION
 \section*{{ "{" }}{{ escape (default "Education" .Education.Title) }}{{ "}" }}
-{{- range .Education.Institutions }}
+{{- range sortEducationByOrder .Education.Institutions }}
 {{- if .Location }}
 \resumeeducation{ {{- escape .Institution -}} }{ {{- escape .Degree.Name -}} }{ {{- fmtDates .Dates -}} }{ {{- fmtLocation .Location -}} }
 {{- else }}
@@ -150,7 +150,7 @@
 
 % PROJECTS
 \section*{{ "{" }}{{ escape (default "Projects" .Projects.Title) }}{{ "}" }}
-{{- range .Projects.Projects }}
+{{- range sortProjectsByOrder .Projects.Projects }}
 {{- if .Link.URI }}
 \noindent \textbf{ {{ escape .Name }} } \hfill \href{ {{- .Link.URI -}} }{ {{- extractDisplayURL .Link.URI -}} } \par
 {{- else }}

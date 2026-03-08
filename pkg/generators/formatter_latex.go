@@ -275,6 +275,11 @@ func (f *latexFormatter) TemplateFuncs() template.FuncMap {
 			return value
 		},
 
+		// Sort functions
+		"sortExperienceByOrder": f.SortExperienceByDate,
+		"sortProjectsByOrder":   f.SortProjectsByDate,
+		"sortEducationByOrder":  f.SortEducationByDate,
+
 		// Math utilities
 		"add": func(a, b int) int { return a + b },
 

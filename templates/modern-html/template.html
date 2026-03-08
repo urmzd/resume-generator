@@ -31,7 +31,7 @@
 <div class="section">
     <div class="section-title">{{default "Education" .Education.Title}}</div>
     <table class="education-table">
-        {{range .Education.Institutions}}
+        {{range sortEducationByOrder .Education.Institutions}}
         <tr>
             <td class="institution">
                 {{.Institution}}
@@ -84,7 +84,7 @@
 {{if .Experience.Positions}}
 <div class="section">
     <div class="section-title">{{default "Experience" .Experience.Title}}</div>
-    {{range .Experience.Positions}}
+    {{range sortExperienceByOrder .Experience.Positions}}
     <div class="job">
         <div class="job-header">
             <div class="job-title">{{.Title}}{{if .Company}} <span class="job-company">— {{.Company}}</span>{{end}}</div>
@@ -113,7 +113,7 @@
 {{if .Projects.Projects}}
 <div class="section">
     <div class="section-title">{{default "Projects" .Projects.Title}}</div>
-    {{range .Projects.Projects}}
+    {{range sortProjectsByOrder .Projects.Projects}}
     <div class="project">
         <div class="project-header">
             <div class="project-name">{{.Name}}{{if .Link.URI}} — <a class="project-link" href="{{.Link.URI}}">{{if .Link.Label}}{{.Link.Label}}{{else}}{{.Link.URI}}{{end}}</a>{{end}}</div>
