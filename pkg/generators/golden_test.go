@@ -140,7 +140,7 @@ func extractDocumentXML(docxBytes []byte) ([]byte, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to open document.xml: %w", err)
 			}
-			defer rc.Close()
+			defer func() { _ = rc.Close() }()
 			var buf bytes.Buffer
 			if _, err := buf.ReadFrom(rc); err != nil {
 				return nil, fmt.Errorf("failed to read document.xml: %w", err)
