@@ -1,13 +1,13 @@
 export namespace main {
-
+	
 	export class GeneratePDFResult {
 	    data: string;
 	    pageCount: number;
-
+	
 	    static createFrom(source: any = {}) {
 	        return new GeneratePDFResult(source);
 	    }
-
+	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.data = source["data"];
@@ -195,6 +195,7 @@ export namespace resume {
 	    name: string;
 	    email: string;
 	    phone?: string;
+	    credentials?: string;
 	    location?: Location;
 	    links?: Link[];
 	
@@ -207,6 +208,7 @@ export namespace resume {
 	        this.name = source["name"];
 	        this.email = source["email"];
 	        this.phone = source["phone"];
+	        this.credentials = source["credentials"];
 	        this.location = this.convertValues(source["location"], Location);
 	        this.links = this.convertValues(source["links"], Link);
 	    }
@@ -535,11 +537,11 @@ export namespace resume {
 	    sections?: string[];
 	    skill_columns?: number;
 	    references?: boolean;
-
+	
 	    static createFrom(source: any = {}) {
 	        return new Layout(source);
 	    }
-
+	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.density = source["density"];

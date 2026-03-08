@@ -2,6 +2,8 @@ package resume
 
 import (
 	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Resume struct {
@@ -154,6 +156,57 @@ type Award struct {
 	Name  string     `json:"name" yaml:"name" toml:"name"`
 	Date  *time.Time `json:"date,omitempty" yaml:"date,omitempty" toml:"date,omitempty"`
 	Notes string     `json:"notes,omitempty" yaml:"notes,omitempty" toml:"notes,omitempty"`
+}
+
+// UnmarshalYAML implements custom YAML unmarshaling for Education to support
+// "credential" as an alias for "degree".
+func (e *Education) UnmarshalYAML(value *yaml.Node) error {
+	// Use an alias type to avoid infinite recursion
+	type educationAlias Education
+	var aux educationAlias
+
+	// Also capture the "credential" alias
+	type educationRaw struct {
+		educationAlias `yaml:",inline"`
+		Credential     *Degree `yaml:"credential,omitempty"`
+	}
+	var raw educationRaw
+	if err := value.Decode(&raw); err != nil {
+		return err
+	}
+	aux = raw.educationAlias
+
+	// If degree is empty but credential is set, use credential
+	if aux.Degree.Name == "" && raw.Credential != nil {
+		aux.Degree = *raw.Credential
+	}
+
+	*e = Education(aux)
+	return nil
+}
+
+// UnmarshalYAML implements custom YAML unmarshaling for Degree to support
+// "note" (string) as an alias for "descriptions" ([]string).
+func (d *Degree) UnmarshalYAML(value *yaml.Node) error {
+	// Use an alias type to avoid infinite recursion
+	type degreeAlias Degree
+	type degreeRaw struct {
+		degreeAlias `yaml:",inline"`
+		Note        string `yaml:"note,omitempty"`
+	}
+	var raw degreeRaw
+	if err := value.Decode(&raw); err != nil {
+		return err
+	}
+
+	*d = Degree(raw.degreeAlias)
+
+	// If descriptions is empty but note is set, use note as a single-item list
+	if len(d.Descriptions) == 0 && raw.Note != "" {
+		d.Descriptions = []string{raw.Note}
+	}
+
+	return nil
 }
 
 func Validate(resume *Resume) []ValidationError {
