@@ -1,0 +1,22 @@
+\documentclass{default}
+
+\begin{document}
+
+% ============================================================================
+% HEADER
+% ============================================================================
+\resumename{Minimal User}
+
+\resumecontact{%
+    \email{minimal@example.com}%
+}
+
+
+
+
+
+
+
+
+
+\end{document}

@@ -1,0 +1,34 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{needspace}
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\pagestyle{plain}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+% Section styling with underline for clear separation
+\newcommand{\resumesection}[1]{\needspace{5\baselineskip}\section*{#1}\vspace{-4pt}\hrule\vspace{6pt}}
+
+\begin{document}
+
+% Header
+\begin{center}
+{\LARGE\bfseries Minimal User}\\[4pt]
+minimal@example.com
+\end{center}
+
+\vspace{8pt}
+
+
+
+
+
+
+
+
+
+\end{document}

@@ -1,0 +1,469 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal User Resume</title>
+    <style>
+         
+        :root {
+             
+            --body-font-size: 10pt;
+            --body-line-height: 1.3;
+            --page-margin: 0.4in;
+            --section-margin-bottom: 10px;
+            --job-margin-bottom: 8px;
+            --list-item-margin: 1px;
+            --header-name-size: 16pt;
+            --section-title-size: 11pt;
+        }
+
+        .density-compact {
+            --body-font-size: 9.5pt;
+            --body-line-height: 1.25;
+            --page-margin: 0.35in;
+            --section-margin-bottom: 8px;
+            --job-margin-bottom: 6px;
+            --list-item-margin: 0px;
+            --header-name-size: 14pt;
+            --section-title-size: 10pt;
+        }
+
+        .density-detailed {
+            --body-font-size: 12pt;
+            --body-line-height: 1.55;
+            --page-margin: 0.75in;
+            --section-margin-bottom: 28px;
+            --job-margin-bottom: 22px;
+            --list-item-margin: 4px;
+            --header-name-size: 22pt;
+            --section-title-size: 13pt;
+        }
+
+         
+        .typo-classic {
+            --heading-font: 'Times New Roman', Georgia, serif;
+            --body-font: 'Times New Roman', Georgia, serif;
+        }
+
+        .typo-modern {
+            --heading-font: 'Calibri', 'Helvetica Neue', Arial, sans-serif;
+            --body-font: 'Calibri', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .typo-elegant {
+            --heading-font: 'Garamond', 'Palatino', 'Palatino Linotype', Georgia, serif;
+            --body-font: 'Gill Sans', 'Calibri', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+         
+        @page {
+            size: 8.5in 11in;
+            margin: 0;
+        }
+
+        @media print {
+            html {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            html,
+            body {
+                width: 8.5in;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            body {
+                padding: var(--page-margin) !important;
+            }
+
+            .no-print {
+                display: none;
+            }
+
+            .section-title {
+                break-after: avoid;
+                page-break-after: avoid;
+            }
+
+            .job {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--body-font);
+            font-size: var(--body-font-size);
+            line-height: var(--body-line-height);
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: var(--page-margin);
+            background: white;
+            color: #000;
+            overflow-wrap: anywhere;
+        }
+
+         
+        .header {
+            padding-bottom: 4px;
+            margin-bottom: calc(var(--section-margin-bottom) * 0.5);
+        }
+
+        .header h1 {
+            font-family: var(--heading-font);
+            font-size: var(--header-name-size);
+            font-weight: bold;
+            margin: 0 0 2px 0;
+            text-transform: uppercase;
+        }
+
+        .header .title {
+            font-size: calc(var(--section-title-size));
+            font-style: italic;
+            margin: 0 0 5px 0;
+        }
+
+        .header .contact {
+            font-size: var(--body-font-size);
+            margin: 0;
+        }
+
+        .header .contact a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .header .contact a:hover {
+            text-decoration: underline;
+        }
+
+         
+        .header-centered .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+        }
+
+         
+        .header-split .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #000;
+        }
+
+        .header-split .header-left h1 {
+            text-align: left;
+        }
+
+        .header-split .header-right {
+            text-align: right;
+        }
+
+        .header-split .header-right .contact {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .header-split .header-right .contact-item {
+            white-space: nowrap;
+        }
+
+         
+        .header-minimal .header {
+            text-align: left;
+            border-bottom: none;
+        }
+
+        .header-minimal .header .contact {
+            color: #444;
+        }
+
+         
+        .section {
+            margin-bottom: var(--section-margin-bottom);
+        }
+
+        .section-title {
+            font-family: var(--heading-font);
+            font-size: var(--section-title-size);
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 1px solid #000;
+            margin-bottom: calc(var(--section-margin-bottom) * 0.5);
+            padding-bottom: 2px;
+        }
+
+        .summary {
+            margin-bottom: var(--section-margin-bottom);
+        }
+
+        .summary p {
+            margin: 0;
+            text-align: justify;
+        }
+
+         
+        .education-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .education-table td {
+            padding: 3px 0;
+            vertical-align: top;
+        }
+
+        .education-table .institution {
+            font-weight: bold;
+            width: 70%;
+        }
+
+        .education-table .dates {
+            text-align: right;
+            width: 30%;
+        }
+
+        .education-table .details {
+            font-weight: normal;
+            font-style: italic;
+        }
+
+        .education-details {
+            margin: 2px 0 0 16px;
+            padding: 0;
+        }
+
+        .education-details li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+        .education-subtitle {
+            font-style: italic;
+            padding-top: 0 !important;
+            padding-bottom: 2px !important;
+            font-size: calc(var(--body-font-size) - 0.5pt);
+        }
+
+        .education-subtitle a {
+            color: #000;
+            text-decoration: underline;
+        }
+
+         
+        .skills-list {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .skills-list li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+        .skills-list strong {
+            font-weight: bold;
+        }
+
+         
+        .job {
+            margin-bottom: var(--job-margin-bottom);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 1px;
+        }
+
+        .job-title {
+            font-weight: bold;
+            font-size: var(--body-font-size);
+            flex-shrink: 0;
+        }
+
+        .job-dates {
+            font-weight: bold;
+            font-size: var(--body-font-size);
+            flex-shrink: 0;
+            text-align: right;
+        }
+
+        .job-company {
+            font-style: italic;
+            font-weight: normal;
+        }
+
+        .job-technologies {
+            margin-bottom: 2px;
+            font-size: calc(var(--body-font-size) - 0.5pt);
+        }
+
+        .job-duties {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .job-duties li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+         
+        .project {
+            margin-bottom: var(--job-margin-bottom);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 1px;
+        }
+
+        .project-name {
+            font-weight: bold;
+            font-size: var(--body-font-size);
+        }
+
+        .project-dates {
+            font-weight: bold;
+            font-size: var(--body-font-size);
+        }
+
+        .project-meta {
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+
+        .project-description {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .project-description li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+        .project-link {
+            color: #000;
+            text-decoration: underline;
+            font-weight: normal;
+            font-size: calc(var(--body-font-size) - 0.5pt);
+        }
+
+         
+        .cert-list {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .cert-list li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+         
+        .lang-list {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .lang-list li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+         
+        @media screen {
+            body {
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 0.25in;
+                font-size: 10pt;
+            }
+
+            .job-header,
+            .project-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .job-dates,
+            .project-dates {
+                font-size: 10pt;
+                margin-top: 2px;
+            }
+        }
+
+         
+        .references {
+            text-align: center;
+            font-style: italic;
+            font-size: var(--body-font-size);
+            margin-top: var(--section-margin-bottom);
+        }
+    </style>
+</head>
+
+<body class="density-standard typo-classic header-centered">
+    <div class="header">
+        <div class="header-left">
+            <h1>Minimal User</h1>
+        </div>
+        <div class="header-right">
+            <p class="contact"><a href="mailto:minimal@example.com">minimal@example.com</a></p>
+        </div>
+    </div>
+
+    
+        
+
+
+        
+
+
+        
+
+
+        
+
+
+        
+
+
+        
+
+
+        
+
+
+    
+
+    
+</body>
+
+</html>

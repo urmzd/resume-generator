@@ -1,24 +1,20 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
-	"github.com/BurntSushi/toml"
 	"github.com/urmzd/resume-generator/pkg/compilers"
 	"github.com/urmzd/resume-generator/pkg/generators"
+	"github.com/urmzd/resume-generator/pkg/pipeline"
 	"github.com/urmzd/resume-generator/pkg/resume"
 	"github.com/urmzd/resume-generator/pkg/utils"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"go.uber.org/zap"
-	"gopkg.in/yaml.v3"
 )
 
 // ParseResult is returned by OpenFile with parsed resume info.
@@ -49,11 +45,10 @@ type App struct {
 	ctx        context.Context
 	logger     *zap.SugaredLogger
 	generator  *generators.Generator
-	compiler   *compilers.RodHTMLToPDFCompiler
+	pipeline   *pipeline.PDFPipeline
 	resume     *resume.Resume
 	resumePath string
 	resumeFmt  string
-	hasLatex   bool
 }
 
 // NewApp creates a new App instance.
@@ -63,11 +58,12 @@ func NewApp() *App {
 
 	generators.SetEmbeddedFS(EmbeddedTemplates)
 
+	gen := generators.NewGenerator(sugar)
+
 	return &App{
 		logger:    sugar,
-		generator: generators.NewGenerator(sugar),
-		compiler:  compilers.NewRodHTMLToPDFCompiler(sugar),
-		hasLatex:  compilers.DetectLaTeXEngine() != "",
+		generator: gen,
+		pipeline:  pipeline.NewPDFPipeline(sugar, gen),
 	}
 }
 
@@ -91,30 +87,7 @@ func (a *App) OpenFile() (*ParseResult, error) {
 		return nil, fmt.Errorf("no file selected")
 	}
 
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %w", err)
-	}
-
-	format := strings.TrimPrefix(filepath.Ext(path), ".")
-	inputData, err := resume.LoadResumeFromBytes(data, format)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse resume: %w", err)
-	}
-
-	if err := inputData.Validate(); err != nil {
-		return nil, fmt.Errorf("validation error: %w", err)
-	}
-
-	a.resume = inputData.ToResume()
-	a.resumePath = path
-	a.resumeFmt = inputData.GetFormat()
-
-	return &ParseResult{
-		Name:   a.resume.Contact.Name,
-		Email:  a.resume.Contact.Email,
-		Format: inputData.GetFormat(),
-	}, nil
+	return a.loadResume(path)
 }
 
 // GetResume returns the full resume struct as JSON.
@@ -145,31 +118,15 @@ func (a *App) SaveResumeFile() error {
 		return fmt.Errorf("no file path stored")
 	}
 
-	var data []byte
-	var err error
-
-	switch a.resumeFmt {
-	case "yaml", "yml":
-		data, err = yaml.Marshal(a.resume)
-	case "json":
-		data, err = json.MarshalIndent(a.resume, "", "  ")
-	case "toml":
-		var buf bytes.Buffer
-		err = toml.NewEncoder(&buf).Encode(a.resume)
-		data = buf.Bytes()
-	case "md", "markdown":
-		// Markdown input cannot be losslessly serialized back; save as YAML instead
-		data, err = yaml.Marshal(a.resume)
-		if err == nil {
-			a.resumePath = strings.TrimSuffix(a.resumePath, filepath.Ext(a.resumePath)) + ".yml"
-			a.resumeFmt = "yaml"
-		}
-	default:
-		return fmt.Errorf("unsupported format: %s", a.resumeFmt)
-	}
-
+	data, canonicalFmt, err := resume.SerializeResume(a.resume, a.resumeFmt)
 	if err != nil {
 		return fmt.Errorf("failed to serialize resume: %w", err)
+	}
+
+	// Markdown falls back to YAML — update path and format
+	if (a.resumeFmt == "md" || a.resumeFmt == "markdown") && canonicalFmt == "yaml" {
+		a.resumePath = strings.TrimSuffix(a.resumePath, filepath.Ext(a.resumePath)) + ".yml"
+		a.resumeFmt = "yaml"
 	}
 
 	return os.WriteFile(a.resumePath, data, 0644)
@@ -206,58 +163,9 @@ func (a *App) GeneratePDF(templateName string) (*GeneratePDFResult, error) {
 		return nil, fmt.Errorf("failed to load template: %w", err)
 	}
 
-	var pdfBytes []byte
-
-	switch tmpl.Type {
-	case generators.TemplateTypeHTML:
-		html, err := a.generator.GenerateWithTemplate(tmpl, a.resume)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate HTML: %w", err)
-		}
-		pdfBytes, err = a.compiler.CompileToBytes(html)
-		if err != nil {
-			return nil, fmt.Errorf("failed to compile PDF: %w", err)
-		}
-
-	case generators.TemplateTypeDOCX:
-		// Use HTML fallback for PDF
-		htmlTmpl, err := generators.LoadTemplate("modern-html")
-		if err != nil {
-			return nil, fmt.Errorf("no HTML fallback template available: %w", err)
-		}
-		html, err := a.generator.GenerateWithTemplate(htmlTmpl, a.resume)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate HTML fallback: %w", err)
-		}
-		pdfBytes, err = a.compiler.CompileToBytes(html)
-		if err != nil {
-			return nil, fmt.Errorf("failed to compile PDF: %w", err)
-		}
-
-	case generators.TemplateTypeLaTeX:
-		if a.hasLatex {
-			pdfBytes, err = a.compileLaTeXToPDFBytes(tmpl)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			// Fallback to HTML template
-			htmlTmpl, err := generators.LoadTemplate("modern-html")
-			if err != nil {
-				return nil, fmt.Errorf("no HTML fallback for LaTeX: %w", err)
-			}
-			html, err := a.generator.GenerateWithTemplate(htmlTmpl, a.resume)
-			if err != nil {
-				return nil, fmt.Errorf("failed to generate HTML fallback: %w", err)
-			}
-			pdfBytes, err = a.compiler.CompileToBytes(html)
-			if err != nil {
-				return nil, fmt.Errorf("failed to compile PDF: %w", err)
-			}
-		}
-
-	default:
-		return nil, fmt.Errorf("unsupported template type: %s", tmpl.Type)
+	pdfBytes, err := a.pipeline.CompileToPDFBytes(tmpl, a.resume)
+	if err != nil {
+		return nil, err
 	}
 
 	pageCount := compilers.CountPDFPages(pdfBytes)
@@ -375,6 +283,32 @@ func (a *App) SaveNative(templateName string) error {
 // LoadFileFromPath loads a resume from a given path (no native dialog).
 // Used by e2e tests and demo automation.
 func (a *App) LoadFileFromPath(path string) (*ParseResult, error) {
+	return a.loadResume(path)
+}
+
+// SavePDFToPath generates a PDF and writes it to a given path (no native dialog).
+// Used by e2e tests and demo automation.
+func (a *App) SavePDFToPath(templateName, outputPath string) error {
+	result, err := a.GeneratePDF(templateName)
+	if err != nil {
+		return err
+	}
+
+	pdfBytes, err := base64.StdEncoding.DecodeString(result.Data)
+	if err != nil {
+		return fmt.Errorf("failed to decode PDF: %w", err)
+	}
+
+	dir := filepath.Dir(outputPath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	return os.WriteFile(outputPath, pdfBytes, 0644)
+}
+
+// loadResume is shared logic for OpenFile and LoadFileFromPath.
+func (a *App) loadResume(path string) (*ParseResult, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %w", err)
@@ -399,98 +333,4 @@ func (a *App) LoadFileFromPath(path string) (*ParseResult, error) {
 		Email:  a.resume.Contact.Email,
 		Format: inputData.GetFormat(),
 	}, nil
-}
-
-// SavePDFToPath generates a PDF and writes it to a given path (no native dialog).
-// Used by e2e tests and demo automation.
-func (a *App) SavePDFToPath(templateName, outputPath string) error {
-	result, err := a.GeneratePDF(templateName)
-	if err != nil {
-		return err
-	}
-
-	pdfBytes, err := base64.StdEncoding.DecodeString(result.Data)
-	if err != nil {
-		return fmt.Errorf("failed to decode PDF: %w", err)
-	}
-
-	dir := filepath.Dir(outputPath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("failed to create output directory: %w", err)
-	}
-
-	return os.WriteFile(outputPath, pdfBytes, 0644)
-}
-
-// compileLaTeXToPDFBytes compiles a LaTeX template and returns PDF bytes.
-func (a *App) compileLaTeXToPDFBytes(tmpl *generators.Template) ([]byte, error) {
-	content, err := a.generator.GenerateWithTemplate(tmpl, a.resume)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate LaTeX: %w", err)
-	}
-
-	tmpDir, err := os.MkdirTemp("", "resume-latex-*")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create temp dir: %w", err)
-	}
-	defer func() { _ = os.RemoveAll(tmpDir) }()
-
-	// Extract embedded template support files if needed
-	if tmpl.Embedded && tmpl.EmbeddedDir != "" {
-		extractedDir, err := generators.ExtractEmbeddedTemplateDir(tmpl.EmbeddedDir)
-		if err != nil {
-			return nil, fmt.Errorf("failed to extract template files: %w", err)
-		}
-		defer func() { _ = os.RemoveAll(extractedDir) }()
-
-		entries, err := os.ReadDir(extractedDir)
-		if err == nil {
-			for _, e := range entries {
-				if !e.IsDir() {
-					src := filepath.Join(extractedDir, e.Name())
-					dst := filepath.Join(tmpDir, e.Name())
-					data, readErr := os.ReadFile(src)
-					if readErr != nil {
-						continue
-					}
-					_ = os.WriteFile(dst, data, 0644)
-				}
-			}
-		}
-	} else if tmpl.Path != "" {
-		// Filesystem template — copy support files from template directory
-		templateDir := filepath.Dir(tmpl.Path)
-		entries, _ := os.ReadDir(templateDir)
-		for _, e := range entries {
-			if !e.IsDir() {
-				src := filepath.Join(templateDir, e.Name())
-				dst := filepath.Join(tmpDir, e.Name())
-				data, readErr := os.ReadFile(src)
-				if readErr != nil {
-					continue
-				}
-				_ = os.WriteFile(dst, data, 0644)
-			}
-		}
-	}
-
-	texPath := filepath.Join(tmpDir, "resume.tex")
-	if err := os.WriteFile(texPath, []byte(content), 0644); err != nil {
-		return nil, fmt.Errorf("failed to write .tex file: %w", err)
-	}
-
-	engine := compilers.DetectLaTeXEngine()
-	cmd := exec.Command(engine, "-interaction=nonstopmode", texPath)
-	cmd.Dir = tmpDir
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return nil, fmt.Errorf("LaTeX compilation failed: %w\n%s", err, string(out))
-	}
-
-	pdfPath := filepath.Join(tmpDir, "resume.pdf")
-	pdfBytes, err := os.ReadFile(pdfPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read compiled PDF: %w", err)
-	}
-
-	return pdfBytes, nil
 }

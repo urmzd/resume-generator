@@ -1,0 +1,136 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{needspace}
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\pagestyle{plain}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+% Section styling with underline for clear separation
+\newcommand{\resumesection}[1]{\needspace{5\baselineskip}\section*{#1}\vspace{-4pt}\hrule\vspace{6pt}}
+
+\begin{document}
+
+% Header
+\begin{center}
+{\LARGE\bfseries Jane Doe}\\[4pt]
+example@email.com $|$ +1-123-456-7890\\\url{https://linkedin.com/in/janedoe} $|$ \url{https://github.com/janedoe}
+\end{center}
+
+\vspace{8pt}
+
+
+
+
+\resumesection{Professional Experience}
+\needspace{6\baselineskip}
+\noindent\textbf{Systems Engineer} \hfill 01/01/2023 - 12/31/2023\nopagebreak
+
+\textbf{FutureSoft}
+
+\textit{Innovation City, Futuristan}
+
+\needspace{3\baselineskip}
+\textbf{Job Description:}
+\begin{itemize}[leftmargin=*,nosep]
+\item Implemented a company-wide upgrade of network security protocols, enhancing system security by 50\%.
+\item Automated key processes using Python and Bash scripts, saving 200 man-hours annually.
+\end{itemize}
+
+\vspace{6pt plus 4pt minus 2pt}
+\pagebreak[2]
+\needspace{6\baselineskip}
+\noindent\textbf{Lead Developer} \hfill 08/01/2022 - 12/31/2022\nopagebreak
+
+\textbf{Innovative Tech Corp}
+
+\textit{Metropolis, Innovation State}
+
+\needspace{3\baselineskip}
+\textbf{Job Description:}
+\begin{itemize}[leftmargin=*,nosep]
+\item Led the development of a scalable e-commerce platform, increasing user engagement by 30\%.
+\item Managed a team of 5 developers and introduced agile delivery practices across the organization.
+\end{itemize}
+
+\vspace{6pt plus 4pt minus 2pt}
+\pagebreak[2]
+\needspace{6\baselineskip}
+\noindent\textbf{Software Developer} \hfill 07/01/2021 - Present\nopagebreak
+
+\textbf{Tech Innovations Inc.}
+
+\textit{Techville, Academia}
+
+\needspace{3\baselineskip}
+\textbf{Job Description:}
+\begin{itemize}[leftmargin=*,nosep]
+\item Developed a cloud-based storage solution improving data retrieval efficiency by 40\%.
+\item Collaborated on a team project to create a cross-platform mobile application.
+\end{itemize}
+
+\vspace{6pt plus 4pt minus 2pt}
+\pagebreak[2]
+\needspace{6\baselineskip}
+\noindent\textbf{Junior Developer} \hfill 01/01/2020 - 06/30/2021\nopagebreak
+
+\textbf{NextGen Solutions}
+
+\textit{Future City, Progress}
+
+\needspace{3\baselineskip}
+\textbf{Job Description:}
+\begin{itemize}[leftmargin=*,nosep]
+\item Assisted in developing APIs for internal tools, improving workflow efficiency by 25\%.
+\item Won second place in a company-wide hackathon with a machine learning project.
+\end{itemize}
+
+\vspace{6pt plus 4pt minus 2pt}
+\pagebreak[2]
+
+\resumesection{Education}
+\needspace{3\baselineskip}
+\noindent\textbf{Prestigious University} \hfill 09/01/2021 - 05/30/2024
+
+\textit{Techville, Academia}
+
+\textit{Ph.D. in Computer Science}
+
+\vspace{6pt plus 4pt minus 2pt}
+\needspace{3\baselineskip}
+\noindent\textbf{University of Fictional} \hfill 09/01/2017 - 06/30/2021
+
+\textit{Imaginary City, Stateville}
+
+\textit{Bachelor of Science in Software Engineering}
+
+\vspace{6pt plus 4pt minus 2pt}
+
+\resumesection{Core Skills}
+\begin{description}
+    \item[Programming Languages:] Python, Java, C++, JavaScript
+    \item[Tools \& Frameworks:] AWS, Docker, React, Node.js
+\end{description}
+
+\resumesection{Projects}
+
+\noindent\textbf{Personal Finance Tracker} --- \url{https://github.com/janedoe/finance-tracker}
+\begin{itemize}[leftmargin=*,nosep]
+\item Developed a full-stack web application for personal finance management with budgeting and forecasting tools.
+\end{itemize}
+
+\vspace{6pt plus 4pt minus 2pt}
+
+\noindent\textbf{Eco-Friendly Route Finder} --- \url{https://github.com/janedoe/eco-route-finder}
+\begin{itemize}[leftmargin=*,nosep]
+\item Created a mobile application that calculates eco-friendly travel routes to reduce carbon footprint.
+\end{itemize}
+
+\vspace{6pt plus 4pt minus 2pt}
+
+
+\end{document}
