@@ -1,0 +1,625 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jane Doe Resume</title>
+    <style>
+         
+        :root {
+             
+            --body-font-size: 10pt;
+            --body-line-height: 1.3;
+            --page-margin: 0.4in;
+            --section-margin-bottom: 10px;
+            --job-margin-bottom: 8px;
+            --list-item-margin: 1px;
+            --header-name-size: 16pt;
+            --section-title-size: 11pt;
+        }
+
+        .density-compact {
+            --body-font-size: 9.5pt;
+            --body-line-height: 1.25;
+            --page-margin: 0.35in;
+            --section-margin-bottom: 8px;
+            --job-margin-bottom: 6px;
+            --list-item-margin: 0px;
+            --header-name-size: 14pt;
+            --section-title-size: 10pt;
+        }
+
+        .density-detailed {
+            --body-font-size: 12pt;
+            --body-line-height: 1.55;
+            --page-margin: 0.75in;
+            --section-margin-bottom: 28px;
+            --job-margin-bottom: 22px;
+            --list-item-margin: 4px;
+            --header-name-size: 22pt;
+            --section-title-size: 13pt;
+        }
+
+         
+        .typo-classic {
+            --heading-font: 'Times New Roman', Georgia, serif;
+            --body-font: 'Times New Roman', Georgia, serif;
+        }
+
+        .typo-modern {
+            --heading-font: 'Calibri', 'Helvetica Neue', Arial, sans-serif;
+            --body-font: 'Calibri', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .typo-elegant {
+            --heading-font: 'Garamond', 'Palatino', 'Palatino Linotype', Georgia, serif;
+            --body-font: 'Gill Sans', 'Calibri', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+         
+        @page {
+            size: 8.5in 11in;
+            margin: 0;
+        }
+
+        @media print {
+            html {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            html,
+            body {
+                width: 8.5in;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            body {
+                padding: var(--page-margin) !important;
+            }
+
+            .no-print {
+                display: none;
+            }
+
+            .section-title {
+                break-after: avoid;
+                page-break-after: avoid;
+            }
+
+            .job {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--body-font);
+            font-size: var(--body-font-size);
+            line-height: var(--body-line-height);
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: var(--page-margin);
+            background: white;
+            color: #000;
+            overflow-wrap: anywhere;
+        }
+
+         
+        .header {
+            padding-bottom: 4px;
+            margin-bottom: calc(var(--section-margin-bottom) * 0.5);
+        }
+
+        .header h1 {
+            font-family: var(--heading-font);
+            font-size: var(--header-name-size);
+            font-weight: bold;
+            margin: 0 0 2px 0;
+            text-transform: uppercase;
+        }
+
+        .header .title {
+            font-size: calc(var(--section-title-size));
+            font-style: italic;
+            margin: 0 0 5px 0;
+        }
+
+        .header .contact {
+            font-size: var(--body-font-size);
+            margin: 0;
+        }
+
+        .header .contact a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .header .contact a:hover {
+            text-decoration: underline;
+        }
+
+         
+        .header-centered .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+        }
+
+         
+        .header-split .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #000;
+        }
+
+        .header-split .header-left h1 {
+            text-align: left;
+        }
+
+        .header-split .header-right {
+            text-align: right;
+        }
+
+        .header-split .header-right .contact {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .header-split .header-right .contact-item {
+            white-space: nowrap;
+        }
+
+         
+        .header-minimal .header {
+            text-align: left;
+            border-bottom: none;
+        }
+
+        .header-minimal .header .contact {
+            color: #444;
+        }
+
+         
+        .section {
+            margin-bottom: var(--section-margin-bottom);
+        }
+
+        .section-title {
+            font-family: var(--heading-font);
+            font-size: var(--section-title-size);
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 1px solid #000;
+            margin-bottom: calc(var(--section-margin-bottom) * 0.5);
+            padding-bottom: 2px;
+        }
+
+        .summary {
+            margin-bottom: var(--section-margin-bottom);
+        }
+
+        .summary p {
+            margin: 0;
+            text-align: justify;
+        }
+
+         
+        .education-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .education-table td {
+            padding: 3px 0;
+            vertical-align: top;
+        }
+
+        .education-table .institution {
+            font-weight: bold;
+            width: 70%;
+        }
+
+        .education-table .dates {
+            text-align: right;
+            width: 30%;
+        }
+
+        .education-table .details {
+            font-weight: normal;
+            font-style: italic;
+        }
+
+        .education-details {
+            margin: 2px 0 0 16px;
+            padding: 0;
+        }
+
+        .education-details li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+        .education-subtitle {
+            font-style: italic;
+            padding-top: 0 !important;
+            padding-bottom: 2px !important;
+            font-size: calc(var(--body-font-size) - 0.5pt);
+        }
+
+        .education-subtitle a {
+            color: #000;
+            text-decoration: underline;
+        }
+
+         
+        .skills-list {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .skills-list li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+        .skills-list strong {
+            font-weight: bold;
+        }
+
+         
+        .job {
+            margin-bottom: var(--job-margin-bottom);
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 1px;
+        }
+
+        .job-title {
+            font-weight: bold;
+            font-size: var(--body-font-size);
+            flex-shrink: 0;
+        }
+
+        .job-dates {
+            font-weight: bold;
+            font-size: var(--body-font-size);
+            flex-shrink: 0;
+            text-align: right;
+        }
+
+        .job-company {
+            font-style: italic;
+            font-weight: normal;
+        }
+
+        .job-technologies {
+            margin-bottom: 2px;
+            font-size: calc(var(--body-font-size) - 0.5pt);
+        }
+
+        .job-duties {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .job-duties li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+         
+        .project {
+            margin-bottom: var(--job-margin-bottom);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 1px;
+        }
+
+        .project-name {
+            font-weight: bold;
+            font-size: var(--body-font-size);
+        }
+
+        .project-dates {
+            font-weight: bold;
+            font-size: var(--body-font-size);
+        }
+
+        .project-meta {
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+
+        .project-description {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .project-description li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+        .project-link {
+            color: #000;
+            text-decoration: underline;
+            font-weight: normal;
+            font-size: calc(var(--body-font-size) - 0.5pt);
+        }
+
+         
+        .cert-list {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .cert-list li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+         
+        .lang-list {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .lang-list li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+         
+        @media screen {
+            body {
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 0.25in;
+                font-size: 10pt;
+            }
+
+            .job-header,
+            .project-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .job-dates,
+            .project-dates {
+                font-size: 10pt;
+                margin-top: 2px;
+            }
+        }
+
+         
+        .references {
+            text-align: center;
+            font-style: italic;
+            font-size: var(--body-font-size);
+            margin-top: var(--section-margin-bottom);
+        }
+    </style>
+</head>
+
+<body class="density-standard typo-classic header-centered">
+    <div class="header">
+        <div class="header-left">
+            <h1>Jane Doe</h1>
+        </div>
+        <div class="header-right">
+            <p class="contact"><a href="mailto:example@email.com">example@email.com</a> | <a href="tel:&#43;11234567890">&#43;1-123-456-7890</a> | Techville, Academia, USA | <a href="https://linkedin.com/in/janedoe">https://linkedin.com/in/janedoe</a> | <a href="https://github.com/janedoe">https://github.com/janedoe</a></p>
+        </div>
+    </div>
+
+    
+        
+
+
+        
+
+
+        
+
+<div class="section">
+    <div class="section-title">Education</div>
+    <table class="education-table">
+        
+        <tr>
+            <td class="institution">
+                Prestigious University, Ph.D. in Computer Science</td>
+            <td class="dates">Sep 2021 – May 2024</td>
+        </tr>
+        
+        
+        <tr>
+            <td class="institution">
+                University of Fictional, Bachelor of Science in Software Engineering</td>
+            <td class="dates">Sep 2017 – Jun 2021</td>
+        </tr>
+        
+        
+    </table>
+</div>
+
+
+        
+
+<div class="section">
+    <div class="section-title">Core Skills</div>
+    <ul class="skills-list">
+        
+        <li><strong>Programming Languages:</strong> Python, Java, C&#43;&#43;, JavaScript</li>
+        
+        <li><strong>Tools &amp; Frameworks:</strong> AWS, Docker, React, Node.js</li>
+        
+    </ul>
+</div>
+
+
+        
+
+<div class="section">
+    <div class="section-title">Professional Experience</div>
+    
+    <div class="job">
+        <div class="job-header">
+            <div class="job-title">Systems Engineer <span class="job-company">— FutureSoft</span></div>
+            <div class="job-dates">Jan 2023 – Dec 2023</div>
+        </div>
+        
+
+        
+        
+        <ul class="job-duties">
+            
+            <li>Implemented a company-wide upgrade of network security protocols, enhancing system security by 50%.</li>
+            
+            <li>Automated key processes using Python and Bash scripts, saving 200 man-hours annually.</li>
+            
+        </ul>
+        
+    </div>
+    
+    <div class="job">
+        <div class="job-header">
+            <div class="job-title">Lead Developer <span class="job-company">— Innovative Tech Corp</span></div>
+            <div class="job-dates">Aug 2022 – Dec 2022</div>
+        </div>
+        
+
+        
+        
+        <ul class="job-duties">
+            
+            <li>Led the development of a scalable e-commerce platform, increasing user engagement by 30%.</li>
+            
+            <li>Managed a team of 5 developers and introduced agile delivery practices across the organization.</li>
+            
+        </ul>
+        
+    </div>
+    
+    <div class="job">
+        <div class="job-header">
+            <div class="job-title">Software Developer <span class="job-company">— Tech Innovations Inc.</span></div>
+            <div class="job-dates">Jul 2021 – Present</div>
+        </div>
+        
+
+        
+        
+        <ul class="job-duties">
+            
+            <li>Developed a cloud-based storage solution improving data retrieval efficiency by 40%.</li>
+            
+            <li>Collaborated on a team project to create a cross-platform mobile application.</li>
+            
+        </ul>
+        
+    </div>
+    
+    <div class="job">
+        <div class="job-header">
+            <div class="job-title">Junior Developer <span class="job-company">— NextGen Solutions</span></div>
+            <div class="job-dates">Jan 2020 – Jun 2021</div>
+        </div>
+        
+
+        
+        
+        <ul class="job-duties">
+            
+            <li>Assisted in developing APIs for internal tools, improving workflow efficiency by 25%.</li>
+            
+            <li>Won second place in a company-wide hackathon with a machine learning project.</li>
+            
+        </ul>
+        
+    </div>
+    
+</div>
+
+
+        
+
+
+<div class="section">
+    <div class="section-title">Projects</div>
+    
+    <div class="project">
+        <div class="project-header">
+            <div class="project-name">Personal Finance Tracker — <a class="project-link" href="https://github.com/janedoe/finance-tracker">https://github.com/janedoe/finance-tracker</a></div>
+            
+        </div>
+
+        
+
+        
+        
+        <ul class="project-description">
+            
+            <li>Developed a full-stack web application for personal finance management with budgeting and forecasting tools.</li>
+            
+        </ul>
+        
+    </div>
+    
+    <div class="project">
+        <div class="project-header">
+            <div class="project-name">Eco-Friendly Route Finder — <a class="project-link" href="https://github.com/janedoe/eco-route-finder">https://github.com/janedoe/eco-route-finder</a></div>
+            
+        </div>
+
+        
+
+        
+        
+        <ul class="project-description">
+            
+            <li>Created a mobile application that calculates eco-friendly travel routes to reduce carbon footprint.</li>
+            
+        </ul>
+        
+    </div>
+    
+</div>
+
+
+
+        
+
+
+    
+
+    
+</body>
+
+</html>

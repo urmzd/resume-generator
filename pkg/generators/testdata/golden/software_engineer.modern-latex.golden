@@ -1,0 +1,74 @@
+\documentclass{default}
+
+\begin{document}
+
+% ============================================================================
+% HEADER
+% ============================================================================
+\resumename{Jane Doe}
+
+\resumecontact{%
+    \email{example@email.com}%
+    \sep%
+    \phone{+1-123-456-7890}%
+    \sep%
+    \href{https://linkedin.com/in/janedoe}{linkedin.com/in/janedoe}%
+    \sep%
+    \href{https://github.com/janedoe}{github.com/janedoe}%
+}
+
+
+
+
+
+% EXPERIENCE
+\section*{Professional Experience}
+\resumeentry{Systems Engineer}{FutureSoft}{Jan 2023 \textendash\ Dec 2023}
+\begin{itemize}
+    \item Implemented a company-wide upgrade of network security protocols, enhancing system security by 50\%.
+    \item Automated key processes using Python and Bash scripts, saving 200 man-hours annually.
+\end{itemize}
+\resumeentry{Lead Developer}{Innovative Tech Corp}{Aug 2022 \textendash\ Dec 2022}
+\begin{itemize}
+    \item Led the development of a scalable e-commerce platform, increasing user engagement by 30\%.
+    \item Managed a team of 5 developers and introduced agile delivery practices across the organization.
+\end{itemize}
+\resumeentry{Software Developer}{Tech Innovations Inc.}{Jul 2021 \textendash\ Present}
+\begin{itemize}
+    \item Developed a cloud-based storage solution improving data retrieval efficiency by 40\%.
+    \item Collaborated on a team project to create a cross-platform mobile application.
+\end{itemize}
+\resumeentry{Junior Developer}{NextGen Solutions}{Jan 2020 \textendash\ Jun 2021}
+\begin{itemize}
+    \item Assisted in developing APIs for internal tools, improving workflow efficiency by 25\%.
+    \item Won second place in a company-wide hackathon with a machine learning project.
+\end{itemize}
+
+
+% EDUCATION
+\section*{Education}
+\resumeeducation{Prestigious University}{Ph.D. in Computer Science}{Sep 2021 \textendash\ May 2024}{Techville, Academia}
+\resumeeducation{University of Fictional}{Bachelor of Science in Software Engineering}{Sep 2017 \textendash\ Jun 2021}{Imaginary City, Stateville}
+
+
+% SKILLS
+\section*{Core Skills}
+\begin{description}
+    \item[Programming Languages:] Python, Java, C++, JavaScript
+    \item[Tools \& Frameworks:] AWS, Docker, React, Node.js
+\end{description}
+
+
+% PROJECTS
+\section*{Projects}
+\noindent \textbf{ Personal Finance Tracker } \hfill \href{https://github.com/janedoe/finance-tracker}{github.com/janedoe/finance-tracker} \par
+    \begin{itemize}
+        \item Developed a full-stack web application for personal finance management with budgeting and forecasting tools.
+    \end{itemize}
+\noindent \textbf{ Eco-Friendly Route Finder } \hfill \href{https://github.com/janedoe/eco-route-finder}{github.com/janedoe/eco-route-finder} \par
+    \begin{itemize}
+        \item Created a mobile application that calculates eco-friendly travel routes to reduce carbon footprint.
+    \end{itemize}
+
+
+\end{document}
