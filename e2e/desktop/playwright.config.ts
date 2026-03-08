@@ -11,7 +11,7 @@ export default defineConfig({
   timeout: 120_000,
   use: {
     baseURL: "http://localhost:34115",
-    headless: false,
+    headless: !!process.env.CI,
     viewport: { width: 1280, height: 800 },
     video: {
       mode: "on",
