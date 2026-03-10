@@ -1,4 +1,4 @@
-# AGENTS.md — AI Coding Agent Guide
+# AGENTS.md
 
 ## Project Overview
 
