@@ -13,6 +13,8 @@
 ├── cmd/                        # Cobra CLI commands
 │   ├── root.go                 # Root command, embedded FS setup
 │   ├── run.go                  # `run` command: loads resume → generates output
+│   ├── assess.go               # `assess` command: LLM-based resume rating via Ollama
+│   ├── output.go               # Output path/filename generation helpers
 │   ├── templates.go            # `templates list|validate|engines` subcommands
 │   ├── validate.go             # `validate` command for resume data
 │   ├── preview.go              # `preview` command (HTML live preview)
@@ -54,6 +56,9 @@ Input (YAML/JSON/TOML) → resume.LoadResumeFromFile() → Resume struct
         → text/template or html/template renders output
     → Compiler (LaTeX→PDF or HTML→PDF via Rod/Chromium)
     → Output file (.pdf, .html, .docx, .md)
+
+Assess flow:
+    Input → Resume → Markdown render → Ollama agent (via agent-sdk) → stdout
 ```
 
 ### Formatter Pattern
@@ -149,6 +154,24 @@ Examples:
 - `fix: handle nil date range in LaTeX formatter`
 - `docs: update AGENTS.md with new format guide`
 
+## Output Structure
+
+Output uses a flat, timestamped layout:
+
+```
+<root>/<slug>/<YYYY-MM-DD_HH-MM>/
+├── Name.modern-html.pdf
+├── Name.modern-latex.pdf
+├── Name.modern-markdown.md
+└── Name.modern-docx.docx
+```
+
+Debug artifacts (intermediate HTML/LaTeX source) are written to a temp directory during compilation and **only preserved on failure**, placed as `Name.template-name_debug/` next to the output.
+
+## Dependencies
+
+- **agent-sdk** (`github.com/urmzd/agent-sdk`) — local dependency via `replace` directive in `go.mod`, provides the Ollama provider for the `assess` command. Uses the streaming agent loop pattern (not raw HTTP calls).
+
 ## Common Tasks
 
 ### Modify a template
@@ -161,4 +184,15 @@ Edit the template file directly. Use `{{escape .Field}}` for user content, forma
 4. Add validation if required
 
 ### Debug template rendering
-Set output dir and check the `_debug/` directory next to each output file. It contains intermediate files (rendered HTML, LaTeX source) before PDF compilation.
+Debug artifacts are only produced when compilation fails. On failure, a `_debug/` directory is preserved next to the output file containing intermediate files (rendered HTML, LaTeX source).
+
+### Assess a resume
+Requires [Ollama](https://ollama.com) running locally. The `assess` command renders the resume to Markdown, then streams an LLM rating via the agent-sdk:
+
+```bash
+./resume-generator assess -i resume.yml                    # uses default model (qwen3:4b)
+./resume-generator assess -i resume.yml -m llama3.2        # specify model
+./resume-generator assess -i resume.yml --ollama-url http://host:11434  # custom host
+```
+
+If Ollama is not available, the command exits with a clear error message and install instructions.

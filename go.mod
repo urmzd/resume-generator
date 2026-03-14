@@ -1,8 +1,12 @@
 module github.com/urmzd/resume-generator
 
-go 1.24
+go 1.25.5
 
 require github.com/BurntSushi/toml v1.2.1
+
+require github.com/urmzd/agent-sdk v0.0.0
+
+replace github.com/urmzd/agent-sdk => ../agent-sdk
 
 require (
 	github.com/fumiama/go-docx v0.0.0-20250506085032-0c30fd09304b
@@ -10,7 +14,7 @@ require (
 	github.com/invopop/jsonschema v0.13.0
 	github.com/spf13/cobra v1.6.1
 	github.com/wailsapp/wails/v2 v2.11.0
-	golang.org/x/text v0.22.0
+	golang.org/x/text v0.27.0
 )
 
 require (
@@ -51,9 +55,9 @@ require (
 	github.com/ysmood/got v0.40.0 // indirect
 	github.com/ysmood/gson v0.7.3 // indirect
 	github.com/ysmood/leakless v0.9.0 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
-	golang.org/x/net v0.35.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/crypto v0.40.0 // indirect
+	golang.org/x/net v0.41.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
 

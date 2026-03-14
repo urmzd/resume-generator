@@ -129,6 +129,9 @@ Test your changes with example inputs:
 # Test preview
 ./resume-generator preview assets/example_resumes/software_engineer.yml
 
+# Test assess (requires Ollama running locally)
+./resume-generator assess -i assets/example_resumes/software_engineer.yml
+
 # Test template listing
 ./resume-generator templates list
 

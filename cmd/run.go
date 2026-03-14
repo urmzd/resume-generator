@@ -96,12 +96,12 @@ var runCmd = &cobra.Command{
 			sugar.Fatalf("Error creating output directory: %s", err)
 		}
 
-		baseOutputDir := resolvedDir
-		desiredPDFBase := generateOutputBaseName(resumeData.Contact.Name, currentTime)
+		desiredBase := generateOutputBaseName(resumeData.Contact.Name)
 		pdfExt := ".pdf"
 
-		runBaseDir := filepath.Join(baseOutputDir, resumeSlug)
-		if err := utils.EnsureDir(runBaseDir); err != nil {
+		// Create timestamped run directory: <root>/<slug>/<YYYY-MM-DD_HH-MM>/
+		runDir := generateRunDir(filepath.Join(resolvedDir, resumeSlug), currentTime)
+		if err := utils.EnsureDir(runDir); err != nil {
 			sugar.Fatalf("Error creating run output directory: %s", err)
 		}
 
@@ -114,22 +114,12 @@ var runCmd = &cobra.Command{
 		type generationResult struct {
 			template string
 			tType    generators.TemplateType
-			pdfPath  string
-			debugDir string
+			outPath  string
 		}
 
 		var results []generationResult
 
 		for _, tmpl := range selectedTemplates {
-			templateRunDir, err := resolveTemplateOutputDir(runBaseDir, tmpl)
-			if err != nil {
-				sugar.Fatalf("Failed to prepare output path for template %s: %v", tmpl.Name, err)
-			}
-
-			if err := utils.EnsureDir(templateRunDir); err != nil {
-				sugar.Fatalf("Error creating template output directory %s: %v", templateRunDir, err)
-			}
-
 			// Markdown outputs a .md file directly (no PDF compilation)
 			if tmpl.Type == generators.TemplateTypeMarkdown {
 				content, err := generator.GenerateWithTemplate(tmpl, resumeData)
@@ -137,7 +127,7 @@ var runCmd = &cobra.Command{
 					sugar.Fatalf("Failed to generate Markdown with template %s: %v", tmpl.Name, err)
 				}
 
-				mdOutputPath, debugDir, err := ensureUniqueOutputPaths(templateRunDir, desiredPDFBase, ".md")
+				mdOutputPath, err := ensureUniqueOutputPath(runDir, desiredBase, tmpl.Name, ".md")
 				if err != nil {
 					sugar.Fatalf("Error determining output filename for template %s: %v", tmpl.Name, err)
 				}
@@ -149,8 +139,7 @@ var runCmd = &cobra.Command{
 				results = append(results, generationResult{
 					template: tmpl.Name,
 					tType:    tmpl.Type,
-					pdfPath:  mdOutputPath,
-					debugDir: debugDir,
+					outPath:  mdOutputPath,
 				})
 				continue
 			}
@@ -162,7 +151,7 @@ var runCmd = &cobra.Command{
 					sugar.Fatalf("Failed to generate DOCX with template %s: %v", tmpl.Name, err)
 				}
 
-				docxOutputPath, debugDir, err := ensureUniqueOutputPaths(templateRunDir, desiredPDFBase, ".docx")
+				docxOutputPath, err := ensureUniqueOutputPath(runDir, desiredBase, tmpl.Name, ".docx")
 				if err != nil {
 					sugar.Fatalf("Error determining output filename for template %s: %v", tmpl.Name, err)
 				}
@@ -178,13 +167,22 @@ var runCmd = &cobra.Command{
 						sugar.Warnf("Failed to generate HTML for DOCX PDF fallback: %v", htmlErr)
 					} else {
 						pdfOutputPath := strings.TrimSuffix(docxOutputPath, ".docx") + ".pdf"
-						if err := utils.EnsureDir(debugDir); err != nil {
-							sugar.Warnf("Failed to create debug dir for DOCX PDF: %v", err)
-						}
-						if pdfErr := compileHTMLToPDF(sugar, htmlContent, pdfOutputPath, debugDir); pdfErr != nil {
-							sugar.Warnf("Failed to generate PDF for DOCX template %s: %v", tmpl.Name, pdfErr)
+						debugDir, debugErr := os.MkdirTemp("", "resume-debug-*")
+						if debugErr != nil {
+							sugar.Warnf("Failed to create temp debug dir for DOCX PDF: %v", debugErr)
 						} else {
-							sugar.Infof("Generated PDF alongside DOCX: %s", pdfOutputPath)
+							if pdfErr := compileHTMLToPDF(sugar, htmlContent, pdfOutputPath, debugDir); pdfErr != nil {
+								// Keep debug dir on failure
+								persistedDebug := filepath.Join(runDir, desiredBase+"."+tmpl.Name+"_debug")
+								if mvErr := os.Rename(debugDir, persistedDebug); mvErr != nil {
+									sugar.Warnf("Failed to persist debug dir: %v (temp dir: %s)", mvErr, debugDir)
+								} else {
+									sugar.Warnf("Failed to generate PDF for DOCX template %s: %v (debug: %s)", tmpl.Name, pdfErr, persistedDebug)
+								}
+							} else {
+								_ = os.RemoveAll(debugDir)
+								sugar.Infof("Generated PDF alongside DOCX: %s", pdfOutputPath)
+							}
 						}
 					}
 				}
@@ -192,8 +190,7 @@ var runCmd = &cobra.Command{
 				results = append(results, generationResult{
 					template: tmpl.Name,
 					tType:    tmpl.Type,
-					pdfPath:  docxOutputPath,
-					debugDir: debugDir,
+					outPath:  docxOutputPath,
 				})
 				continue
 			}
@@ -204,13 +201,15 @@ var runCmd = &cobra.Command{
 				sugar.Fatalf("Failed to generate resume with template %s: %v", tmpl.Name, err)
 			}
 
-			pdfOutputPath, debugDir, err := ensureUniqueOutputPaths(templateRunDir, desiredPDFBase, pdfExt)
+			pdfOutputPath, err := ensureUniqueOutputPath(runDir, desiredBase, tmpl.Name, pdfExt)
 			if err != nil {
 				sugar.Fatalf("Error determining output filename for template %s: %v", tmpl.Name, err)
 			}
 
-			if err := utils.EnsureDir(debugDir); err != nil {
-				sugar.Fatalf("Error creating debug directory for template %s: %v", tmpl.Name, err)
+			// Use a temp directory for debug artifacts; only persist on failure
+			debugDir, err := os.MkdirTemp("", "resume-debug-*")
+			if err != nil {
+				sugar.Fatalf("Failed to create temp debug directory: %v", err)
 			}
 
 			var templateDir string
@@ -236,24 +235,30 @@ var runCmd = &cobra.Command{
 			}
 
 			if compileErr != nil {
-				sugar.Fatalf("Failed to compile template %s: %v", tmpl.Name, compileErr)
+				// Persist debug dir next to output on failure
+				persistedDebug := filepath.Join(runDir, desiredBase+"."+tmpl.Name+"_debug")
+				if mvErr := os.Rename(debugDir, persistedDebug); mvErr != nil {
+					sugar.Warnf("Failed to persist debug dir: %v (temp dir: %s)", mvErr, debugDir)
+				}
+				sugar.Fatalf("Failed to compile template %s: %v (debug: %s)", tmpl.Name, compileErr, persistedDebug)
 			}
+
+			// Success: clean up debug artifacts
+			_ = os.RemoveAll(debugDir)
 
 			results = append(results, generationResult{
 				template: tmpl.Name,
 				tType:    tmpl.Type,
-				pdfPath:  pdfOutputPath,
-				debugDir: debugDir,
+				outPath:  pdfOutputPath,
 			})
 		}
 
 		for _, result := range results {
-			sugar.Infof("Successfully generated resume (%s) using %s at %s", result.tType, result.template, result.pdfPath)
-			sugar.Infof("Render artifacts for %s available in %s", result.template, result.debugDir)
+			sugar.Infof("Successfully generated resume (%s) using %s at %s", result.tType, result.template, result.outPath)
 
 			// Warn if the generated PDF exceeds one page
-			if strings.HasSuffix(result.pdfPath, ".pdf") {
-				if pdfData, readErr := os.ReadFile(result.pdfPath); readErr == nil {
+			if strings.HasSuffix(result.outPath, ".pdf") {
+				if pdfData, readErr := os.ReadFile(result.outPath); readErr == nil {
 					if pages := compilers.CountPDFPages(pdfData); pages > 1 {
 						sugar.Warnf("Resume generated with template %s has %d pages (exceeds 1 page)", result.template, pages)
 					}
