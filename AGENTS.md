@@ -2,14 +2,13 @@
 
 ## Project Overview
 
-**resume-generator** is a Go CLI + Wails desktop application that converts structured resume data (YAML/JSON/TOML) into PDF, HTML, LaTeX, DOCX, and Markdown output formats. It uses Go's `text/template` and `html/template` engines with a formatter abstraction layer for output-specific escaping and rendering.
+**resume-generator** is a Go CLI tool that converts structured resume data (YAML/JSON/TOML) into PDF, HTML, LaTeX, DOCX, and Markdown output formats. It uses Go's `text/template` and `html/template` engines with a formatter abstraction layer for output-specific escaping and rendering.
 
 ## Repository Structure
 
 ```
 .
 ├── main.go                     # Entry point, embeds templates via //go:embed
-├── app.go                      # Wails desktop app backend (context, file handling)
 ├── cmd/                        # Cobra CLI commands
 │   ├── root.go                 # Root command, embedded FS setup
 │   ├── run.go                  # `run` command: loads resume → generates output
@@ -40,7 +39,6 @@
 │   ├── modern-cv/              # config.yml + template.tex
 │   ├── modern-docx/            # config.yml (programmatic generation)
 │   └── modern-markdown/        # config.yml + template.md
-├── frontend/                   # React/TypeScript Wails frontend
 ├── assets/example_resumes/     # Example YAML resume files
 └── justfile                    # Task runner (build, run, dev, demo)
 ```

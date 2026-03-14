@@ -33,14 +33,6 @@ just run
 ./resume-generator templates list
 ```
 
-## Desktop App
-
-```sh
-just dev              # Dev mode with hot reload
-just build-desktop    # Production build
-./resume-generator    # Launch GUI (no args)
-```
-
 ## Template Types
 
 | Type | Output | Engine |
