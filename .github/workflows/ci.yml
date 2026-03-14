@@ -44,14 +44,6 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Build frontend
-        run: cd frontend && npm install && npm run build
-
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
 
@@ -67,14 +59,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Build frontend
-        run: cd frontend && npm install && npm run build
 
       - name: Go test
         run: go test ./...
@@ -94,14 +78,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Build frontend
-        run: cd frontend && npm install && npm run build
 
       - name: Build CLI
         run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o resume-generator .
