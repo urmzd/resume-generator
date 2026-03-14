@@ -57,8 +57,13 @@ Input (YAML/JSON/TOML) → resume.LoadResumeFromFile() → Resume struct
     → Compiler (LaTeX→PDF or HTML→PDF via Rod/Chromium)
     → Output file (.pdf, .html, .docx, .md)
 
-Assess flow:
-    Input → Resume → Markdown render → Ollama agent (via agent-sdk) → stdout
+Assess flow (multi-agent):
+    Input → Resume → Markdown render → Coordinator agent
+        → delegate_to_content_analyst  (quantity, metrics, specificity, impact)
+        → delegate_to_writing_analyst  (succinctness, clarity, readability, grammar)
+        → delegate_to_industry_analyst (keywords, conventions, role fit, ATS)
+        → delegate_to_format_analyst   (structure, ordering, length, density)
+    → Coordinator synthesizes final scored report → stdout
 ```
 
 ### Formatter Pattern
@@ -187,12 +192,14 @@ Edit the template file directly. Use `{{escape .Field}}` for user content, forma
 Debug artifacts are only produced when compilation fails. On failure, a `_debug/` directory is preserved next to the output file containing intermediate files (rendered HTML, LaTeX source).
 
 ### Assess a resume
-Requires [Ollama](https://ollama.com) running locally. The `assess` command renders the resume to Markdown, then streams an LLM rating via the agent-sdk:
+Requires [Ollama](https://ollama.com) running locally. The `assess` command uses a multi-agent architecture: a coordinator identifies the target industry, delegates to four specialist sub-agents (content, writing, industry, format), then synthesizes a final scored report.
 
 ```bash
 ./resume-generator assess -i resume.yml                    # uses default model (qwen3:4b)
 ./resume-generator assess -i resume.yml -m llama3.2        # specify model
 ./resume-generator assess -i resume.yml --ollama-url http://host:11434  # custom host
 ```
+
+Sub-agents are registered via agent-sdk's `SubAgentDef` and automatically exposed as `delegate_to_*` tools. The coordinator's system prompt instructs it to call all four. Each sub-agent scores its dimension 1-10 with structured feedback. The coordinator produces a weighted overall score (content 30%, industry 25%, writing 25%, format 20%).
 
 If Ollama is not available, the command exits with a clear error message and install instructions.
