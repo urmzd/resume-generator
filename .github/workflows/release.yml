@@ -204,7 +204,7 @@ jobs:
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Record demo
-        run: vhs doc/demo.tape
+        run: vhs docs/demo.tape
 
       - name: Upload demo to release
         env:
