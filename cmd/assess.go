@@ -37,7 +37,18 @@ func initAssessCmd() {
 
 var assessCmd = &cobra.Command{
 	Use:   "assess",
-	Short: "Rate and review a resume using an LLM via Ollama",
+	Short: "Rate and review a resume using specialized LLM agents via Ollama",
+	Long: `Assess a resume by delegating to four specialist sub-agents:
+
+  - content-analyst:  achievement quantity, metrics, specificity, impact
+  - writing-analyst:  succinctness, clarity, readability, grammar
+  - industry-analyst: industry-specific keywords, conventions, relevance
+  - format-analyst:   structure, section ordering, length, visual hierarchy
+
+Each agent scores its dimension 1-10 with bullet-point feedback.
+A coordinator synthesizes the results into a final report.
+
+Requires Ollama running locally (https://ollama.com).`,
 	Run: func(cmd *cobra.Command, args []string) {
 		logger, _ := zap.NewProduction()
 		sugar := logger.Sugar()
@@ -57,7 +68,6 @@ var assessCmd = &cobra.Command{
 
 		resumeData := inputData.ToResume()
 
-		// Load the markdown template and render the resume
 		mdTmpl, err := generators.LoadTemplate("modern-markdown")
 		if err != nil {
 			sugar.Fatalf("Failed to load markdown template: %v", err)
@@ -69,18 +79,7 @@ var assessCmd = &cobra.Command{
 			sugar.Fatalf("Failed to render resume to markdown: %v", err)
 		}
 
-		prompt := fmt.Sprintf(`Rate the following resume on a scale of 1-10. Provide:
-1. Overall rating (1-10)
-2. Key strengths (bullet points)
-3. Key weaknesses (bullet points)
-4. Specific suggestions for improvement
-
-Resume:
----
-%s
----`, markdownText)
-
-		// Check Ollama is reachable before doing any LLM work
+		// Check Ollama is reachable
 		httpClient := &http.Client{Timeout: 5 * time.Second}
 		resp, err := httpClient.Get(assessOllamaURL)
 		if err != nil {
@@ -92,10 +91,25 @@ Resume:
 		adapter := ollama.NewAdapter(client)
 
 		agent := agentsdk.NewAgent(agentsdk.AgentConfig{
-			Name:     "resume-assessor",
+			Name:     "resume-coordinator",
 			Provider: adapter,
-			MaxIter:  1,
+			MaxIter:  10,
+			SystemPrompt: `You are a senior resume review coordinator. You have four specialist analysts available.
+
+Your process:
+1. Read the resume carefully and identify the candidate's target industry/role.
+2. Delegate to ALL FOUR analysts — content, writing, industry, and format — by calling each delegate tool. Pass the full resume text as the task to each one, prefixed with the target industry/role you identified.
+3. After receiving all four reports, synthesize a final assessment that includes:
+   - Target industry/role identified
+   - Individual dimension scores (from each analyst)
+   - Overall score (weighted average: content 30%, industry 25%, writing 25%, format 20%)
+   - Top 3 priority improvements (the most impactful changes across all dimensions)
+
+Always delegate to all four analysts. Do not skip any. Present the final report in a clean, readable format.`,
+			SubAgents: buildAssessSubAgents(adapter),
 		})
+
+		prompt := fmt.Sprintf("Assess the following resume:\n\n---\n%s\n---", markdownText)
 
 		stream := agent.Invoke(context.Background(), []core.Message{
 			core.NewUserMessage(prompt),
@@ -105,6 +119,10 @@ Resume:
 			switch d := delta.(type) {
 			case core.TextContentDelta:
 				fmt.Print(d.Content)
+			case core.ToolExecStartDelta:
+				fmt.Fprintf(os.Stderr, "\n> Delegating to %s...\n", d.Name)
+			case core.ToolExecEndDelta:
+				fmt.Fprintf(os.Stderr, "> %s complete.\n", d.ToolCallID)
 			case core.ErrorDelta:
 				sugar.Fatalf("Assessment error: %v", d.Error)
 			}
@@ -116,4 +134,126 @@ Resume:
 
 		fmt.Fprintln(os.Stdout)
 	},
+}
+
+func buildAssessSubAgents(provider core.Provider) []agentsdk.SubAgentDef {
+	return []agentsdk.SubAgentDef{
+		{
+			Name:     "content_analyst",
+			Provider: provider,
+			MaxIter:  1,
+			Description: "Analyzes resume content quality: achievement quantity, use of metrics/numbers, " +
+				"specificity of accomplishments, and demonstrated impact. Delegate the full resume text to this agent.",
+			SystemPrompt: `You are a resume content analyst. Score the resume on CONTENT (1-10) based on:
+
+- **Quantity of achievements**: Does each role have 3-5 strong bullet points? Are there enough concrete accomplishments?
+- **Metrics & numbers**: Are achievements quantified (percentages, dollar amounts, team sizes, timeframes)?
+- **Specificity**: Are bullet points specific to this person's contribution, or generic/vague?
+- **Impact**: Do bullet points show results and outcomes, not just responsibilities?
+
+Output format:
+CONTENT SCORE: X/10
+
+Strengths:
+- ...
+
+Weaknesses:
+- ...
+
+Suggestions:
+- ...
+
+Be direct and specific. Reference actual bullet points from the resume.`,
+		},
+		{
+			Name:     "writing_analyst",
+			Provider: provider,
+			MaxIter:  1,
+			Description: "Analyzes resume writing quality: succinctness, clarity, readability, grammar, " +
+				"and professional tone. Delegate the full resume text to this agent.",
+			SystemPrompt: `You are a resume writing analyst. Score the resume on WRITING QUALITY (1-10) based on:
+
+- **Succinctness**: Are bullet points concise (ideally 1-2 lines)? Is there unnecessary wordiness or filler?
+- **Clarity**: Can a recruiter understand each bullet point in under 5 seconds? Is the language unambiguous?
+- **Readability**: Is sentence structure varied? Are action verbs used consistently? Is parallel structure maintained?
+- **Grammar & mechanics**: Any spelling errors, grammatical issues, or inconsistent punctuation/formatting?
+- **Professional tone**: Is the language professional without being stiff or overly casual?
+
+Output format:
+WRITING SCORE: X/10
+
+Strengths:
+- ...
+
+Weaknesses:
+- ...
+
+Suggestions:
+- ...
+
+Be direct and specific. Quote actual phrases from the resume that could be improved.`,
+		},
+		{
+			Name:     "industry_analyst",
+			Provider: provider,
+			MaxIter:  1,
+			Description: "Analyzes resume industry fit: relevant keywords, industry conventions, " +
+				"role-specific expectations, and ATS compatibility. Delegate the full resume text with the target industry/role.",
+			SystemPrompt: `You are a resume industry analyst. The task will include the target industry/role and the resume text. Score on INDUSTRY FIT (1-10) based on:
+
+- **Keywords**: Does the resume include relevant industry/role keywords that ATS systems and recruiters look for?
+- **Conventions**: Does the resume follow the norms for this industry (e.g., tech resumes emphasize projects and skills; sales resumes emphasize revenue and quotas; academic CVs emphasize publications)?
+- **Role alignment**: Do the experiences and skills clearly map to the target role?
+- **Skill relevance**: Are the listed skills current and valued in this industry? Are outdated or irrelevant skills cluttering the resume?
+- **Competitive positioning**: How would this resume compare to a typical applicant pool for this role?
+
+Output format:
+INDUSTRY FIT SCORE: X/10
+
+Target role/industry analyzed: ...
+
+Strengths:
+- ...
+
+Weaknesses:
+- ...
+
+Missing keywords/skills:
+- ...
+
+Suggestions:
+- ...
+
+Be direct and specific to the industry identified.`,
+		},
+		{
+			Name:     "format_analyst",
+			Provider: provider,
+			MaxIter:  1,
+			Description: "Analyzes resume format and structure: section ordering, length, information density, " +
+				"and visual hierarchy. Delegate the full resume text to this agent.",
+			SystemPrompt: `You are a resume format and structure analyst. Score the resume on FORMAT (1-10) based on:
+
+- **Section ordering**: Are sections ordered by relevance to the target role? (Most impactful sections first)
+- **Length**: Is the resume an appropriate length for the candidate's experience level? (1 page for <10 years, 2 pages max for senior)
+- **Information density**: Is space used efficiently? Are there sections that could be condensed or removed?
+- **Visual hierarchy**: Is the most important information (job titles, companies, key achievements) easy to scan?
+- **Consistency**: Are date formats, bullet styles, heading levels, and spacing consistent throughout?
+- **Section completeness**: Are expected sections present (contact, experience, education, skills)? Are any critical sections missing?
+
+Output format:
+FORMAT SCORE: X/10
+
+Strengths:
+- ...
+
+Weaknesses:
+- ...
+
+Suggestions:
+- ...
+
+Be direct and specific about structural improvements.`,
+		},
+	}
 }
