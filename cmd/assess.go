@@ -7,9 +7,12 @@ import (
 	"os"
 	"time"
 
-	agentsdk "github.com/urmzd/agent-sdk"
-	"github.com/urmzd/agent-sdk/core"
-	"github.com/urmzd/agent-sdk/provider/ollama"
+	tea "github.com/charmbracelet/bubbletea"
+	agentsdk "github.com/urmzd/adk"
+	"github.com/urmzd/adk/core"
+	"github.com/urmzd/adk/provider/ollama"
+	"github.com/urmzd/adk/tui"
+	"golang.org/x/term"
 
 	"github.com/spf13/cobra"
 	"github.com/urmzd/resume-generator/pkg/generators"
@@ -22,13 +25,15 @@ var (
 	assessInput     string
 	assessModel     string
 	assessOllamaURL string
+	assessVerbose   bool
 )
 
 func initAssessCmd() {
 	rootCmd.AddCommand(assessCmd)
 	assessCmd.Flags().StringVarP(&assessInput, "input", "i", "", "Path to the resume data file (e.g., resume.yml)")
-	assessCmd.Flags().StringVarP(&assessModel, "model", "m", "qwen3:4b", "Ollama model to use for assessment")
+	assessCmd.Flags().StringVarP(&assessModel, "model", "m", "qwen3.5:4b", "Ollama model to use for assessment")
 	assessCmd.Flags().StringVar(&assessOllamaURL, "ollama-url", "http://localhost:11434", "Ollama server URL")
+	assessCmd.Flags().BoolVarP(&assessVerbose, "verbose", "v", false, "Show full streaming output from all agents")
 
 	_ = assessCmd.MarkFlagRequired("input")
 
@@ -111,29 +116,78 @@ Always delegate to all four analysts. Do not skip any. Present the final report 
 
 		prompt := fmt.Sprintf("Assess the following resume:\n\n---\n%s\n---", markdownText)
 
-		stream := agent.Invoke(context.Background(), []core.Message{
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		stream := agent.Invoke(ctx, []core.Message{
 			core.NewUserMessage(prompt),
 		})
 
-		for delta := range stream.Deltas() {
-			switch d := delta.(type) {
-			case core.TextContentDelta:
-				fmt.Print(d.Content)
-			case core.ToolExecStartDelta:
-				fmt.Fprintf(os.Stderr, "\n> Delegating to %s...\n", d.Name)
-			case core.ToolExecEndDelta:
-				fmt.Fprintf(os.Stderr, "> %s complete.\n", d.ToolCallID)
-			case core.ErrorDelta:
-				sugar.Fatalf("Assessment error: %v", d.Error)
-			}
-		}
+		header := buildAssessHeader(agent)
+		isTTY := term.IsTerminal(int(os.Stdout.Fd()))
 
-		if err := stream.Wait(); err != nil {
-			sugar.Fatalf("Assessment failed: %v", err)
+		if assessVerbose || !isTTY {
+			runVerbose(stream, header, cancel)
+		} else {
+			runTUI(stream, header, cancel, sugar)
 		}
-
-		fmt.Fprintln(os.Stdout)
 	},
+}
+
+func buildAssessHeader(agent *agentsdk.Agent) tui.AgentHeader {
+	info := agent.Info()
+	header := tui.AgentHeader{
+		Name:      info.Name,
+		Provider:  info.Provider,
+		Tools:     info.Tools,
+		SubAgents: info.SubAgents,
+	}
+	tui.PopulateEnv(&header)
+	return header
+}
+
+// runVerbose streams all agent output with colored prefixes using the SDK's StreamVerbose.
+func runVerbose(stream *agentsdk.EventStream, header tui.AgentHeader, cancel context.CancelFunc) {
+	result := tui.StreamVerbose(header, stream.Deltas(), os.Stdout)
+	if result.Err != nil {
+		cancel()
+		fmt.Fprintf(os.Stderr, "Assessment error: %v\n", result.Err)
+		os.Exit(1)
+	}
+
+	if err := stream.Wait(); err != nil {
+		fmt.Fprintf(os.Stderr, "Assessment failed: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println()
+}
+
+// runTUI runs the bubbletea progress UI, then prints the final report.
+func runTUI(stream *agentsdk.EventStream, header tui.AgentHeader, cancel context.CancelFunc, sugar *zap.SugaredLogger) {
+	model := tui.NewStreamModel(header, stream.Deltas())
+	p := tea.NewProgram(model)
+
+	finalModel, err := p.Run()
+	if err != nil {
+		cancel()
+		sugar.Fatalf("TUI error: %v", err)
+	}
+
+	m := finalModel.(tui.StreamModel)
+	if m.Err() != nil {
+		cancel()
+		sugar.Fatalf("Assessment error: %v", m.Err())
+	}
+
+	report := m.FinalReport()
+	if report != "" {
+		fmt.Println(tui.RenderReport("Resume Assessment", report))
+	}
+
+	if err := stream.Wait(); err != nil {
+		sugar.Fatalf("Assessment failed: %v", err)
+	}
 }
 
 func buildAssessSubAgents(provider core.Provider) []agentsdk.SubAgentDef {
