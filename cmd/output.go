@@ -22,16 +22,20 @@ func generateFilenameSlug(inputPath string) string {
 	return slug
 }
 
-func generateOutputBaseName(contactName string, t time.Time) string {
+func generateOutputBaseName(contactName string) string {
 	parts := strings.Fields(contactName)
 	if len(parts) == 0 {
-		return fmt.Sprintf("Resume_%s", t.Format("01_02_2006"))
+		return "Resume"
 	}
 	var nameParts []string
 	for _, p := range parts {
 		nameParts = append(nameParts, toProperCase(p))
 	}
-	return fmt.Sprintf("%s_%s", strings.Join(nameParts, "_"), t.Format("01_02_2006"))
+	return strings.Join(nameParts, "_")
+}
+
+func generateRunDir(baseDir string, t time.Time) string {
+	return filepath.Join(baseDir, t.Format("2006-01-02_15-04"))
 }
 
 func toProperCase(s string) string {
@@ -112,20 +116,15 @@ func loadSelectedTemplates(templateNames []string) ([]*generators.Template, erro
 	return templates, nil
 }
 
-// resolveTemplateOutputDir computes the output directory for a template
-func resolveTemplateOutputDir(runBaseDir string, tmpl *generators.Template) (string, error) {
-	templateSubdir := sanitizeNameComponent(tmpl.Name)
-	if templateSubdir == "" {
-		templateSubdir = "template"
-	}
-
-	return filepath.Join(runBaseDir, templateSubdir), nil
-}
-
-func ensureUniqueOutputPaths(runDir, desiredBase, extension string) (string, string, error) {
+func ensureUniqueOutputPath(runDir, desiredBase, templateName, extension string) (string, error) {
 	base := strings.TrimSpace(desiredBase)
 	if base == "" {
-		base = "resume"
+		base = "Resume"
+	}
+
+	tmplSlug := strings.TrimSpace(templateName)
+	if tmplSlug == "" {
+		tmplSlug = "template"
 	}
 
 	ext := extension
@@ -136,17 +135,20 @@ func ensureUniqueOutputPaths(runDir, desiredBase, extension string) (string, str
 		ext = "." + ext
 	}
 
-	for attempt := 1; attempt <= 9999; attempt++ {
+	// First attempt without numeric suffix
+	candidateBase := base + "." + tmplSlug
+	candidate := filepath.Join(runDir, candidateBase+ext)
+	if !utils.FileExists(candidate) {
+		return candidate, nil
+	}
+
+	for attempt := 2; attempt <= 9999; attempt++ {
 		suffix := fmt.Sprintf("_%d", attempt)
-
-		candidateBase := base + suffix
-		pdfPath := filepath.Join(runDir, candidateBase+ext)
-		debugDir := filepath.Join(runDir, candidateBase+"_debug")
-
-		if !utils.FileExists(pdfPath) && !utils.DirExists(debugDir) {
-			return pdfPath, debugDir, nil
+		candidate = filepath.Join(runDir, candidateBase+suffix+ext)
+		if !utils.FileExists(candidate) {
+			return candidate, nil
 		}
 	}
 
-	return "", "", fmt.Errorf("failed to find unique output filename in %s", runDir)
+	return "", fmt.Errorf("failed to find unique output filename in %s", runDir)
 }
