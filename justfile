@@ -44,7 +44,7 @@ dev-clean:
 
 # Record CLI demo GIF (requires: brew install vhs)
 demo-cli:
-    vhs doc/demo.tape
+    vhs docs/demo.tape
 
 # Record desktop demo (video + screenshot). Starts and stops wails dev automatically.
 demo-desktop:
