@@ -156,7 +156,7 @@ Once installed, use `/resume-generate` to generate resumes from your agent.
 
 ## Related
 
-- [resume-generator-app](https://github.com/urmzd/resume-generator-app) — native desktop GUI with live preview and template gallery
+- [resume-generator-app](https://github.com/urmzd/resume-generator-app) — native desktop GUI with live preview, template gallery, and inline editing. If you prefer a visual interface over the command line, use the desktop app instead.
 
 ## Contributing
 
