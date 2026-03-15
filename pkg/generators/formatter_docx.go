@@ -3,7 +3,6 @@ package generators
 import (
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/urmzd/resume-generator/pkg/resume"
 )
@@ -24,7 +23,7 @@ func (f *docxFormatter) EscapeText(value string) string {
 	return value
 }
 
-// FormatDateRange formats dates, detecting year-only dates.
+// FormatDateRange formats dates using precision-aware formatting.
 func (f *docxFormatter) FormatDateRange(dr resume.DateRange) string {
 	if dr.End != nil {
 		return f.formatDateShort(dr.Start) + " " + f.formatDateShort(*dr.End)
@@ -60,14 +59,13 @@ func (f *docxFormatter) TemplateFuncs() template.FuncMap {
 	return template.FuncMap{}
 }
 
-// formatDateShort returns a short date format (Jan 2006 or just 2006 for year-only dates).
-func (f *docxFormatter) formatDateShort(t time.Time) string {
-	if t.IsZero() {
+// formatDateShort returns a short date format using the date's precision.
+func (f *docxFormatter) formatDateShort(pd resume.PartialDate) string {
+	if pd.IsZero() {
 		return ""
 	}
-	// If it's January 1st, likely a year-only date
-	if t.Month() == time.January && t.Day() == 1 {
-		return t.Format("2006")
+	if pd.Precision == resume.PrecisionYear {
+		return pd.Time.Format("2006")
 	}
-	return t.Format("Jan 2006")
+	return pd.Time.Format("Jan 2006")
 }

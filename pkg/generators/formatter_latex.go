@@ -71,19 +71,19 @@ func (f *latexFormatter) FormatDateRange(dates resume.DateRange) string {
 }
 
 // formatDateRangeLaTeX formats dates using LaTeX \textendash\ for the en-dash.
-func (f *latexFormatter) formatDateRangeLaTeX(start time.Time, end *time.Time) string {
+func (f *latexFormatter) formatDateRangeLaTeX(start resume.PartialDate, end *resume.PartialDate) string {
 	if start.IsZero() && (end == nil || end.IsZero()) {
 		return ""
 	}
 
-	startStr := f.formatMonthYear(start)
+	startStr := f.formatPartialDate(start)
 	var endStr string
 
 	switch {
 	case end == nil:
 		endStr = "Present"
 	case !end.IsZero():
-		endStr = f.formatMonthYear(*end)
+		endStr = f.formatPartialDate(*end)
 	default:
 		endStr = "Present"
 	}
@@ -95,14 +95,6 @@ func (f *latexFormatter) formatDateRangeLaTeX(start time.Time, end *time.Time) s
 		return startStr
 	}
 	return fmt.Sprintf(`%s \textendash\ %s`, startStr, endStr)
-}
-
-// formatMonthYear formats a time as "Jan 2006".
-func (f *latexFormatter) formatMonthYear(t time.Time) string {
-	if t.IsZero() {
-		return ""
-	}
-	return t.Format("Jan 2006")
 }
 
 // FormatDates overrides the base formatter to use LaTeX-specific en-dash.
@@ -164,14 +156,21 @@ func (f *latexFormatter) TemplateFuncs() template.FuncMap {
 		// Date formatting
 		"fmtDateRange": f.FormatDateRange,
 		"fmtDates":     f.FormatDates,
-		"formatDateRange": func(start time.Time, end *time.Time) string {
+		"formatDateRange": func(start resume.PartialDate, end *resume.PartialDate) string {
 			return f.formatDateRangeInternal(start, end)
 		},
-		"fmtDateLegal": func(t time.Time) string {
-			if t.IsZero() {
+		"fmtDateLegal": func(pd resume.PartialDate) string {
+			if pd.IsZero() {
 				return ""
 			}
-			return t.Format("01/02/2006")
+			switch pd.Precision {
+			case resume.PrecisionYear:
+				return pd.Time.Format("2006")
+			case resume.PrecisionMonth:
+				return pd.Time.Format("01/2006")
+			default:
+				return pd.Time.Format("01/02/2006")
+			}
 		},
 
 		// List formatting

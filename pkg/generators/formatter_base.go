@@ -20,6 +20,19 @@ func (f *baseFormatter) FormatDateRange(dates resume.DateRange) string {
 	return f.formatDateRangeInternal(dates.Start, dates.End)
 }
 
+// formatPartialDate formats a PartialDate according to its precision.
+func (f *baseFormatter) formatPartialDate(pd resume.PartialDate) string {
+	if pd.IsZero() {
+		return ""
+	}
+	switch pd.Precision {
+	case resume.PrecisionYear:
+		return pd.Time.Format("2006")
+	default:
+		return pd.Time.Format("Jan 2006")
+	}
+}
+
 // FormatOptionalDateRange handles a potentially nil DateRange pointer.
 func (f *baseFormatter) FormatOptionalDateRange(dates *resume.DateRange) string {
 	if dates == nil {
@@ -140,19 +153,19 @@ func (f *baseFormatter) Title(value string) string {
 }
 
 // formatDateRangeInternal is the internal implementation for date range formatting.
-func (f *baseFormatter) formatDateRangeInternal(start time.Time, end *time.Time) string {
+func (f *baseFormatter) formatDateRangeInternal(start resume.PartialDate, end *resume.PartialDate) string {
 	if start.IsZero() && (end == nil || end.IsZero()) {
 		return ""
 	}
 
-	startStr := f.formatMonthYear(start)
+	startStr := f.formatPartialDate(start)
 	var endStr string
 
 	switch {
 	case end == nil:
 		endStr = "Present"
 	case !end.IsZero():
-		endStr = f.formatMonthYear(*end)
+		endStr = f.formatPartialDate(*end)
 	default:
 		endStr = "Present"
 	}
@@ -166,24 +179,16 @@ func (f *baseFormatter) formatDateRangeInternal(start time.Time, end *time.Time)
 	return fmt.Sprintf("%s – %s", startStr, endStr)
 }
 
-// formatMonthYear formats a time as "Jan 2006".
-func (f *baseFormatter) formatMonthYear(t time.Time) string {
-	if t.IsZero() {
-		return ""
-	}
-	return t.Format("Jan 2006")
-}
-
 // CalculateDuration returns duration as "X yr Y mo" string.
-func (f *baseFormatter) CalculateDuration(start time.Time, end *time.Time) string {
+func (f *baseFormatter) CalculateDuration(start resume.PartialDate, end *resume.PartialDate) string {
 	var endTime time.Time
 	if end == nil {
 		endTime = time.Now()
 	} else {
-		endTime = *end
+		endTime = end.Time
 	}
 
-	diff := endTime.Sub(start)
+	diff := endTime.Sub(start.Time)
 	years := int(diff.Hours() / 24 / 365)
 	months := int((diff.Hours() / 24 / 30)) % 12
 

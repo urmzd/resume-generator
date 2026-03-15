@@ -160,18 +160,36 @@ func (g *AdvancedHTMLGenerator) setupAdvancedTemplateFunctions() {
 	g.funcs = template.FuncMap{
 		// Basic formatters available in standard generator
 		// We re-implement specific ones here or could reuse the formatter if we had it
-		"formatDate": func(t time.Time) string {
-			return t.Format("January 2006")
+		"formatDate": func(pd resume.PartialDate) string {
+			if pd.IsZero() {
+				return ""
+			}
+			if pd.Precision == resume.PrecisionYear {
+				return pd.Time.Format("2006")
+			}
+			return pd.Time.Format("January 2006")
 		},
-		"formatDateShort": func(t time.Time) string {
-			return t.Format("Jan 2006")
+		"formatDateShort": func(pd resume.PartialDate) string {
+			if pd.IsZero() {
+				return ""
+			}
+			if pd.Precision == resume.PrecisionYear {
+				return pd.Time.Format("2006")
+			}
+			return pd.Time.Format("Jan 2006")
 		},
-		"formatDateRange": func(start time.Time, end *time.Time) string {
-			startStr := start.Format("Jan 2006")
+		"formatDateRange": func(start resume.PartialDate, end *resume.PartialDate) string {
+			fmtDate := func(pd resume.PartialDate) string {
+				if pd.Precision == resume.PrecisionYear {
+					return pd.Time.Format("2006")
+				}
+				return pd.Time.Format("Jan 2006")
+			}
+			startStr := fmtDate(start)
 			if end == nil {
 				return startStr + " - Present"
 			}
-			endStr := end.Format("Jan 2006")
+			endStr := fmtDate(*end)
 			if startStr == endStr {
 				return startStr
 			}

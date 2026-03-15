@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html/template"
 	"strings"
-	"time"
 
 	"github.com/urmzd/resume-generator/pkg/resume"
 )
@@ -103,8 +102,24 @@ func (f *htmlFormatter) TemplateFuncs() template.FuncMap {
 		"safeHTML": func(value string) template.HTML { return template.HTML(value) },
 
 		// Date formatting
-		"formatDate":        func(t time.Time) string { return t.Format("January 2006") },
-		"formatDateShort":   func(t time.Time) string { return t.Format("Jan 2006") },
+		"formatDate": func(pd resume.PartialDate) string {
+			if pd.IsZero() {
+				return ""
+			}
+			if pd.Precision == resume.PrecisionYear {
+				return pd.Time.Format("2006")
+			}
+			return pd.Time.Format("January 2006")
+		},
+		"formatDateShort": func(pd resume.PartialDate) string {
+			if pd.IsZero() {
+				return ""
+			}
+			if pd.Precision == resume.PrecisionYear {
+				return pd.Time.Format("2006")
+			}
+			return pd.Time.Format("Jan 2006")
+		},
 		"formatDateRange":   f.formatDateRange,
 		"fmtDateRange":      f.FormatDateRange,
 		"fmtOptDateRange":   f.FormatOptionalDateRange,
@@ -181,6 +196,6 @@ func (f *htmlFormatter) TemplateFuncs() template.FuncMap {
 }
 
 // formatDateRange is a template-friendly version accepting individual args.
-func (f *htmlFormatter) formatDateRange(start time.Time, end *time.Time) string {
+func (f *htmlFormatter) formatDateRange(start resume.PartialDate, end *resume.PartialDate) string {
 	return f.formatDateRangeInternal(start, end)
 }

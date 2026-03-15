@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/urmzd/resume-generator/pkg/resume"
 )
@@ -81,17 +80,23 @@ func (f *markdownFormatter) TemplateFuncs() template.FuncMap {
 		"fmtDateRange":    f.FormatDateRange,
 		"fmtOptDateRange": f.FormatOptionalDateRange,
 		"fmtDates":        f.FormatDates,
-		"formatDate": func(t time.Time) string {
-			if t.IsZero() {
+		"formatDate": func(pd resume.PartialDate) string {
+			if pd.IsZero() {
 				return ""
 			}
-			return t.Format("January 2006")
+			if pd.Precision == resume.PrecisionYear {
+				return pd.Time.Format("2006")
+			}
+			return pd.Time.Format("January 2006")
 		},
-		"formatDateShort": func(t time.Time) string {
-			if t.IsZero() {
+		"formatDateShort": func(pd resume.PartialDate) string {
+			if pd.IsZero() {
 				return ""
 			}
-			return t.Format("Jan 2006")
+			if pd.Precision == resume.PrecisionYear {
+				return pd.Time.Format("2006")
+			}
+			return pd.Time.Format("Jan 2006")
 		},
 
 		// Location formatting
