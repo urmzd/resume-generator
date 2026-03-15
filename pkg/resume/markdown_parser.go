@@ -354,7 +354,8 @@ func parseExperienceLine(line string, exp *Experience) {
 				if !strings.EqualFold(dr[2], "Present") {
 					end := parseDate(dr[2])
 					if !end.IsZero() {
-						exp.Dates.End = &end
+						endCopy := end
+						exp.Dates.End = &endCopy
 					}
 				}
 				continue
@@ -452,7 +453,8 @@ func parseEducationMeta(line string, edu *Education) {
 			if !strings.EqualFold(dr[2], "Present") {
 				end := parseDate(dr[2])
 				if !end.IsZero() {
-					edu.Dates.End = &end
+					endCopy := end
+					edu.Dates.End = &endCopy
 				}
 			}
 			continue
@@ -553,7 +555,8 @@ func parseProjectLine(line string, proj *Project) {
 			if !strings.EqualFold(dr[2], "Present") {
 				end := parseDate(dr[2])
 				if !end.IsZero() {
-					dates.End = &end
+					endCopy := end
+					dates.End = &endCopy
 				}
 			}
 			proj.Dates = dates
@@ -671,15 +674,16 @@ func flushProject(proj *Project, r *Resume) {
 }
 
 // parseDate tries to parse a month+year string using known formats.
-func parseDate(s string) time.Time {
+// Dates parsed from markdown are always month-precision since the format is "Jan 2006".
+func parseDate(s string) PartialDate {
 	s = strings.TrimSpace(s)
 	// Normalize period abbreviations: "Jan." → "Jan"
 	s = strings.ReplaceAll(s, ".", "")
 	for _, layout := range dateFormats {
 		clean := strings.ReplaceAll(layout, ".", "")
 		if t, err := time.Parse(clean, s); err == nil {
-			return t
+			return NewMonthDate(t)
 		}
 	}
-	return time.Time{}
+	return PartialDate{}
 }
