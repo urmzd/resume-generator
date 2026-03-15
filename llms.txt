@@ -1,0 +1,23 @@
+# Resume Generator
+
+> A Go CLI tool that converts structured resume data (YAML/JSON/TOML) into polished PDFs, HTML, LaTeX, DOCX, and Markdown. Features a modular template system with embedded assets, AI resume assessment via multi-agent LLM analysis through Ollama, flexible path resolution, and JSON Schema generation for IDE autocompletion.
+
+## Docs
+
+- [README](https://github.com/urmzd/resume-generator/blob/main/README.md): Installation, CLI usage, templates, and prerequisites
+- [AGENTS.md](https://github.com/urmzd/resume-generator/blob/main/AGENTS.md): Architecture, data flow, formatter pattern, and development guide
+- [CONTRIBUTING](https://github.com/urmzd/resume-generator/blob/main/CONTRIBUTING.md): Setup, testing, adding templates, and style guidelines
+
+## API / Key Files
+
+- [main.go](https://github.com/urmzd/resume-generator/blob/main/main.go): Entry point with //go:embed for templates
+- [cmd/](https://github.com/urmzd/resume-generator/blob/main/cmd/): Cobra CLI commands (run, assess, validate, preview, templates, schema)
+- [pkg/generators/](https://github.com/urmzd/resume-generator/blob/main/pkg/generators/): Core generation logic, formatter interface, HTML/LaTeX/Markdown/DOCX generators
+- [pkg/resume/](https://github.com/urmzd/resume-generator/blob/main/pkg/resume/): Resume data model and validation
+- [pkg/compilers/](https://github.com/urmzd/resume-generator/blob/main/pkg/compilers/): PDF compilation (LaTeX engines, Rod/Chromium)
+- [templates/](https://github.com/urmzd/resume-generator/blob/main/templates/): Built-in templates (modern-html, modern-latex, modern-cv, modern-docx, modern-markdown)
+
+## Optional
+
+- [CONTRIBUTING](https://github.com/urmzd/resume-generator/blob/main/CONTRIBUTING.md): How to contribute
+- [Skill](https://github.com/urmzd/resume-generator/blob/main/skills/resume-generate/SKILL.md): Agent skill

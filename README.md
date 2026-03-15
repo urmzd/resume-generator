@@ -7,8 +7,12 @@
     &middot;
     <a href="https://github.com/urmzd/resume-generator/issues">Report Bug</a>
     &middot;
-    <a href="https://github.com/urmzd/resume-generator-app">Desktop App</a>
+    <a href="https://github.com/urmzd/resume-generator/tree/main/assets">Examples</a>
   </p>
+</p>
+
+<p align="center">
+  <a href="https://github.com/urmzd/resume-generator/actions/workflows/ci.yml"><img src="https://github.com/urmzd/resume-generator/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 </p>
 
 <br />
