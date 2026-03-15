@@ -15,8 +15,6 @@ import (
 	"golang.org/x/term"
 
 	"github.com/spf13/cobra"
-	"github.com/urmzd/resume-generator/pkg/generators"
-	"github.com/urmzd/resume-generator/pkg/resume"
 	"github.com/urmzd/resume-generator/pkg/utils"
 	"go.uber.org/zap"
 )
@@ -36,8 +34,6 @@ func initAssessCmd() {
 	assessCmd.Flags().BoolVarP(&assessVerbose, "verbose", "v", false, "Show full streaming output from all agents")
 
 	_ = assessCmd.MarkFlagRequired("input")
-
-	generators.SetEmbeddedFS(EmbeddedTemplatesFS)
 }
 
 var assessCmd = &cobra.Command{
@@ -66,23 +62,11 @@ Requires Ollama running locally (https://ollama.com).`,
 			sugar.Fatalf("Input file does not exist: %s", inputPath)
 		}
 
-		inputData, err := resume.LoadResumeFromFile(inputPath)
+		yamlBytes, err := os.ReadFile(inputPath)
 		if err != nil {
-			sugar.Fatalf("Error loading resume data: %s", err)
+			sugar.Fatalf("Error reading input file: %s", err)
 		}
-
-		resumeData := inputData.ToResume()
-
-		mdTmpl, err := generators.LoadTemplate("modern-markdown")
-		if err != nil {
-			sugar.Fatalf("Failed to load markdown template: %v", err)
-		}
-
-		generator := generators.NewGenerator(sugar)
-		markdownText, err := generator.GenerateWithTemplate(mdTmpl, resumeData)
-		if err != nil {
-			sugar.Fatalf("Failed to render resume to markdown: %v", err)
-		}
+		resumeText := string(yamlBytes)
 
 		// Check Ollama is reachable
 		httpClient := &http.Client{Timeout: 5 * time.Second}
@@ -114,7 +98,7 @@ Always delegate to all four analysts. Do not skip any. Present the final report 
 			SubAgents: buildAssessSubAgents(adapter),
 		})
 
-		prompt := fmt.Sprintf("Assess the following resume:\n\n---\n%s\n---", markdownText)
+		prompt := fmt.Sprintf("Assess the following resume (in YAML format):\n\n---\n%s\n---", resumeText)
 
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
@@ -284,19 +268,18 @@ Be direct and specific to the industry identified.`,
 			Name:     "format_analyst",
 			Provider: provider,
 			MaxIter:  1,
-			Description: "Analyzes resume format and structure: section ordering, length, information density, " +
-				"and visual hierarchy. Delegate the full resume text to this agent.",
-			SystemPrompt: `You are a resume format and structure analyst. Score the resume on FORMAT (1-10) based on:
+			Description: "Analyzes resume content structure: section ordering, information density, " +
+				"completeness, and length appropriateness. Delegate the full resume text to this agent.",
+			SystemPrompt: `You are a resume structure analyst. The visual formatting is handled automatically by a generator — do NOT evaluate fonts, spacing, bullet styles, or visual hierarchy. Instead, score the resume on STRUCTURE (1-10) based on its content organization:
 
 - **Section ordering**: Are sections ordered by relevance to the target role? (Most impactful sections first)
-- **Length**: Is the resume an appropriate length for the candidate's experience level? (1 page for <10 years, 2 pages max for senior)
-- **Information density**: Is space used efficiently? Are there sections that could be condensed or removed?
-- **Visual hierarchy**: Is the most important information (job titles, companies, key achievements) easy to scan?
-- **Consistency**: Are date formats, bullet styles, heading levels, and spacing consistent throughout?
+- **Length**: Is the amount of content appropriate for the candidate's experience level? (Concise for <10 years, more detail acceptable for senior)
+- **Information density**: Is there redundant or filler content that could be condensed or removed? Are there gaps where more detail is needed?
 - **Section completeness**: Are expected sections present (contact, experience, education, skills)? Are any critical sections missing?
+- **Logical flow**: Does the resume tell a coherent career story? Do sections build on each other logically?
 
 Output format:
-FORMAT SCORE: X/10
+STRUCTURE SCORE: X/10
 
 Strengths:
 - ...
@@ -307,7 +290,7 @@ Weaknesses:
 Suggestions:
 - ...
 
-Be direct and specific about structural improvements.`,
+Be direct and specific about structural improvements. Do not comment on visual formatting — only content organization.`,
 		},
 	}
 }
