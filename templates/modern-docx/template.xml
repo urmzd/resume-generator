@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+            xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <w:body>
+
+{{/* ============================================================================
+     HEADER
+     ============================================================================ */}}
+
+    {{/* Name - large, bold, centered */}}
+    <w:p>
+      <w:pPr><w:jc w:val="center"/></w:pPr>
+      <w:r>
+        <w:rPr><w:b/><w:sz w:val="36"/></w:rPr>
+        <w:t>{{upper (escape .Contact.Name)}}</w:t>
+      </w:r>
+    </w:p>
+
+    {{/* Contact info line */}}
+    {{- $contactParts := contactLine .Contact }}
+    {{- if $contactParts }}
+    <w:p>
+      <w:pPr><w:jc w:val="center"/></w:pPr>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t>{{escape $contactParts}}</w:t>
+      </w:r>
+    </w:p>
+    {{- end }}
+
+    {{/* Spacing after header */}}
+    <w:p/>
+
+{{/* ============================================================================
+     SECTION DEFINITIONS
+     ============================================================================ */}}
+
+{{- define "docx-section-summary" -}}
+{{- if .Summary }}
+    {{- template "docx-section-header" (dict "title" "Professional Summary") }}
+    <w:p>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t>{{escape .Summary}}</w:t>
+      </w:r>
+    </w:p>
+    <w:p/>
+{{- end }}
+{{- end -}}
+
+{{- define "docx-section-certifications" -}}
+{{- if .Certifications }}
+{{- if .Certifications.Items }}
+    {{- template "docx-section-header" (dict "title" (default "Certifications" .Certifications.Title)) }}
+    {{- range .Certifications.Items }}
+    <w:p>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t>{{escape (certLine .)}}</w:t>
+      </w:r>
+    </w:p>
+    {{- end }}
+    <w:p/>
+{{- end }}
+{{- end }}
+{{- end -}}
+
+{{- define "docx-section-education" -}}
+{{- if .Education.Institutions }}
+    {{- template "docx-section-header" (dict "title" (default "Education" .Education.Title)) }}
+    {{- range sortEducationByOrder .Education.Institutions }}
+    <w:p>
+      <w:r>
+        <w:rPr><w:b/><w:sz w:val="22"/></w:rPr>
+        <w:t>{{escape (eduHeader .)}}</w:t>
+      </w:r>
+    </w:p>
+    {{- if .GPA }}
+    {{- $gpa := formatGPA .GPA }}
+    {{- if $gpa }}
+    <w:p>
+      <w:r>
+        <w:rPr><w:i/><w:sz w:val="22"/></w:rPr>
+        <w:t>GPA: {{escape $gpa}}</w:t>
+      </w:r>
+    </w:p>
+    {{- end }}
+    {{- end }}
+    {{- range filterEmpty .Degree.Descriptions }}
+    <w:p>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t xml:space="preserve">&#x2022; {{escape .}}</w:t>
+      </w:r>
+    </w:p>
+    {{- end }}
+    {{- if .Thesis }}
+    {{- $thesisLine := thesisLine .Thesis }}
+    {{- if $thesisLine }}
+    <w:p>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t>{{escape $thesisLine}}</w:t>
+      </w:r>
+    </w:p>
+    {{- end }}
+    {{- end }}
+    {{- end }}
+    <w:p/>
+{{- end }}
+{{- end -}}
+
+{{- define "docx-section-skills" -}}
+{{- if .Skills.Categories }}
+    {{- template "docx-section-header" (dict "title" (default "Skills" .Skills.Title)) }}
+    {{- range .Skills.Categories }}
+    <w:p>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t xml:space="preserve">&#x2022; </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/><w:sz w:val="22"/></w:rPr>
+        <w:t xml:space="preserve">{{escape .Category}}: </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t>{{escape (join ", " (skillNames .Items))}}</w:t>
+      </w:r>
+    </w:p>
+    {{- end }}
+    <w:p/>
+{{- end }}
+{{- end -}}
+
+{{- define "docx-section-experience" -}}
+{{- if .Experience.Positions }}
+    {{- template "docx-section-header" (dict "title" (default "Experience" .Experience.Title)) }}
+    {{- range sortExperienceByOrder .Experience.Positions }}
+    <w:p>
+      <w:r>
+        <w:rPr><w:b/><w:sz w:val="22"/></w:rPr>
+        <w:t>{{escape (expTitleLine .)}}</w:t>
+      </w:r>
+    </w:p>
+    {{- $companyLine := expCompanyLine . }}
+    {{- if $companyLine }}
+    <w:p>
+      <w:r>
+        <w:rPr><w:i/><w:sz w:val="22"/></w:rPr>
+        <w:t>{{escape $companyLine}}</w:t>
+      </w:r>
+    </w:p>
+    {{- end }}
+    {{- range .Highlights }}
+    <w:p>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t xml:space="preserve">&#x2022; {{escape .}}</w:t>
+      </w:r>
+    </w:p>
+    {{- end }}
+    <w:p/>
+    {{- end }}
+{{- end }}
+{{- end -}}
+
+{{- define "docx-section-projects" -}}
+{{- if .Projects }}
+{{- if .Projects.Projects }}
+    {{- template "docx-section-header" (dict "title" (default "Projects" .Projects.Title)) }}
+    {{- range sortProjectsByOrder .Projects.Projects }}
+    <w:p>
+      <w:r>
+        <w:rPr><w:b/><w:sz w:val="22"/></w:rPr>
+        <w:t>{{escape .Name}}</w:t>
+      </w:r>
+    </w:p>
+    {{- range .Highlights }}
+    <w:p>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t xml:space="preserve">&#x2022; {{escape .}}</w:t>
+      </w:r>
+    </w:p>
+    {{- end }}
+    {{- if (trim .Link.URI) }}
+    <w:p>
+      <w:r>
+        <w:rPr><w:sz w:val="20"/></w:rPr>
+        <w:t xml:space="preserve">  &#x2192; {{escape .Link.URI}}</w:t>
+      </w:r>
+    </w:p>
+    {{- end }}
+    {{- end }}
+    <w:p/>
+{{- end }}
+{{- end }}
+{{- end -}}
+
+{{- define "docx-section-languages" -}}
+{{- if .Languages }}
+{{- if .Languages.Languages }}
+    {{- template "docx-section-header" (dict "title" (default "Languages" .Languages.Title)) }}
+    {{- range .Languages.Languages }}
+    <w:p>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t xml:space="preserve">&#x2022; {{escape (langLine .)}}</w:t>
+      </w:r>
+    </w:p>
+    {{- end }}
+    <w:p/>
+{{- end }}
+{{- end }}
+{{- end -}}
+
+{{/* Section header sub-template */}}
+{{- define "docx-section-header" -}}
+    <w:p>
+      <w:r>
+        <w:rPr><w:b/><w:sz w:val="24"/></w:rPr>
+        <w:t>{{upper (escape .title)}}</w:t>
+      </w:r>
+    </w:p>
+    <w:p/>
+{{- end -}}
+
+{{/* ============================================================================
+     SECTION DISPATCH
+     ============================================================================ */}}
+
+{{- $root := . -}}
+{{- range .SectionOrder -}}
+{{- if eq . "summary"}}{{template "docx-section-summary" $root}}
+{{- else if eq . "certifications"}}{{template "docx-section-certifications" $root}}
+{{- else if eq . "experience"}}{{template "docx-section-experience" $root}}
+{{- else if eq . "education"}}{{template "docx-section-education" $root}}
+{{- else if eq . "skills"}}{{template "docx-section-skills" $root}}
+{{- else if eq . "projects"}}{{template "docx-section-projects" $root}}
+{{- else if eq . "languages"}}{{template "docx-section-languages" $root}}
+{{- end}}
+{{- end}}
+
+{{- if and .Layout .Layout.References }}
+    <w:p/>
+    <w:p>
+      <w:pPr><w:jc w:val="center"/></w:pPr>
+      <w:r>
+        <w:rPr><w:i/><w:sz w:val="20"/></w:rPr>
+        <w:t>References available upon request</w:t>
+      </w:r>
+    </w:p>
+{{- end }}
+
+  </w:body>
+</w:document>

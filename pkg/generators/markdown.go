@@ -5,7 +5,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/urmzd/resume-generator/pkg/resume"
 	"go.uber.org/zap"
 )
 
@@ -24,7 +23,7 @@ func NewMarkdownGenerator(logger *zap.SugaredLogger) *MarkdownGenerator {
 }
 
 // Generate renders a Markdown template with resume data using the formatter's helper functions.
-func (g *MarkdownGenerator) Generate(templateContent string, r *resume.Resume) (string, error) {
+func (g *MarkdownGenerator) Generate(templateContent string, td *TemplateData) (string, error) {
 	g.logger.Info("Rendering Markdown template")
 
 	tmpl, err := template.New("markdown").Funcs(g.formatter.TemplateFuncs()).Parse(templateContent)
@@ -33,7 +32,7 @@ func (g *MarkdownGenerator) Generate(templateContent string, r *resume.Resume) (
 	}
 
 	var output strings.Builder
-	if err := tmpl.Execute(&output, r); err != nil {
+	if err := tmpl.Execute(&output, td); err != nil {
 		return "", fmt.Errorf("failed to execute Markdown template: %w", err)
 	}
 

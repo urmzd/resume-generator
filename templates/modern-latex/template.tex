@@ -191,9 +191,8 @@
      SECTION DISPATCH
      ============================================================================ */}}
 
-{{- if and .Layout .Layout.Sections -}}
 {{- $root := . -}}
-{{- range .Layout.Sections -}}
+{{- range .SectionOrder -}}
 {{- if eq . "summary"}}{{template "latex-section-summary" $root}}
 {{- else if eq . "certifications"}}{{template "latex-section-certifications" $root}}
 {{- else if eq . "experience"}}{{template "latex-section-experience" $root}}
@@ -202,15 +201,6 @@
 {{- else if eq . "projects"}}{{template "latex-section-projects" $root}}
 {{- else if eq . "languages"}}{{template "latex-section-languages" $root}}
 {{- end}}
-{{- end}}
-{{- else -}}
-{{template "latex-section-summary" .}}
-{{template "latex-section-certifications" .}}
-{{template "latex-section-experience" .}}
-{{template "latex-section-education" .}}
-{{template "latex-section-skills" .}}
-{{template "latex-section-projects" .}}
-{{template "latex-section-languages" .}}
 {{- end}}
 
 {{- if and .Layout .Layout.References }}

@@ -161,13 +161,18 @@ func TestMarkdownGeneratorGenerate(t *testing.T) {
 		},
 	}
 
+	defaultSectionOrder := []string{
+		"summary", "certifications", "experience", "education", "skills", "projects", "languages",
+	}
+	td := NewTemplateData(r, defaultSectionOrder)
+
 	templatePath := filepath.Join("..", "..", "templates", "modern-markdown", "template.md")
 	templateContentBytes, err := os.ReadFile(templatePath)
 	if err != nil {
 		t.Fatalf("failed to read Markdown template: %v", err)
 	}
 
-	got, err := gen.Generate(string(templateContentBytes), r)
+	got, err := gen.Generate(string(templateContentBytes), td)
 	if err != nil {
 		t.Fatalf("Generate() error = %v", err)
 	}

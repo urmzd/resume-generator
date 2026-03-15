@@ -76,7 +76,7 @@ Jan 2022 – Jun 2022
 `
 
 func TestParseMarkdownFullResume(t *testing.T) {
-	r, err := parseMarkdown([]byte(fullResumeMD))
+	r, _, err := parseMarkdown([]byte(fullResumeMD))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -215,7 +215,7 @@ func TestParseMarkdownMinimal(t *testing.T) {
 
 ---
 `
-	r, err := parseMarkdown([]byte(md))
+	r, _, err := parseMarkdown([]byte(md))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -225,13 +225,13 @@ func TestParseMarkdownMinimal(t *testing.T) {
 
 func TestParseMarkdownNoName(t *testing.T) {
 	md := `Some random text without headings`
-	_, err := parseMarkdown([]byte(md))
+	_, _, err := parseMarkdown([]byte(md))
 	if err == nil {
 		t.Fatal("expected error for missing H1 name")
 	}
 }
 
-func TestParseMarkdownSectionOrderIndependence(t *testing.T) {
+func TestParseMarkdownSectionOrder(t *testing.T) {
 	md := `# Test Person
 
 [test@test.com](mailto:test@test.com)
@@ -250,7 +250,7 @@ A brief summary.
 
 - **Languages:** Go, Rust
 `
-	r, err := parseMarkdown([]byte(md))
+	r, sectionOrder, err := parseMarkdown([]byte(md))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -261,6 +261,17 @@ A brief summary.
 	assertEqual(t, "lang.name", "Spanish", r.Languages.Languages[0].Name)
 	if len(r.Skills.Categories) != 1 {
 		t.Fatal("expected 1 skill category")
+	}
+
+	// SectionOrder should reflect the input order: languages, summary, skills
+	expected := []string{"languages", "summary", "skills"}
+	if len(sectionOrder) != len(expected) {
+		t.Fatalf("SectionOrder = %v, want %v", sectionOrder, expected)
+	}
+	for i, s := range expected {
+		if sectionOrder[i] != s {
+			t.Errorf("SectionOrder[%d] = %q, want %q", i, sectionOrder[i], s)
+		}
 	}
 }
 
@@ -300,7 +311,7 @@ func TestParseMarkdownEmptySections(t *testing.T) {
 
 ## Education
 `
-	r, err := parseMarkdown([]byte(md))
+	r, _, err := parseMarkdown([]byte(md))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -327,7 +338,7 @@ func TestParseMarkdownExtraWhitespace(t *testing.T) {
 
   Some summary text with leading spaces.
 `
-	r, err := parseMarkdown([]byte(md))
+	r, _, err := parseMarkdown([]byte(md))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -359,7 +370,7 @@ func TestParseMarkdownDashVariants(t *testing.T) {
 
 - Analyzed things
 `
-	r, err := parseMarkdown([]byte(md))
+	r, _, err := parseMarkdown([]byte(md))
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

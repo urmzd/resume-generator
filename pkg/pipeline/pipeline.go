@@ -8,7 +8,6 @@ import (
 
 	"github.com/urmzd/resume-generator/pkg/compilers"
 	"github.com/urmzd/resume-generator/pkg/generators"
-	"github.com/urmzd/resume-generator/pkg/resume"
 	"go.uber.org/zap"
 )
 
@@ -37,19 +36,19 @@ func (p *PDFPipeline) HasLaTeX() bool {
 
 // CompileToPDFBytes generates a PDF from a template and resume.
 // For DOCX templates, it falls back to the HTML template.
-func (p *PDFPipeline) CompileToPDFBytes(tmpl *generators.Template, r *resume.Resume) ([]byte, error) {
+func (p *PDFPipeline) CompileToPDFBytes(tmpl *generators.Template, td *generators.TemplateData) ([]byte, error) {
 	switch tmpl.Type {
 	case generators.TemplateTypeHTML:
-		return p.compileHTMLTemplateToPDF(tmpl, r)
+		return p.compileHTMLTemplateToPDF(tmpl, td)
 
 	case generators.TemplateTypeDOCX:
-		return p.compileHTMLFallbackToPDF(r)
+		return p.compileHTMLFallbackToPDF(td)
 
 	case generators.TemplateTypeLaTeX:
 		if p.hasLatex {
-			return p.CompileLaTeXToPDFBytes(tmpl, r)
+			return p.CompileLaTeXToPDFBytes(tmpl, td)
 		}
-		return p.compileHTMLFallbackToPDF(r)
+		return p.compileHTMLFallbackToPDF(td)
 
 	default:
 		return nil, fmt.Errorf("unsupported template type for PDF: %s", tmpl.Type)
@@ -62,8 +61,8 @@ func (p *PDFPipeline) CompileHTMLToPDFBytes(html string) ([]byte, error) {
 }
 
 // CompileLaTeXToPDFBytes compiles a LaTeX template to PDF.
-func (p *PDFPipeline) CompileLaTeXToPDFBytes(tmpl *generators.Template, r *resume.Resume) ([]byte, error) {
-	content, err := p.generator.GenerateWithTemplate(tmpl, r)
+func (p *PDFPipeline) CompileLaTeXToPDFBytes(tmpl *generators.Template, td *generators.TemplateData) ([]byte, error) {
+	content, err := p.generator.GenerateWithTemplate(tmpl, td)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate LaTeX: %w", err)
 	}
@@ -100,8 +99,8 @@ func (p *PDFPipeline) CompileLaTeXToPDFBytes(tmpl *generators.Template, r *resum
 	return pdfBytes, nil
 }
 
-func (p *PDFPipeline) compileHTMLTemplateToPDF(tmpl *generators.Template, r *resume.Resume) ([]byte, error) {
-	html, err := p.generator.GenerateWithTemplate(tmpl, r)
+func (p *PDFPipeline) compileHTMLTemplateToPDF(tmpl *generators.Template, td *generators.TemplateData) ([]byte, error) {
+	html, err := p.generator.GenerateWithTemplate(tmpl, td)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate HTML: %w", err)
 	}
@@ -112,12 +111,12 @@ func (p *PDFPipeline) compileHTMLTemplateToPDF(tmpl *generators.Template, r *res
 	return pdfBytes, nil
 }
 
-func (p *PDFPipeline) compileHTMLFallbackToPDF(r *resume.Resume) ([]byte, error) {
+func (p *PDFPipeline) compileHTMLFallbackToPDF(td *generators.TemplateData) ([]byte, error) {
 	htmlTmpl, err := generators.LoadTemplate("modern-html")
 	if err != nil {
 		return nil, fmt.Errorf("no HTML fallback template available: %w", err)
 	}
-	return p.compileHTMLTemplateToPDF(htmlTmpl, r)
+	return p.compileHTMLTemplateToPDF(htmlTmpl, td)
 }
 
 func (p *PDFPipeline) copyTemplateFiles(tmpl *generators.Template, destDir string) error {

@@ -46,6 +46,8 @@ var screenshotsCmd = &cobra.Command{
 			sugar.Fatalf("Validation error: %s", err)
 		}
 		resumeData := inputData.ToResume()
+		sectionOrder := inputData.GetSectionOrder()
+		td := generators.NewTemplateData(resumeData, sectionOrder)
 
 		allTemplates, err := generators.ListTemplates()
 		if err != nil {
@@ -74,7 +76,7 @@ var screenshotsCmd = &cobra.Command{
 				tmplPtr = htmlFallback
 			}
 
-			htmlContent, err := generator.GenerateWithTemplate(tmplPtr, resumeData)
+			htmlContent, err := generator.GenerateWithTemplate(tmplPtr, td)
 			if err != nil {
 				sugar.Errorf("Failed to generate HTML for template %s: %v", tmpl.Name, err)
 				continue

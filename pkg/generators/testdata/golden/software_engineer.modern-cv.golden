@@ -24,8 +24,11 @@ example@email.com $|$ +1-123-456-7890\\\url{https://linkedin.com/in/janedoe} $|$
 \vspace{8pt}
 
 
-
-
+\resumesection{Core Skills}
+\begin{description}
+    \item[Programming Languages:] Python, Java, C++, JavaScript
+    \item[Tools \& Frameworks:] AWS, Docker, React, Node.js
+\end{description}
 \resumesection{Professional Experience}
 \needspace{6\baselineskip}
 \noindent\textbf{Systems Engineer} \hfill 01/01/2023 - 12/31/2023\nopagebreak
@@ -91,7 +94,6 @@ example@email.com $|$ +1-123-456-7890\\\url{https://linkedin.com/in/janedoe} $|$
 
 \vspace{6pt plus 4pt minus 2pt}
 \pagebreak[2]
-
 \resumesection{Education}
 \needspace{3\baselineskip}
 \noindent\textbf{Prestigious University} \hfill 09/01/2021 - 05/30/2024
@@ -109,13 +111,6 @@ example@email.com $|$ +1-123-456-7890\\\url{https://linkedin.com/in/janedoe} $|$
 \textit{Bachelor of Science in Software Engineering}
 
 \vspace{6pt plus 4pt minus 2pt}
-
-\resumesection{Core Skills}
-\begin{description}
-    \item[Programming Languages:] Python, Java, C++, JavaScript
-    \item[Tools \& Frameworks:] AWS, Docker, React, Node.js
-\end{description}
-
 \resumesection{Projects}
 
 \noindent\textbf{Personal Finance Tracker} --- \url{https://github.com/janedoe/finance-tracker}
@@ -131,6 +126,5 @@ example@email.com $|$ +1-123-456-7890\\\url{https://linkedin.com/in/janedoe} $|$
 \end{itemize}
 
 \vspace{6pt plus 4pt minus 2pt}
-
 
 \end{document}

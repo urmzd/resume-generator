@@ -129,6 +129,11 @@ func TestLaTeXGeneratorGenerate(t *testing.T) {
 		},
 	}
 
+	defaultSectionOrder := []string{
+		"summary", "certifications", "experience", "education", "skills", "projects", "languages",
+	}
+	td := NewTemplateData(resume, defaultSectionOrder)
+
 	templatePath := filepath.Join("..", "..", "templates", "modern-latex", "template.tex")
 	templateContentBytes, err := os.ReadFile(templatePath)
 	if err != nil {
@@ -137,7 +142,7 @@ func TestLaTeXGeneratorGenerate(t *testing.T) {
 
 	templateContent := string(templateContentBytes)
 
-	got, err := gen.Generate(templateContent, resume)
+	got, err := gen.Generate(templateContent, td)
 	if err != nil {
 		t.Fatalf("Generate() error = %v", err)
 	}

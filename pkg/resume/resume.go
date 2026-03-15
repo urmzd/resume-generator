@@ -150,12 +150,11 @@ type Resume struct {
 }
 
 type Layout struct {
-	Density      string   `json:"density,omitempty" yaml:"density,omitempty" toml:"density,omitempty"`
-	Typography   string   `json:"typography,omitempty" yaml:"typography,omitempty" toml:"typography,omitempty"`
-	Header       string   `json:"header,omitempty" yaml:"header,omitempty" toml:"header,omitempty"`
-	Sections     []string `json:"sections,omitempty" yaml:"sections,omitempty" toml:"sections,omitempty"`
-	SkillColumns int      `json:"skill_columns,omitempty" yaml:"skill_columns,omitempty" toml:"skill_columns,omitempty"`
-	References   bool     `json:"references,omitempty" yaml:"references,omitempty" toml:"references,omitempty"`
+	Density      string `json:"density,omitempty" yaml:"density,omitempty" toml:"density,omitempty"`
+	Typography   string `json:"typography,omitempty" yaml:"typography,omitempty" toml:"typography,omitempty"`
+	Header       string `json:"header,omitempty" yaml:"header,omitempty" toml:"header,omitempty"`
+	SkillColumns int    `json:"skill_columns,omitempty" yaml:"skill_columns,omitempty" toml:"skill_columns,omitempty"`
+	References   bool   `json:"references,omitempty" yaml:"references,omitempty" toml:"references,omitempty"`
 }
 
 type LanguageList struct {

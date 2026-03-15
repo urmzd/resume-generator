@@ -352,7 +352,8 @@ func TestLaTeXAutoEscape_AllTemplates(t *testing.T) {
 		for _, tc := range cases {
 			t.Run(tmplInfo.name+"/"+tc.name, func(t *testing.T) {
 				gen := NewLaTeXGenerator(logger)
-				got, err := gen.Generate(templateContent, tc.resume)
+				td := NewTemplateData(tc.resume, nil)
+				got, err := gen.Generate(templateContent, td)
 				if err != nil {
 					t.Fatalf("Generate() error: %v", err)
 				}

@@ -224,9 +224,8 @@
      SECTION DISPATCH
      ============================================================================ */}}
 
-{{- if and .Layout .Layout.Sections -}}
 {{- $root := . -}}
-{{- range .Layout.Sections -}}
+{{- range .SectionOrder -}}
 {{- if eq . "summary"}}{{template "cv-section-summary" $root}}
 {{- else if eq . "certifications"}}{{template "cv-section-certifications" $root}}
 {{- else if eq . "experience"}}{{template "cv-section-experience" $root}}
@@ -235,15 +234,6 @@
 {{- else if eq . "projects"}}{{template "cv-section-projects" $root}}
 {{- else if eq . "languages"}}{{template "cv-section-languages" $root}}
 {{- end}}
-{{- end}}
-{{- else -}}
-{{template "cv-section-summary" .}}
-{{template "cv-section-certifications" .}}
-{{template "cv-section-experience" .}}
-{{template "cv-section-education" .}}
-{{template "cv-section-skills" .}}
-{{template "cv-section-projects" .}}
-{{template "cv-section-languages" .}}
 {{- end}}
 
 {{- if and .Layout .Layout.References }}

@@ -26,16 +26,16 @@ func TestLoadTemplate(t *testing.T) {
 		t.Fatalf("Failed to create template directory: %v", err)
 	}
 
-	// Create config.yml
+	// Create metadata.yml
 	configContent := `name: test-template
 display_name: Test Template
 description: A test template
 format: html
 version: "1.0"
 `
-	configPath := filepath.Join(templateDir, "config.yml")
+	configPath := filepath.Join(templateDir, "metadata.yml")
 	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
-		t.Fatalf("Failed to create config.yml: %v", err)
+		t.Fatalf("Failed to create metadata.yml: %v", err)
 	}
 
 	// Create template.html
@@ -115,9 +115,9 @@ display_name: ` + tmpl.name + `
 description: Test
 format: ` + tmpl.format + `
 `
-		configPath := filepath.Join(templateDir, "config.yml")
+		configPath := filepath.Join(templateDir, "metadata.yml")
 		if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
-			t.Fatalf("Failed to create config.yml: %v", err)
+			t.Fatalf("Failed to create metadata.yml: %v", err)
 		}
 
 		ext := ".html"
@@ -159,9 +159,9 @@ display_name: Simple HTML
 description: Simple test template
 format: html
 `
-	configPath := filepath.Join(templateDir, "config.yml")
+	configPath := filepath.Join(templateDir, "metadata.yml")
 	if err := os.WriteFile(configPath, []byte(configContent), 0644); err != nil {
-		t.Fatalf("Failed to create config.yml: %v", err)
+		t.Fatalf("Failed to create metadata.yml: %v", err)
 	}
 
 	templateContent := `<html>
@@ -186,15 +186,16 @@ format: html
 	}
 
 	// Create test resume
-	resume := &resume.Resume{
+	r := &resume.Resume{
 		Contact: resume.Contact{
 			Name:  "Test User",
 			Email: "test@example.com",
 		},
 	}
+	td := NewTemplateData(r, nil)
 
 	// Generate content
-	got, err := generator.GenerateWithTemplate(tmpl, resume)
+	got, err := generator.GenerateWithTemplate(tmpl, td)
 	if err != nil {
 		t.Fatalf("GenerateWithTemplate() error = %v", err)
 	}

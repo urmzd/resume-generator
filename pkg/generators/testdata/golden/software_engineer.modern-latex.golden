@@ -19,7 +19,12 @@
 
 
 
-
+% SKILLS
+\section*{Core Skills}
+\begin{description}
+    \item[Programming Languages:] Python, Java, C++, JavaScript
+    \item[Tools \& Frameworks:] AWS, Docker, React, Node.js
+\end{description}
 
 % EXPERIENCE
 \section*{Professional Experience}
@@ -44,20 +49,10 @@
     \item Won second place in a company-wide hackathon with a machine learning project.
 \end{itemize}
 
-
 % EDUCATION
 \section*{Education}
 \resumeeducation{Prestigious University}{Ph.D. in Computer Science}{Sep 2021 \textendash\ May 2024}{Techville, Academia}
 \resumeeducation{University of Fictional}{Bachelor of Science in Software Engineering}{Sep 2017 \textendash\ Jun 2021}{Imaginary City, Stateville}
-
-
-% SKILLS
-\section*{Core Skills}
-\begin{description}
-    \item[Programming Languages:] Python, Java, C++, JavaScript
-    \item[Tools \& Frameworks:] AWS, Docker, React, Node.js
-\end{description}
-
 
 % PROJECTS
 \section*{Projects}
@@ -69,6 +64,5 @@
     \begin{itemize}
         \item Created a mobile application that calculates eco-friendly travel routes to reduce carbon footprint.
     \end{itemize}
-
 
 \end{document}

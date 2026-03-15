@@ -641,26 +641,16 @@
         </div>
     </div>
 
-    {{if and .Layout .Layout.Sections}}
-        {{$root := .}}
-        {{range .Layout.Sections}}
-            {{if eq . "summary"}}{{template "section-summary" $root}}
-            {{else if eq . "certifications"}}{{template "section-certifications" $root}}
-            {{else if eq . "education"}}{{template "section-education" $root}}
-            {{else if eq . "skills"}}{{template "section-skills" $root}}
-            {{else if eq . "experience"}}{{template "section-experience" $root}}
-            {{else if eq . "projects"}}{{template "section-projects" $root}}
-            {{else if eq . "languages"}}{{template "section-languages" $root}}
-            {{end}}
+    {{$root := .}}
+    {{range .SectionOrder}}
+        {{if eq . "summary"}}{{template "section-summary" $root}}
+        {{else if eq . "certifications"}}{{template "section-certifications" $root}}
+        {{else if eq . "education"}}{{template "section-education" $root}}
+        {{else if eq . "skills"}}{{template "section-skills" $root}}
+        {{else if eq . "experience"}}{{template "section-experience" $root}}
+        {{else if eq . "projects"}}{{template "section-projects" $root}}
+        {{else if eq . "languages"}}{{template "section-languages" $root}}
         {{end}}
-    {{else}}
-        {{template "section-summary" .}}
-        {{template "section-certifications" .}}
-        {{template "section-education" .}}
-        {{template "section-skills" .}}
-        {{template "section-experience" .}}
-        {{template "section-projects" .}}
-        {{template "section-languages" .}}
     {{end}}
 
     {{if and .Layout .Layout.References}}

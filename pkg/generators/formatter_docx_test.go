@@ -10,10 +10,18 @@ import (
 func TestDocxEscapeText(t *testing.T) {
 	f := newDocxFormatter()
 
-	t.Run("passthrough", func(t *testing.T) {
+	t.Run("xml escapes special characters", func(t *testing.T) {
 		got := f.EscapeText("Hello <World> & 'Friends'")
-		if got != "Hello <World> & 'Friends'" {
-			t.Errorf("EscapeText should be passthrough, got %q", got)
+		want := "Hello &lt;World&gt; &amp; &#39;Friends&#39;"
+		if got != want {
+			t.Errorf("EscapeText = %q, want %q", got, want)
+		}
+	})
+
+	t.Run("plain text unchanged", func(t *testing.T) {
+		got := f.EscapeText("Hello World")
+		if got != "Hello World" {
+			t.Errorf("EscapeText = %q, want %q", got, "Hello World")
 		}
 	})
 
@@ -37,12 +45,12 @@ func TestDocxFormatDateRange(t *testing.T) {
 		dr   resume.DateRange
 		want string
 	}{
-		{"month dates", resume.DateRange{Start: jan2020, End: func() *resume.PartialDate { d := jun2021; return &d }()}, "Jan 2020 Jun 2021"},
-		{"regular dates", resume.DateRange{Start: jun2021, End: func() *resume.PartialDate { d := dec2022; return &d }()}, "Jun 2021 Dec 2022"},
-		{"nil end", resume.DateRange{Start: jun2021}, "Jun 2021"},
+		{"month dates", resume.DateRange{Start: jan2020, End: func() *resume.PartialDate { d := jun2021; return &d }()}, "Jan 2020 – Jun 2021"},
+		{"regular dates", resume.DateRange{Start: jun2021, End: func() *resume.PartialDate { d := dec2022; return &d }()}, "Jun 2021 – Dec 2022"},
+		{"nil end", resume.DateRange{Start: jun2021}, "Jun 2021 – Present"},
 		{"both zero", resume.DateRange{}, ""},
-		{"year-only start", resume.DateRange{Start: year2020}, "2020"},
-		{"year-only with end", resume.DateRange{Start: year2020, End: func() *resume.PartialDate { d := jun2021; return &d }()}, "2020 Jun 2021"},
+		{"year-only start", resume.DateRange{Start: year2020}, "2020 – Present"},
+		{"year-only with end", resume.DateRange{Start: year2020, End: func() *resume.PartialDate { d := jun2021; return &d }()}, "2020 – Jun 2021"},
 	}
 
 	for _, tt := range tests {
@@ -88,7 +96,7 @@ func TestDocxFormatGPA(t *testing.T) {
 		want     string
 	}{
 		{"default max", "3.9", "4.0", "3.9"},
-		{"custom max uses slash", "3.9", "5.0", "3.9/5.0"},
+		{"custom max", "3.9", "5.0", "3.9 / 5.0"},
 		{"empty gpa", "", "4.0", ""},
 		{"whitespace gpa", "  ", "4.0", ""},
 	}
@@ -124,7 +132,14 @@ func TestDocxTemplateFuncs(t *testing.T) {
 	f := newDocxFormatter()
 	funcs := f.TemplateFuncs()
 
-	if len(funcs) != 0 {
-		t.Errorf("TemplateFuncs() should return empty FuncMap, got %d entries", len(funcs))
+	if len(funcs) == 0 {
+		t.Error("TemplateFuncs() should return non-empty FuncMap")
+	}
+
+	// Verify key functions are present
+	for _, name := range []string{"escape", "upper", "join", "fmtDateRange", "contactLine", "sortExperienceByOrder"} {
+		if _, ok := funcs[name]; !ok {
+			t.Errorf("TemplateFuncs() missing %q", name)
+		}
 	}
 }

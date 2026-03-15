@@ -440,36 +440,7 @@
     </div>
 
     
-        
-
-
-        
-
-
-        
-
-<div class="section">
-    <div class="section-title">Education</div>
-    <table class="education-table">
-        
-        <tr>
-            <td class="institution">
-                Prestigious University, Ph.D. in Computer Science</td>
-            <td class="dates">Sep 2021 – May 2024</td>
-        </tr>
-        
-        
-        <tr>
-            <td class="institution">
-                University of Fictional, Bachelor of Science in Software Engineering</td>
-            <td class="dates">Sep 2017 – Jun 2021</td>
-        </tr>
-        
-        
-    </table>
-</div>
-
-
+    
         
 
 <div class="section">
@@ -484,6 +455,8 @@
 </div>
 
 
+        
+    
         
 
 <div class="section">
@@ -569,6 +542,34 @@
 
 
         
+    
+        
+
+<div class="section">
+    <div class="section-title">Education</div>
+    <table class="education-table">
+        
+        <tr>
+            <td class="institution">
+                Prestigious University, Ph.D. in Computer Science</td>
+            <td class="dates">Sep 2021 – May 2024</td>
+        </tr>
+        
+        
+        <tr>
+            <td class="institution">
+                University of Fictional, Bachelor of Science in Software Engineering</td>
+            <td class="dates">Sep 2017 – Jun 2021</td>
+        </tr>
+        
+        
+    </table>
+</div>
+
+
+        
+    
+        
 
 
 <div class="section">
@@ -615,8 +616,6 @@
 
 
         
-
-
     
 
     

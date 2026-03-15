@@ -50,10 +50,11 @@ var dateFormats = []string{
 }
 
 // parseMarkdown parses a Markdown resume (matching the modern-markdown template)
-// into a Resume struct.
-func parseMarkdown(data []byte) (*Resume, error) {
+// into a Resume struct and the detected section order.
+func parseMarkdown(data []byte) (*Resume, []string, error) {
 	lines := strings.Split(string(data), "\n")
 	r := &Resume{}
+	var sectionOrder []string
 
 	var cur section
 	var summaryLines []string
@@ -113,6 +114,9 @@ func parseMarkdown(data []byte) (*Resume, error) {
 			}
 
 			cur = classifySection(strings.TrimSpace(m[1]), r)
+			if sName := sectionName(cur); sName != "" {
+				sectionOrder = append(sectionOrder, sName)
+			}
 			continue
 		}
 
@@ -196,10 +200,32 @@ func parseMarkdown(data []byte) (*Resume, error) {
 	flushProject(curProj, r)
 
 	if r.Contact.Name == "" {
-		return nil, fmt.Errorf("markdown parse error: no H1 heading found for contact name")
+		return nil, nil, fmt.Errorf("markdown parse error: no H1 heading found for contact name")
 	}
 
-	return r, nil
+	return r, sectionOrder, nil
+}
+
+// sectionName maps a section enum back to its key name.
+func sectionName(s section) string {
+	switch s {
+	case sectionSummary:
+		return "summary"
+	case sectionSkills:
+		return "skills"
+	case sectionExperience:
+		return "experience"
+	case sectionEducation:
+		return "education"
+	case sectionProjects:
+		return "projects"
+	case sectionCertifications:
+		return "certifications"
+	case sectionLanguages:
+		return "languages"
+	default:
+		return ""
+	}
 }
 
 // classifySection maps an H2 title to a section enum, storing custom titles.

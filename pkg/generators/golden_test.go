@@ -66,6 +66,8 @@ func TestGolden(t *testing.T) {
 			t.Fatalf("failed to load %s: %v", input.file, err)
 		}
 		resumeData := inputData.ToResume()
+		sectionOrder := inputData.GetSectionOrder()
+		td := NewTemplateData(resumeData, sectionOrder)
 
 		for _, tmpl := range templates {
 			testName := fmt.Sprintf("%s/%s", input.name, tmpl.name)
@@ -79,7 +81,7 @@ func TestGolden(t *testing.T) {
 				var actual []byte
 
 				if tmplObj.Type == TemplateTypeDOCX {
-					docxBytes, err := gen.GenerateDOCX(resumeData)
+					docxBytes, err := gen.GenerateDOCXWithTemplate(tmplObj, td)
 					if err != nil {
 						t.Fatalf("GenerateDOCX() error: %v", err)
 					}
@@ -89,7 +91,7 @@ func TestGolden(t *testing.T) {
 						t.Fatalf("failed to extract document.xml: %v", err)
 					}
 				} else {
-					content, err := gen.GenerateWithTemplate(tmplObj, resumeData)
+					content, err := gen.GenerateWithTemplate(tmplObj, td)
 					if err != nil {
 						t.Fatalf("GenerateWithTemplate() error: %v", err)
 					}

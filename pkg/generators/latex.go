@@ -5,7 +5,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/urmzd/resume-generator/pkg/resume"
 	"go.uber.org/zap"
 )
 
@@ -24,7 +23,7 @@ func NewLaTeXGenerator(logger *zap.SugaredLogger) *LaTeXGenerator {
 }
 
 // Generate renders a LaTeX template with resume data using the formatter's helper functions.
-func (g *LaTeXGenerator) Generate(templateContent string, r *resume.Resume) (string, error) {
+func (g *LaTeXGenerator) Generate(templateContent string, td *TemplateData) (string, error) {
 	g.logger.Info("Rendering LaTeX template")
 
 	funcs := g.formatter.TemplateFuncs()
@@ -35,7 +34,7 @@ func (g *LaTeXGenerator) Generate(templateContent string, r *resume.Resume) (str
 	}
 
 	var output strings.Builder
-	if err := tmpl.Execute(&output, r); err != nil {
+	if err := tmpl.Execute(&output, td); err != nil {
 		return "", fmt.Errorf("failed to execute LaTeX template: %w", err)
 	}
 

@@ -35,7 +35,7 @@ func NewHTMLGenerator(logger *zap.SugaredLogger) *HTMLGenerator {
 }
 
 // Generate creates an HTML resume from the resume data and template
-func (g *HTMLGenerator) Generate(templateContent string, r *resume.Resume) (string, error) {
+func (g *HTMLGenerator) Generate(templateContent string, td *TemplateData) (string, error) {
 	g.logger.Info("Generating HTML resume")
 
 	// Parse the template
@@ -44,9 +44,9 @@ func (g *HTMLGenerator) Generate(templateContent string, r *resume.Resume) (stri
 		return "", fmt.Errorf("failed to parse HTML template: %w", err)
 	}
 
-	// Execute the template - passing resume directly
+	// Execute the template - passing template data directly
 	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, r); err != nil {
+	if err := tmpl.Execute(&buf, td); err != nil {
 		return "", fmt.Errorf("failed to execute HTML template: %w", err)
 	}
 

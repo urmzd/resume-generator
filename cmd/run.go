@@ -63,6 +63,8 @@ var runCmd = &cobra.Command{
 
 		// Convert to the runtime resume structure for generation
 		resumeData := inputData.ToResume()
+		sectionOrder := inputData.GetSectionOrder()
+		td := generators.NewTemplateData(resumeData, sectionOrder)
 		sugar.Infof("Loaded resume for %s (format: %s)", resumeData.Contact.Name, inputData.GetFormat())
 
 		// Generate using unified template system
@@ -122,7 +124,7 @@ var runCmd = &cobra.Command{
 		for _, tmpl := range selectedTemplates {
 			// Markdown outputs a .md file directly (no PDF compilation)
 			if tmpl.Type == generators.TemplateTypeMarkdown {
-				content, err := generator.GenerateWithTemplate(tmpl, resumeData)
+				content, err := generator.GenerateWithTemplate(tmpl, td)
 				if err != nil {
 					sugar.Fatalf("Failed to generate Markdown with template %s: %v", tmpl.Name, err)
 				}
@@ -146,7 +148,7 @@ var runCmd = &cobra.Command{
 
 			// DOCX has a different flow - it generates bytes directly
 			if tmpl.Type == generators.TemplateTypeDOCX {
-				docxBytes, err := generator.GenerateDOCX(resumeData)
+				docxBytes, err := generator.GenerateDOCXWithTemplate(tmpl, td)
 				if err != nil {
 					sugar.Fatalf("Failed to generate DOCX with template %s: %v", tmpl.Name, err)
 				}
@@ -162,7 +164,7 @@ var runCmd = &cobra.Command{
 
 				// Also generate a PDF via the HTML fallback template
 				if htmlFallbackTmpl != nil {
-					htmlContent, htmlErr := generator.GenerateWithTemplate(htmlFallbackTmpl, resumeData)
+					htmlContent, htmlErr := generator.GenerateWithTemplate(htmlFallbackTmpl, td)
 					if htmlErr != nil {
 						sugar.Warnf("Failed to generate HTML for DOCX PDF fallback: %v", htmlErr)
 					} else {
@@ -196,7 +198,7 @@ var runCmd = &cobra.Command{
 			}
 
 			// Standard template-based generation for HTML and LaTeX
-			content, err := generator.GenerateWithTemplate(tmpl, resumeData)
+			content, err := generator.GenerateWithTemplate(tmpl, td)
 			if err != nil {
 				sugar.Fatalf("Failed to generate resume with template %s: %v", tmpl.Name, err)
 			}

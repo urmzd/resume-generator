@@ -124,9 +124,8 @@
 {{- end}}
 
 ---
-{{if and .Layout .Layout.Sections}}
 {{- $root := .}}
-{{- range .Layout.Sections}}
+{{- range .SectionOrder}}
 {{- if eq . "summary"}}{{template "section-summary" $root}}
 {{- else if eq . "certifications"}}{{template "section-certifications" $root}}
 {{- else if eq . "education"}}{{template "section-education" $root}}
@@ -135,15 +134,6 @@
 {{- else if eq . "projects"}}{{template "section-projects" $root}}
 {{- else if eq . "languages"}}{{template "section-languages" $root}}
 {{- end}}
-{{- end}}
-{{- else}}
-{{- template "section-summary" .}}
-{{- template "section-skills" .}}
-{{- template "section-experience" .}}
-{{- template "section-projects" .}}
-{{- template "section-education" .}}
-{{- template "section-certifications" .}}
-{{- template "section-languages" .}}
 {{- end}}
 {{- if and .Layout .Layout.References }}
 

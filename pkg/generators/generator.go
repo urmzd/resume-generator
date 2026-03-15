@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/urmzd/resume-generator/pkg/resume"
 	"github.com/urmzd/resume-generator/pkg/utils"
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
@@ -24,7 +23,7 @@ const (
 	TemplateTypeMarkdown TemplateType = "markdown"
 )
 
-// Template represents a resume template including metadata from config.yml
+// Template represents a resume template including metadata from metadata.yml
 type Template struct {
 	Name        string
 	Type        TemplateType
@@ -39,7 +38,7 @@ type Template struct {
 	EmbeddedDir string // e.g. "templates/modern-latex" for embedded reads
 }
 
-// TemplateConfig contains metadata about a template loaded from config.yml
+// TemplateConfig contains metadata about a template loaded from metadata.yml
 type TemplateConfig struct {
 	Name         string   `yaml:"name"`
 	DisplayName  string   `yaml:"display_name"`
@@ -178,13 +177,11 @@ func loadTemplateFromEmbed(embeddedDir, templateName string) (*Template, error) 
 		return nil, err
 	}
 
-	// Verify template file exists in embedded FS (skip for DOCX)
-	if tmplType != TemplateTypeDOCX {
-		filename := resolveTemplateFilename(tmplType, config.TemplateFile)
-		embeddedPath := embeddedDir + "/" + filename
-		if _, err := fs.Stat(embeddedFS, embeddedPath); err != nil {
-			return nil, fmt.Errorf("embedded template file not found: %s", embeddedPath)
-		}
+	// Verify template file exists in embedded FS
+	filename := resolveTemplateFilename(tmplType, config.TemplateFile)
+	embeddedPath := embeddedDir + "/" + filename
+	if _, err := fs.Stat(embeddedFS, embeddedPath); err != nil {
+		return nil, fmt.Errorf("embedded template file not found: %s", embeddedPath)
 	}
 
 	return &Template{
@@ -203,16 +200,16 @@ func loadTemplateFromEmbed(embeddedDir, templateName string) (*Template, error) 
 }
 
 // Generate renders a resume using the specified template name.
-func (g *Generator) Generate(templateName string, resume *resume.Resume) (string, error) {
+func (g *Generator) Generate(templateName string, td *TemplateData) (string, error) {
 	tmpl, err := LoadTemplate(templateName)
 	if err != nil {
 		return "", err
 	}
-	return g.GenerateWithTemplate(tmpl, resume)
+	return g.GenerateWithTemplate(tmpl, td)
 }
 
 // GenerateWithTemplate renders a resume using an already-loaded template.
-func (g *Generator) GenerateWithTemplate(tmpl *Template, resume *resume.Resume) (string, error) {
+func (g *Generator) GenerateWithTemplate(tmpl *Template, td *TemplateData) (string, error) {
 	g.logger.Infof("Generating resume using template: %s (%s)", tmpl.Name, tmpl.Type)
 
 	var content []byte
@@ -230,39 +227,70 @@ func (g *Generator) GenerateWithTemplate(tmpl *Template, resume *resume.Resume) 
 
 	switch tmpl.Type {
 	case TemplateTypeHTML:
-		return g.renderHTML(string(content), resume)
+		return g.renderHTML(string(content), td)
 	case TemplateTypeLaTeX:
-		return g.renderLaTeX(string(content), resume)
+		return g.renderLaTeX(string(content), td)
 	case TemplateTypeMarkdown:
-		return g.renderMarkdown(string(content), resume)
+		return g.renderMarkdown(string(content), td)
+	case TemplateTypeDOCX:
+		return "", fmt.Errorf("DOCX templates produce binary output; use GenerateDOCXWithTemplate instead")
 	default:
 		return "", fmt.Errorf("unknown template type: %s", tmpl.Type)
 	}
 }
 
 // renderHTML renders an HTML template
-func (g *Generator) renderHTML(templateContent string, resume *resume.Resume) (string, error) {
+func (g *Generator) renderHTML(templateContent string, td *TemplateData) (string, error) {
 	htmlGen := NewHTMLGenerator(g.logger)
-	return htmlGen.Generate(templateContent, resume)
+	return htmlGen.Generate(templateContent, td)
 }
 
 // renderLaTeX renders a LaTeX template
-func (g *Generator) renderLaTeX(templateContent string, resume *resume.Resume) (string, error) {
+func (g *Generator) renderLaTeX(templateContent string, td *TemplateData) (string, error) {
 	latexGen := NewLaTeXGenerator(g.logger)
-	return latexGen.Generate(templateContent, resume)
+	return latexGen.Generate(templateContent, td)
 }
 
 // renderMarkdown renders a Markdown template
-func (g *Generator) renderMarkdown(templateContent string, resume *resume.Resume) (string, error) {
+func (g *Generator) renderMarkdown(templateContent string, td *TemplateData) (string, error) {
 	mdGen := NewMarkdownGenerator(g.logger)
-	return mdGen.Generate(templateContent, resume)
+	return mdGen.Generate(templateContent, td)
 }
 
-// GenerateDOCX generates a DOCX document from the resume.
-func (g *Generator) GenerateDOCX(resume *resume.Resume) ([]byte, error) {
-	g.logger.Info("Generating DOCX resume")
+// GenerateDOCXWithTemplate generates a DOCX document using an already-loaded template.
+func (g *Generator) GenerateDOCXWithTemplate(tmpl *Template, td *TemplateData) ([]byte, error) {
+	g.logger.Infof("Generating DOCX resume using template: %s", tmpl.Name)
+
+	// Read the template file
+	var templateContent []byte
+	var err error
+
+	if tmpl.Embedded {
+		filename := resolveTemplateFilename(tmpl.Type, tmpl.Config.TemplateFile)
+		templateContent, err = fs.ReadFile(embeddedFS, tmpl.EmbeddedDir+"/"+filename)
+	} else {
+		templateContent, err = os.ReadFile(tmpl.Path)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to read DOCX template: %w", err)
+	}
+
+	// Resolve the scaffold directory
+	scaffoldDir := "docx_scaffold"
+	var scaffoldFS fs.FS
+
+	if tmpl.Embedded {
+		sub, subErr := fs.Sub(embeddedFS, tmpl.EmbeddedDir)
+		if subErr != nil {
+			return nil, fmt.Errorf("failed to access embedded template dir: %w", subErr)
+		}
+		scaffoldFS = sub
+	} else {
+		scaffoldFS = os.DirFS(filepath.Dir(tmpl.Path))
+	}
+
 	docxGen := NewDOCXGenerator(g.logger)
-	return docxGen.Generate(resume)
+	return docxGen.Generate(string(templateContent), td, scaffoldFS, scaffoldDir)
 }
 
 // GetTemplateType returns the type of a template
@@ -330,9 +358,9 @@ func ExtractEmbeddedTemplateDir(embeddedDir string) (string, error) {
 }
 
 func loadTemplateConfigFromFS(templateDir, templateName string) (TemplateConfig, error) {
-	configPath := filepath.Join(templateDir, "config.yml")
+	configPath := filepath.Join(templateDir, "metadata.yml")
 	if !utils.FileExists(configPath) {
-		return TemplateConfig{}, fmt.Errorf("template %s is missing config.yml (expected at %s)", templateName, configPath)
+		return TemplateConfig{}, fmt.Errorf("template %s is missing metadata.yml (expected at %s)", templateName, configPath)
 	}
 
 	data, err := os.ReadFile(configPath)
@@ -344,10 +372,10 @@ func loadTemplateConfigFromFS(templateDir, templateName string) (TemplateConfig,
 }
 
 func loadTemplateConfigFromEmbed(embeddedDir, templateName string) (TemplateConfig, error) {
-	configPath := embeddedDir + "/config.yml"
+	configPath := embeddedDir + "/metadata.yml"
 	data, err := fs.ReadFile(embeddedFS, configPath)
 	if err != nil {
-		return TemplateConfig{}, fmt.Errorf("embedded template %s is missing config.yml", templateName)
+		return TemplateConfig{}, fmt.Errorf("embedded template %s is missing metadata.yml", templateName)
 	}
 
 	return parseTemplateConfig(data, templateName)
@@ -403,16 +431,14 @@ func resolveTemplateFilename(tmplType TemplateType, override string) string {
 		return "template.tex"
 	case TemplateTypeMarkdown:
 		return "template.md"
+	case TemplateTypeDOCX:
+		return "template.xml"
 	default:
 		return ""
 	}
 }
 
 func resolveTemplateFileFS(templateDir string, tmplType TemplateType, override string) (string, error) {
-	if tmplType == TemplateTypeDOCX {
-		return "", nil
-	}
-
 	filename := resolveTemplateFilename(tmplType, override)
 	if filename == "" {
 		return "", fmt.Errorf("unknown template type: %s", tmplType)

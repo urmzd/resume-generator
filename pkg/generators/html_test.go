@@ -18,6 +18,7 @@ func TestHTMLGenerator_Generate(t *testing.T) {
 			Email: "jane@example.com",
 		},
 	}
+	td := NewTemplateData(r, nil)
 
 	// Template accessing fields directly
 	templateContent := `<div id="content">
@@ -25,7 +26,7 @@ func TestHTMLGenerator_Generate(t *testing.T) {
 {{if .Contact.Email}}<span>{{.Contact.Email}}</span>{{end}}
 </div>`
 
-	got, err := gen.Generate(templateContent, r)
+	got, err := gen.Generate(templateContent, td)
 	if err != nil {
 		t.Fatalf("Generate() error = %v", err)
 	}
