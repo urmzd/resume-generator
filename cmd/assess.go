@@ -90,7 +90,7 @@ Requires Ollama running locally (https://ollama.com).`,
 		if err != nil {
 			sugar.Fatalf("Ollama is not available at %s. Install Ollama (https://ollama.com) and start it with 'ollama serve'.\n  Error: %v", assessOllamaURL, err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 
 		client := ollama.NewClient(assessOllamaURL, assessModel, "")
 		adapter := ollama.NewAdapter(client)
