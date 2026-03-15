@@ -38,8 +38,8 @@ func TestEscapeLaTeX(t *testing.T) {
 }
 
 func TestLaTeXFormatDateRange(t *testing.T) {
-	start := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
-	end := time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC)
+	start := resume.NewMonthDate(time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
+	end := resume.NewMonthDate(time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC))
 
 	formatter := newLaTeXFormatter()
 
@@ -51,7 +51,7 @@ func TestLaTeXFormatDateRange(t *testing.T) {
 		t.Fatalf("formatDateRange(start, nil, true) = %q, want Jan 2020 \\textendash\\ Present", got)
 	}
 
-	var zero time.Time
+	var zero resume.PartialDate
 	if got := formatter.FormatDateRange(resume.DateRange{Start: zero}); got != "" {
 		t.Fatalf("formatDateRange(zero, nil, false) = %q, want empty string", got)
 	}
@@ -61,9 +61,9 @@ func TestLaTeXGeneratorGenerate(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	gen := NewLaTeXGenerator(logger)
 
-	expStart := time.Date(2022, time.January, 1, 0, 0, 0, 0, time.UTC)
-	eduStart := time.Date(2018, time.September, 1, 0, 0, 0, 0, time.UTC)
-	eduEnd := time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC)
+	expStart := resume.NewMonthDate(time.Date(2022, time.January, 1, 0, 0, 0, 0, time.UTC))
+	eduStart := resume.NewMonthDate(time.Date(2018, time.September, 1, 0, 0, 0, 0, time.UTC))
+	eduEnd := resume.NewMonthDate(time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC))
 
 	resume := &resume.Resume{
 		Contact: resume.Contact{
