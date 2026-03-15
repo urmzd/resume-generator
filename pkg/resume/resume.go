@@ -1,10 +1,141 @@
 package resume
 
 import (
+	"encoding/json"
+	"fmt"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
 )
+
+// DatePrecision indicates what level of detail a date carries.
+type DatePrecision int
+
+const (
+	PrecisionFull  DatePrecision = iota // Full date (day-level)
+	PrecisionMonth                      // Month + year only
+	PrecisionYear                       // Year only
+)
+
+// PartialDate is a date with explicit precision, so formatters know whether to
+// display "2017", "May 2017", or the full date.
+type PartialDate struct {
+	Time      time.Time
+	Precision DatePrecision
+}
+
+// IsZero reports whether the underlying time is zero.
+func (pd PartialDate) IsZero() bool {
+	return pd.Time.IsZero()
+}
+
+// After reports whether pd is after other.
+func (pd PartialDate) After(other PartialDate) bool {
+	return pd.Time.After(other.Time)
+}
+
+// UnmarshalYAML parses "2017", "2017-05", or a full timestamp.
+func (pd *PartialDate) UnmarshalYAML(value *yaml.Node) error {
+	s := strings.TrimSpace(value.Value)
+
+	// Year-only: "2017" (may arrive as !!int or !!str)
+	if len(s) == 4 {
+		if t, err := time.Parse("2006", s); err == nil {
+			pd.Time = t
+			pd.Precision = PrecisionYear
+			return nil
+		}
+	}
+
+	// Month-year: "2017-05"
+	if len(s) == 7 {
+		if t, err := time.Parse("2006-01", s); err == nil {
+			pd.Time = t
+			pd.Precision = PrecisionMonth
+			return nil
+		}
+	}
+
+	// Full date / timestamp – delegate to yaml.v3's time parser.
+	var t time.Time
+	if err := value.Decode(&t); err != nil {
+		return fmt.Errorf("cannot parse date %q: expected YYYY, YYYY-MM, or full date/timestamp", s)
+	}
+	pd.Time = t
+	pd.Precision = PrecisionFull
+	return nil
+}
+
+// MarshalYAML outputs the date in its precision-appropriate format.
+func (pd PartialDate) MarshalYAML() (interface{}, error) {
+	switch pd.Precision {
+	case PrecisionYear:
+		return pd.Time.Format("2006"), nil
+	case PrecisionMonth:
+		return pd.Time.Format("2006-01"), nil
+	default:
+		return pd.Time.Format(time.RFC3339), nil
+	}
+}
+
+// UnmarshalJSON parses "2017", "2017-05", or an RFC 3339 timestamp.
+func (pd *PartialDate) UnmarshalJSON(data []byte) error {
+	s := strings.Trim(string(data), `"`)
+
+	if len(s) == 4 {
+		if t, err := time.Parse("2006", s); err == nil {
+			pd.Time = t
+			pd.Precision = PrecisionYear
+			return nil
+		}
+	}
+	if len(s) == 7 {
+		if t, err := time.Parse("2006-01", s); err == nil {
+			pd.Time = t
+			pd.Precision = PrecisionMonth
+			return nil
+		}
+	}
+	if t, err := time.Parse(time.RFC3339, s); err == nil {
+		pd.Time = t
+		pd.Precision = PrecisionFull
+		return nil
+	}
+	if t, err := time.Parse("2006-01-02", s); err == nil {
+		pd.Time = t
+		pd.Precision = PrecisionFull
+		return nil
+	}
+	return fmt.Errorf("cannot parse date %q", s)
+}
+
+// MarshalJSON outputs the date in its precision-appropriate format.
+func (pd PartialDate) MarshalJSON() ([]byte, error) {
+	switch pd.Precision {
+	case PrecisionYear:
+		return json.Marshal(pd.Time.Format("2006"))
+	case PrecisionMonth:
+		return json.Marshal(pd.Time.Format("2006-01"))
+	default:
+		return json.Marshal(pd.Time.Format(time.RFC3339))
+	}
+}
+
+// NewPartialDate creates a PartialDate from a time.Time with the given precision.
+func NewPartialDate(t time.Time, p DatePrecision) PartialDate {
+	return PartialDate{Time: t, Precision: p}
+}
+
+// NewMonthDate is a convenience for creating a month-precision date (the most common case).
+func NewMonthDate(t time.Time) PartialDate {
+	return PartialDate{Time: t, Precision: PrecisionMonth}
+}
+
+// NewYearDate is a convenience for creating a year-precision date.
+func NewYearDate(t time.Time) PartialDate {
+	return PartialDate{Time: t, Precision: PrecisionYear}
+}
 
 type Resume struct {
 	Contact        Contact         `json:"contact" yaml:"contact" toml:"contact"`
@@ -43,10 +174,10 @@ type Certifications struct {
 }
 
 type Certification struct {
-	Name   string     `json:"name" yaml:"name" toml:"name"`
-	Issuer string     `json:"issuer,omitempty" yaml:"issuer,omitempty" toml:"issuer,omitempty"`
-	Notes  string     `json:"notes,omitempty" yaml:"notes,omitempty" toml:"notes,omitempty"`
-	Date   *time.Time `json:"date,omitempty" yaml:"date,omitempty" toml:"date,omitempty"`
+	Name   string       `json:"name" yaml:"name" toml:"name"`
+	Issuer string       `json:"issuer,omitempty" yaml:"issuer,omitempty" toml:"issuer,omitempty"`
+	Notes  string       `json:"notes,omitempty" yaml:"notes,omitempty" toml:"notes,omitempty"`
+	Date   *PartialDate `json:"date,omitempty" yaml:"date,omitempty" toml:"date,omitempty"`
 }
 
 type Location struct {
@@ -103,8 +234,8 @@ type ExperienceGroup struct {
 }
 
 type DateRange struct {
-	Start time.Time  `json:"start" yaml:"start" toml:"start"`
-	End   *time.Time `json:"end,omitempty" yaml:"end,omitempty" toml:"end,omitempty"`
+	Start PartialDate  `json:"start" yaml:"start" toml:"start"`
+	End   *PartialDate `json:"end,omitempty" yaml:"end,omitempty" toml:"end,omitempty"`
 }
 
 type ProjectList struct {
@@ -153,9 +284,9 @@ type Thesis struct {
 }
 
 type Award struct {
-	Name  string     `json:"name" yaml:"name" toml:"name"`
-	Date  *time.Time `json:"date,omitempty" yaml:"date,omitempty" toml:"date,omitempty"`
-	Notes string     `json:"notes,omitempty" yaml:"notes,omitempty" toml:"notes,omitempty"`
+	Name  string       `json:"name" yaml:"name" toml:"name"`
+	Date  *PartialDate `json:"date,omitempty" yaml:"date,omitempty" toml:"date,omitempty"`
+	Notes string       `json:"notes,omitempty" yaml:"notes,omitempty" toml:"notes,omitempty"`
 }
 
 // UnmarshalYAML implements custom YAML unmarshaling for Education to support
