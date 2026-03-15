@@ -21,6 +21,10 @@ func ScreenshotHTML(logger *zap.SugaredLogger, htmlContent, outputPath string, w
 		logger.Infof("Using browser from ROD_BROWSER_BIN: %s", bin)
 	}
 
+	if os.Getenv("CI") != "" {
+		l = l.NoSandbox(true)
+	}
+
 	u, err := l.Headless(true).Launch()
 	if err != nil {
 		return fmt.Errorf("failed to launch browser: %w", err)
