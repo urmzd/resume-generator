@@ -21,11 +21,6 @@ if ! command -v curl &>/dev/null; then
   exit 1
 fi
 
-if [ "$PLATFORM" = "darwin" ] && ! command -v unzip &>/dev/null; then
-  echo "Error: unzip is required on macOS but not installed." >&2
-  exit 1
-fi
-
 # Fetch latest release tag
 echo "Fetching latest release..."
 RELEASE_JSON="$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest")"
@@ -43,18 +38,15 @@ TMPDIR_INSTALL="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR_INSTALL"' EXIT
 
 if [ "$PLATFORM" = "darwin" ]; then
-  ASSET_URL="https://github.com/$REPO/releases/download/$TAG/resume-generator-darwin.zip"
-  echo "Downloading $ASSET_URL..."
-  curl -fsSL -o "$TMPDIR_INSTALL/resume-generator-darwin.zip" "$ASSET_URL"
-  unzip -q "$TMPDIR_INSTALL/resume-generator-darwin.zip" -d "$TMPDIR_INSTALL"
-  BINARY="$TMPDIR_INSTALL/resume-generator.app/Contents/MacOS/resume-generator"
+  ASSET_NAME="resume-generator-darwin"
 else
-  VARIANT="${RESUME_GENERATOR_VARIANT:-musl}"
-  ASSET_URL="https://github.com/$REPO/releases/download/$TAG/resume-generator-${VARIANT}"
-  echo "Downloading $ASSET_URL..."
-  curl -fsSL -o "$TMPDIR_INSTALL/resume-generator" "$ASSET_URL"
-  BINARY="$TMPDIR_INSTALL/resume-generator"
+  ASSET_NAME="resume-generator-${RESUME_GENERATOR_VARIANT:-linux}"
 fi
+
+ASSET_URL="https://github.com/$REPO/releases/download/$TAG/$ASSET_NAME"
+echo "Downloading $ASSET_URL..."
+curl -fsSL -o "$TMPDIR_INSTALL/resume-generator" "$ASSET_URL"
+BINARY="$TMPDIR_INSTALL/resume-generator"
 
 if [ ! -f "$BINARY" ]; then
   echo "Error: Binary not found after download." >&2
