@@ -54,6 +54,11 @@ func (c *RodHTMLToPDFCompiler) CompileToBytes(htmlContent string) ([]byte, error
 		c.logger.Infof("Using browser from ROD_BROWSER_BIN: %s", bin)
 	}
 
+	// Disable sandbox in CI environments (required for containerized runners)
+	if os.Getenv("CI") != "" {
+		l = l.NoSandbox(true)
+	}
+
 	u, err := l.Headless(true).Launch()
 	if err != nil {
 		return nil, fmt.Errorf("failed to launch browser: %w", err)
