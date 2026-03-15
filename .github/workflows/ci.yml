@@ -6,7 +6,7 @@ on:
   workflow_call:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   fmt:
@@ -68,12 +68,13 @@ jobs:
 
   screenshots:
     if: github.actor != 'github-actions[bot]'
-    name: Screenshots staleness check
+    name: Update screenshots
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -86,10 +87,12 @@ jobs:
       - name: Regenerate screenshots
         run: ./resume-generator screenshots --input assets/example_resumes/software_engineer.yml
 
-      - name: Check for stale screenshots
+      - name: Commit updated screenshots
         run: |
           if ! git diff --quiet assets/example_results/; then
-            echo "::error::Screenshots are stale. Run 'just screenshots' and commit the updated PNGs."
-            git diff --stat assets/example_results/
-            exit 1
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add assets/example_results/
+            git commit -m "chore: update screenshots"
+            git push
           fi
