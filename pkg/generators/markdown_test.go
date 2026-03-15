@@ -95,9 +95,9 @@ func TestMarkdownGeneratorGenerate(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	gen := NewMarkdownGenerator(logger)
 
-	expStart := time.Date(2022, time.January, 1, 0, 0, 0, 0, time.UTC)
-	eduStart := time.Date(2018, time.September, 1, 0, 0, 0, 0, time.UTC)
-	eduEnd := time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC)
+	expStart := resume.NewMonthDate(time.Date(2022, time.January, 1, 0, 0, 0, 0, time.UTC))
+	eduStart := resume.NewMonthDate(time.Date(2018, time.September, 1, 0, 0, 0, 0, time.UTC))
+	eduEnd := resume.NewMonthDate(time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC))
 
 	r := &resume.Resume{
 		Contact: resume.Contact{

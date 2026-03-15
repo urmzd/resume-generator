@@ -27,20 +27,22 @@ func TestDocxEscapeText(t *testing.T) {
 func TestDocxFormatDateRange(t *testing.T) {
 	f := newDocxFormatter()
 
-	jan2020 := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
-	jun2021 := time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC)
-	dec2022 := time.Date(2022, time.December, 15, 0, 0, 0, 0, time.UTC)
+	jan2020 := pd(time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
+	jun2021 := pd(time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC))
+	dec2022 := pd(time.Date(2022, time.December, 15, 0, 0, 0, 0, time.UTC))
+	year2020 := resume.NewYearDate(time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
 
 	tests := []struct {
 		name string
 		dr   resume.DateRange
 		want string
 	}{
-		{"year-only detection (Jan 1st)", resume.DateRange{Start: jan2020, End: &jun2021}, "2020 Jun 2021"},
-		{"regular dates", resume.DateRange{Start: jun2021, End: &dec2022}, "Jun 2021 Dec 2022"},
+		{"month dates", resume.DateRange{Start: jan2020, End: func() *resume.PartialDate { d := jun2021; return &d }()}, "Jan 2020 Jun 2021"},
+		{"regular dates", resume.DateRange{Start: jun2021, End: func() *resume.PartialDate { d := dec2022; return &d }()}, "Jun 2021 Dec 2022"},
 		{"nil end", resume.DateRange{Start: jun2021}, "Jun 2021"},
 		{"both zero", resume.DateRange{}, ""},
-		{"start is jan 1st only", resume.DateRange{Start: jan2020}, "2020"},
+		{"year-only start", resume.DateRange{Start: year2020}, "2020"},
+		{"year-only with end", resume.DateRange{Start: year2020, End: func() *resume.PartialDate { d := jun2021; return &d }()}, "2020 Jun 2021"},
 	}
 
 	for _, tt := range tests {
@@ -58,18 +60,18 @@ func TestDocxFormatDateShort(t *testing.T) {
 
 	tests := []struct {
 		name string
-		t    time.Time
+		pd   resume.PartialDate
 		want string
 	}{
-		{"zero", time.Time{}, ""},
-		{"jan 1st (year-only)", time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC), "2020"},
-		{"regular date", time.Date(2021, time.June, 15, 0, 0, 0, 0, time.UTC), "Jun 2021"},
-		{"dec 31st", time.Date(2022, time.December, 31, 0, 0, 0, 0, time.UTC), "Dec 2022"},
+		{"zero", resume.PartialDate{}, ""},
+		{"year-only", resume.NewYearDate(time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)), "2020"},
+		{"month date", resume.NewMonthDate(time.Date(2021, time.June, 15, 0, 0, 0, 0, time.UTC)), "Jun 2021"},
+		{"full date", resume.NewPartialDate(time.Date(2022, time.December, 31, 0, 0, 0, 0, time.UTC), resume.PrecisionFull), "Dec 2022"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := f.formatDateShort(tt.t)
+			got := f.formatDateShort(tt.pd)
 			if got != tt.want {
 				t.Errorf("formatDateShort() = %q, want %q", got, tt.want)
 			}

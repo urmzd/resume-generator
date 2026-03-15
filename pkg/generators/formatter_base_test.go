@@ -8,6 +8,17 @@ import (
 	"github.com/urmzd/resume-generator/pkg/resume"
 )
 
+// pd is a test helper to create a month-precision PartialDate.
+func pd(t time.Time) resume.PartialDate {
+	return resume.NewMonthDate(t)
+}
+
+// pdp is a test helper to create a pointer to a month-precision PartialDate.
+func pdp(t time.Time) *resume.PartialDate {
+	d := resume.NewMonthDate(t)
+	return &d
+}
+
 func TestFormatDateRange(t *testing.T) {
 	f := &baseFormatter{}
 
@@ -15,18 +26,25 @@ func TestFormatDateRange(t *testing.T) {
 	jun2021 := time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC)
 	jan2020dup := time.Date(2020, time.January, 15, 0, 0, 0, 0, time.UTC)
 
+	zeroPD := resume.PartialDate{}
+
 	tests := []struct {
 		name string
 		dr   resume.DateRange
 		want string
 	}{
-		{"both dates set", resume.DateRange{Start: jan2020, End: &jun2021}, "Jan 2020 – Jun 2021"},
-		{"end nil (present)", resume.DateRange{Start: jan2020, End: nil}, "Jan 2020 – Present"},
-		{"end zero", resume.DateRange{Start: jan2020, End: func() *time.Time { t := time.Time{}; return &t }()}, "Jan 2020 – Present"},
-		{"same month", resume.DateRange{Start: jan2020, End: &jan2020dup}, "Jan 2020"},
+		{"both dates set", resume.DateRange{Start: pd(jan2020), End: pdp(jun2021)}, "Jan 2020 – Jun 2021"},
+		{"end nil (present)", resume.DateRange{Start: pd(jan2020), End: nil}, "Jan 2020 – Present"},
+		{"end zero", resume.DateRange{Start: pd(jan2020), End: &zeroPD}, "Jan 2020 – Present"},
+		{"same month", resume.DateRange{Start: pd(jan2020), End: pdp(jan2020dup)}, "Jan 2020"},
 		{"both zero", resume.DateRange{}, ""},
-		{"start zero end set", resume.DateRange{Start: time.Time{}, End: &jun2021}, "Jun 2021"},
-		{"start set end same as start format", resume.DateRange{Start: jan2020, End: &jan2020}, "Jan 2020"},
+		{"start zero end set", resume.DateRange{End: pdp(jun2021)}, "Jun 2021"},
+		{"start set end same as start format", resume.DateRange{Start: pd(jan2020), End: pdp(jan2020)}, "Jan 2020"},
+		{"year-only start", resume.DateRange{Start: resume.NewYearDate(jan2020), End: pdp(jun2021)}, "2020 – Jun 2021"},
+		{"year-only both", resume.DateRange{
+			Start: resume.NewYearDate(jan2020),
+			End:   func() *resume.PartialDate { d := resume.NewYearDate(jun2021); return &d }(),
+		}, "2020 – 2021"},
 	}
 
 	for _, tt := range tests {
@@ -51,7 +69,7 @@ func TestFormatOptionalDateRange(t *testing.T) {
 		want string
 	}{
 		{"nil", nil, ""},
-		{"valid", &resume.DateRange{Start: jan2020, End: &jun2021}, "Jan 2020 – Jun 2021"},
+		{"valid", &resume.DateRange{Start: pd(jan2020), End: pdp(jun2021)}, "Jan 2020 – Jun 2021"},
 		{"zero", &resume.DateRange{}, ""},
 	}
 
@@ -78,9 +96,9 @@ func TestFormatDates(t *testing.T) {
 	}{
 		{"string", "Jan 2020 – Jun 2021", "Jan 2020 – Jun 2021"},
 		{"string with spaces", "  Jan 2020  ", "Jan 2020"},
-		{"DateRange value", resume.DateRange{Start: jan2020, End: &jun2021}, "Jan 2020 – Jun 2021"},
+		{"DateRange value", resume.DateRange{Start: pd(jan2020), End: pdp(jun2021)}, "Jan 2020 – Jun 2021"},
 		{"DateRange pointer nil", (*resume.DateRange)(nil), ""},
-		{"DateRange pointer valid", &resume.DateRange{Start: jan2020, End: &jun2021}, "Jan 2020 – Jun 2021"},
+		{"DateRange pointer valid", &resume.DateRange{Start: pd(jan2020), End: pdp(jun2021)}, "Jan 2020 – Jun 2021"},
 		{"unsupported type", 42, ""},
 	}
 
@@ -303,22 +321,22 @@ func TestCaseTransformations(t *testing.T) {
 func TestCalculateDuration(t *testing.T) {
 	f := &baseFormatter{}
 
-	start := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
-	end2y3m := time.Date(2022, time.April, 1, 0, 0, 0, 0, time.UTC)
-	end6m := time.Date(2020, time.July, 1, 0, 0, 0, 0, time.UTC)
-	end10d := time.Date(2020, time.January, 11, 0, 0, 0, 0, time.UTC)
-	end1y := time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC)
+	start := pd(time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
+	end2y3m := pdp(time.Date(2022, time.April, 1, 0, 0, 0, 0, time.UTC))
+	end6m := pdp(time.Date(2020, time.July, 1, 0, 0, 0, 0, time.UTC))
+	end10d := pdp(time.Date(2020, time.January, 11, 0, 0, 0, 0, time.UTC))
+	end1y := pdp(time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC))
 
 	tests := []struct {
 		name  string
-		start time.Time
-		end   *time.Time
+		start resume.PartialDate
+		end   *resume.PartialDate
 		want  string
 	}{
-		{"years and months", start, &end2y3m, "2 yr 3 mo"},
-		{"months only", start, &end6m, "6 mo"},
-		{"less than 1 month", start, &end10d, "< 1 mo"},
-		{"exact year", start, &end1y, "1 yr"},
+		{"years and months", start, end2y3m, "2 yr 3 mo"},
+		{"months only", start, end6m, "6 mo"},
+		{"less than 1 month", start, end10d, "< 1 mo"},
+		{"exact year", start, end1y, "1 yr"},
 	}
 
 	for _, tt := range tests {
@@ -332,7 +350,7 @@ func TestCalculateDuration(t *testing.T) {
 
 	// Nil end uses time.Now(), so just check it returns a non-empty string
 	t.Run("nil end uses now", func(t *testing.T) {
-		recentStart := time.Now().AddDate(-1, -3, 0)
+		recentStart := pd(time.Now().AddDate(-1, -3, 0))
 		got := f.CalculateDuration(recentStart, nil)
 		if got == "" {
 			t.Error("CalculateDuration with nil end should return non-empty string")
@@ -346,9 +364,9 @@ func TestCalculateDuration(t *testing.T) {
 func TestSortExperienceByDate(t *testing.T) {
 	f := &baseFormatter{}
 
-	jan2020 := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
-	jun2021 := time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC)
-	mar2022 := time.Date(2022, time.March, 1, 0, 0, 0, 0, time.UTC)
+	jan2020 := pd(time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
+	jun2021 := pd(time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC))
+	mar2022 := pd(time.Date(2022, time.March, 1, 0, 0, 0, 0, time.UTC))
 
 	t.Run("sorts descending by start date", func(t *testing.T) {
 		input := []resume.Experience{
@@ -392,8 +410,8 @@ func TestSortExperienceByDate(t *testing.T) {
 func TestSortEducationByDate(t *testing.T) {
 	f := &baseFormatter{}
 
-	jan2018 := time.Date(2018, time.January, 1, 0, 0, 0, 0, time.UTC)
-	sep2020 := time.Date(2020, time.September, 1, 0, 0, 0, 0, time.UTC)
+	jan2018 := pd(time.Date(2018, time.January, 1, 0, 0, 0, 0, time.UTC))
+	sep2020 := pd(time.Date(2020, time.September, 1, 0, 0, 0, 0, time.UTC))
 
 	t.Run("sorts descending", func(t *testing.T) {
 		input := []resume.Education{
@@ -428,9 +446,9 @@ func TestSortEducationByDate(t *testing.T) {
 func TestSortProjectsByDate(t *testing.T) {
 	f := &baseFormatter{}
 
-	jan2020 := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
-	jun2021 := time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC)
-	mar2022 := time.Date(2022, time.March, 1, 0, 0, 0, 0, time.UTC)
+	jan2020 := pd(time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
+	jun2021 := pd(time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC))
+	mar2022 := pd(time.Date(2022, time.March, 1, 0, 0, 0, 0, time.UTC))
 
 	t.Run("sorts descending", func(t *testing.T) {
 		input := []resume.Project{

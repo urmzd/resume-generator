@@ -24,10 +24,10 @@ type professionTestCase struct {
 }
 
 func makeProfessionCases() []professionTestCase {
-	t2022 := time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)
-	t2023 := time.Date(2023, 6, 1, 0, 0, 0, 0, time.UTC)
-	t2018 := time.Date(2018, 9, 1, 0, 0, 0, 0, time.UTC)
-	t2021 := time.Date(2021, 5, 1, 0, 0, 0, 0, time.UTC)
+	t2022 := resume.NewMonthDate(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC))
+	t2023 := resume.NewMonthDate(time.Date(2023, 6, 1, 0, 0, 0, 0, time.UTC))
+	t2018 := resume.NewMonthDate(time.Date(2018, 9, 1, 0, 0, 0, 0, time.UTC))
+	t2021 := resume.NewMonthDate(time.Date(2021, 5, 1, 0, 0, 0, 0, time.UTC))
 
 	return []professionTestCase{
 		{

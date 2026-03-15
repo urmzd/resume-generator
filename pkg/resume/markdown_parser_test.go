@@ -281,7 +281,7 @@ func TestParseMarkdownDateFormats(t *testing.T) {
 			t.Errorf("parseDate(%q) returned zero", tc.input)
 			continue
 		}
-		if d.Year() != tc.year || d.Month() != tc.month {
+		if d.Time.Year() != tc.year || d.Time.Month() != tc.month {
 			t.Errorf("parseDate(%q) = %v, want %d-%s", tc.input, d, tc.year, tc.month)
 		}
 	}
@@ -392,9 +392,9 @@ func assertSliceEqual(t *testing.T, field string, expected, actual []string) {
 	}
 }
 
-func assertDateMonth(t *testing.T, field string, year int, month time.Month, d time.Time) {
+func assertDateMonth(t *testing.T, field string, year int, month time.Month, d PartialDate) {
 	t.Helper()
-	if d.Year() != year || d.Month() != month {
+	if d.Time.Year() != year || d.Time.Month() != month {
 		t.Errorf("%s: expected %d-%s, got %v", field, year, month, d)
 	}
 }

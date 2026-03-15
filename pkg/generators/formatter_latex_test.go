@@ -131,8 +131,8 @@ func TestLaTeXFormatGPAStruct(t *testing.T) {
 func TestLaTeXFormatterFormatDateRange(t *testing.T) {
 	f := newLaTeXFormatter()
 
-	jan2020 := time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC)
-	jun2021 := time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC)
+	jan2020 := resume.NewMonthDate(time.Date(2020, time.January, 1, 0, 0, 0, 0, time.UTC))
+	jun2021 := resume.NewMonthDate(time.Date(2021, time.June, 1, 0, 0, 0, 0, time.UTC))
 
 	tests := []struct {
 		name string
