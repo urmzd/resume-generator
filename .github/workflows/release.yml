@@ -19,36 +19,12 @@ permissions:
   contents: write
 
 jobs:
-  test:
+  ci:
     if: github.actor != 'github-actions[bot]'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-
-      - name: Check formatting
-        run: |
-          unformatted=$(gofmt -l .)
-          if [ -n "$unformatted" ]; then
-            echo "The following files are not formatted:"
-            echo "$unformatted"
-            exit 1
-          fi
-
-      - name: Lint
-        uses: golangci/golangci-lint-action@v7
-
-      - name: Test
-        run: go test ./...
-
-      - name: Fuzz smoke test
-        run: go test -run=FuzzSanitizePhone -fuzz=FuzzSanitizePhone -fuzztime=10s ./pkg/generators
+    uses: ./.github/workflows/ci.yml
 
   release:
-    needs: test
+    needs: ci
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -107,14 +83,14 @@ jobs:
         shell: bash
         run: gh release upload "${{ needs.release.outputs.tag }}" "build/bin/${{ matrix.artifact }}" --clobber
 
-  demo:
+  update-assets:
     needs: release
     if: needs.release.outputs.released == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.release.outputs.tag }}
+          ref: main
 
       - uses: actions/setup-go@v5
         with:
@@ -134,34 +110,17 @@ jobs:
       - name: Record demo
         run: vhs docs/demo.tape
 
-      - name: Upload demo to release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${{ needs.release.outputs.tag }}" "assets/demo-cli.gif" --clobber
-
-  screenshots:
-    needs: release
-    if: needs.release.outputs.released == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.release.outputs.tag }}
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-
       - name: Build CLI
         run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o resume-generator .
 
       - name: Generate screenshots
         run: ./resume-generator screenshots --input assets/example_resumes/software_engineer.yml
 
-      - name: Upload screenshots to release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit assets to main
         run: |
-          for png in assets/example_results/*.png; do
-            [ -f "$png" ] && gh release upload "${{ needs.release.outputs.tag }}" "$png" --clobber
-          done
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add assets/demo-cli.gif assets/example_results/*.png
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: update demo and screenshot assets [skip ci]"
+          git push origin HEAD:main
