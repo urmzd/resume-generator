@@ -8,10 +8,10 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	agentsdk "github.com/urmzd/adk"
-	"github.com/urmzd/adk/core"
-	"github.com/urmzd/adk/provider/ollama"
-	"github.com/urmzd/adk/tui"
+	agentsdk "github.com/urmzd/graph-agent-dev-kit/agent"
+	"github.com/urmzd/graph-agent-dev-kit/agent/core"
+	"github.com/urmzd/graph-agent-dev-kit/agent/provider/ollama"
+	"github.com/urmzd/graph-agent-dev-kit/agent/tui"
 	"golang.org/x/term"
 
 	"github.com/spf13/cobra"

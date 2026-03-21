@@ -173,7 +173,7 @@ Debug artifacts (intermediate HTML/LaTeX source) are written to a temp directory
 
 ## Dependencies
 
-- **agent-sdk** (`github.com/urmzd/agent-sdk`) — local dependency via `replace` directive in `go.mod`, provides the Ollama provider for the `assess` command. Uses the streaming agent loop pattern (not raw HTTP calls).
+- **graph-agent-dev-kit** (`github.com/urmzd/graph-agent-dev-kit`) — provides the streaming agent loop, Ollama provider, sub-agent delegation, and TUI for the `assess` command.
 
 ## Common Tasks
 
@@ -198,6 +198,6 @@ Requires [Ollama](https://ollama.com) running locally. The `assess` command uses
 ./resume-generator assess -i resume.yml --ollama-url http://host:11434  # custom host
 ```
 
-Sub-agents are registered via agent-sdk's `SubAgentDef` and automatically exposed as `delegate_to_*` tools. The coordinator's system prompt instructs it to call all four. Each sub-agent scores its dimension 1-10 with structured feedback. The coordinator produces a weighted overall score (content 30%, industry 25%, writing 25%, format 20%).
+Sub-agents are registered via graph-agent-dev-kit's `SubAgentDef` and automatically exposed as `delegate_to_*` tools. The coordinator's system prompt instructs it to call all four. Each sub-agent scores its dimension 1-10 with structured feedback. The coordinator produces a weighted overall score (content 30%, industry 25%, writing 25%, format 20%).
 
 If Ollama is not available, the command exits with a clear error message and install instructions.
