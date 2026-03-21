@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
+	"github.com/urmzd/resume-generator/internal/ui"
 	"github.com/urmzd/resume-generator/pkg/resume"
 	"github.com/urmzd/resume-generator/pkg/utils"
 	"go.uber.org/zap"
@@ -19,30 +23,40 @@ var validateCmd = &cobra.Command{
 		logger, _ := zap.NewProduction()
 		sugar := logger.Sugar()
 
+		ui.Header("resume-generator validate")
+
 		// Resolve file path
 		filePath, err := utils.ResolvePath(args[0])
 		if err != nil {
-			sugar.Fatalf("Error resolving file path: %v", err)
+			ui.Errorf("Error resolving file path: %v", err)
+			os.Exit(1)
 		}
 		if !utils.FileExists(filePath) {
-			sugar.Fatalf("File does not exist: %s", filePath)
+			ui.Errorf("File does not exist: %s", filePath)
+			os.Exit(1)
 		}
+
+		ui.Infof("Loading %s", filePath)
 
 		inputData, err := resume.LoadResumeFromFile(filePath)
 		if err != nil {
-			sugar.Fatalf("failed to load resume data: %v", err)
+			ui.Errorf("Failed to load resume data: %v", err)
+			os.Exit(1)
 		}
+		ui.PhaseOk("Loaded resume data", "")
 
 		resumeData := inputData.ToResume()
 		errors := resume.Validate(resumeData)
 		if len(errors) > 0 {
-			sugar.Errorf("Validation failed with %d errors:", len(errors))
+			ui.Errorf("Validation failed with %d errors:", len(errors))
 			for _, e := range errors {
-				sugar.Errorf("  - Field: %s, Message: %s", e.Field, e.Message)
+				ui.Detail(fmt.Sprintf("Field: %s, Message: %s", e.Field, e.Message))
 			}
-			return
+			os.Exit(1)
 		}
 
-		sugar.Info("Validation successful!")
+		ui.PhaseOk("Validation successful", "")
+
+		_ = sugar // keep logger available for debug
 	},
 }

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/urmzd/resume-generator/internal/ui"
 	"github.com/urmzd/resume-generator/pkg/compilers"
 	"github.com/urmzd/resume-generator/pkg/generators"
 	"github.com/urmzd/resume-generator/pkg/resume"
@@ -41,31 +42,37 @@ var runCmd = &cobra.Command{
 		logger, _ := zap.NewProduction()
 		sugar := logger.Sugar()
 
+		ui.Header("resume-generator run")
+
 		// Resolve input file path
 		inputPath, err := utils.ResolvePath(InputFile)
 		if err != nil {
-			sugar.Fatalf("Error resolving input path: %s", err)
+			ui.Errorf("Error resolving input path: %s", err)
+			os.Exit(1)
 		}
 		if !utils.FileExists(inputPath) {
-			sugar.Fatalf("Input file does not exist: %s", inputPath)
+			ui.Errorf("Input file does not exist: %s", inputPath)
+			os.Exit(1)
 		}
 
 		// Load resume data using unified adapter
 		inputData, err := resume.LoadResumeFromFile(inputPath)
 		if err != nil {
-			sugar.Fatalf("Error loading resume data: %s", err)
+			ui.Errorf("Error loading resume data: %s", err)
+			os.Exit(1)
 		}
 
 		// Validate input
 		if err := inputData.Validate(); err != nil {
-			sugar.Fatalf("Validation error: %s", err)
+			ui.Errorf("Validation error: %s", err)
+			os.Exit(1)
 		}
 
 		// Convert to the runtime resume structure for generation
 		resumeData := inputData.ToResume()
 		sectionOrder := inputData.GetSectionOrder()
 		td := generators.NewTemplateData(resumeData, sectionOrder)
-		sugar.Infof("Loaded resume for %s (format: %s)", resumeData.Contact.Name, inputData.GetFormat())
+		ui.PhaseOk("Loaded resume", fmt.Sprintf("%s (format: %s)", resumeData.Contact.Name, inputData.GetFormat()))
 
 		// Generate using unified template system
 		generator := generators.NewGenerator(sugar)
@@ -73,12 +80,14 @@ var runCmd = &cobra.Command{
 		normalizedTemplateNames := sanitizeTemplateNames(TemplateNames)
 		selectedTemplates, err := loadSelectedTemplates(normalizedTemplateNames)
 		if err != nil {
-			sugar.Fatalf("Failed to resolve templates: %v", err)
+			ui.Errorf("Failed to resolve templates: %v", err)
+			os.Exit(1)
 		}
 		if len(selectedTemplates) == 0 {
-			sugar.Fatalf("No templates available for generation")
+			ui.Error("No templates available for generation")
+			os.Exit(1)
 		}
-		sugar.Infof("Generating resumes for %d template(s)", len(selectedTemplates))
+		ui.Infof("Generating resumes for %d template(s)", len(selectedTemplates))
 
 		// Determine output folder and filenames
 		resumeSlug := generateFilenameSlug(inputPath)
@@ -87,15 +96,18 @@ var runCmd = &cobra.Command{
 		rootDirInput := strings.TrimSpace(OutputDir)
 		resolvedDir, err := utils.ResolvePath(rootDirInput)
 		if err != nil {
-			sugar.Fatalf("Error resolving output directory: %s", err)
+			ui.Errorf("Error resolving output directory: %s", err)
+			os.Exit(1)
 		}
 		if resolvedDir == "" {
 			if resolvedDir, err = os.Getwd(); err != nil {
-				sugar.Fatalf("Failed to determine working directory: %s", err)
+				ui.Errorf("Failed to determine working directory: %s", err)
+				os.Exit(1)
 			}
 		}
 		if err := utils.EnsureDir(resolvedDir); err != nil {
-			sugar.Fatalf("Error creating output directory: %s", err)
+			ui.Errorf("Error creating output directory: %s", err)
+			os.Exit(1)
 		}
 
 		desiredBase := generateOutputBaseName(resumeData.Contact.Name)
@@ -104,13 +116,15 @@ var runCmd = &cobra.Command{
 		// Create timestamped run directory: <root>/<slug>/<YYYY-MM-DD_HH-MM>/
 		runDir := generateRunDir(filepath.Join(resolvedDir, resumeSlug), currentTime)
 		if err := utils.EnsureDir(runDir); err != nil {
-			sugar.Fatalf("Error creating run output directory: %s", err)
+			ui.Errorf("Error creating run output directory: %s", err)
+			os.Exit(1)
 		}
 
 		// Pre-load the HTML fallback template for DOCX->PDF conversion
 		htmlFallbackTmpl, htmlFallbackErr := generators.LoadTemplate("modern-html")
 		if htmlFallbackErr != nil {
-			sugar.Warnf("Could not load HTML fallback template for DOCX PDF generation: %v", htmlFallbackErr)
+			ui.Warn("Could not load HTML fallback template for DOCX PDF generation")
+			sugar.Debugf("HTML fallback error: %v", htmlFallbackErr)
 		}
 
 		type generationResult struct {
@@ -126,16 +140,19 @@ var runCmd = &cobra.Command{
 			if tmpl.Type == generators.TemplateTypeMarkdown {
 				content, err := generator.GenerateWithTemplate(tmpl, td)
 				if err != nil {
-					sugar.Fatalf("Failed to generate Markdown with template %s: %v", tmpl.Name, err)
+					ui.Errorf("Failed to generate Markdown with template %s: %v", tmpl.Name, err)
+					os.Exit(1)
 				}
 
 				mdOutputPath, err := ensureUniqueOutputPath(runDir, desiredBase, tmpl.Name, ".md")
 				if err != nil {
-					sugar.Fatalf("Error determining output filename for template %s: %v", tmpl.Name, err)
+					ui.Errorf("Error determining output filename for template %s: %v", tmpl.Name, err)
+					os.Exit(1)
 				}
 
 				if err := os.WriteFile(mdOutputPath, []byte(content), 0644); err != nil {
-					sugar.Fatalf("Failed to write Markdown file: %v", err)
+					ui.Errorf("Failed to write Markdown file: %v", err)
+					os.Exit(1)
 				}
 
 				results = append(results, generationResult{
@@ -150,40 +167,42 @@ var runCmd = &cobra.Command{
 			if tmpl.Type == generators.TemplateTypeDOCX {
 				docxBytes, err := generator.GenerateDOCXWithTemplate(tmpl, td)
 				if err != nil {
-					sugar.Fatalf("Failed to generate DOCX with template %s: %v", tmpl.Name, err)
+					ui.Errorf("Failed to generate DOCX with template %s: %v", tmpl.Name, err)
+					os.Exit(1)
 				}
 
 				docxOutputPath, err := ensureUniqueOutputPath(runDir, desiredBase, tmpl.Name, ".docx")
 				if err != nil {
-					sugar.Fatalf("Error determining output filename for template %s: %v", tmpl.Name, err)
+					ui.Errorf("Error determining output filename for template %s: %v", tmpl.Name, err)
+					os.Exit(1)
 				}
 
 				if err := os.WriteFile(docxOutputPath, docxBytes, 0644); err != nil {
-					sugar.Fatalf("Failed to write DOCX file: %v", err)
+					ui.Errorf("Failed to write DOCX file: %v", err)
+					os.Exit(1)
 				}
 
 				// Also generate a PDF via the HTML fallback template
 				if htmlFallbackTmpl != nil {
 					htmlContent, htmlErr := generator.GenerateWithTemplate(htmlFallbackTmpl, td)
 					if htmlErr != nil {
-						sugar.Warnf("Failed to generate HTML for DOCX PDF fallback: %v", htmlErr)
+						ui.Warnf("Failed to generate HTML for DOCX PDF fallback: %v", htmlErr)
 					} else {
 						pdfOutputPath := strings.TrimSuffix(docxOutputPath, ".docx") + ".pdf"
 						debugDir, debugErr := os.MkdirTemp("", "resume-debug-*")
 						if debugErr != nil {
-							sugar.Warnf("Failed to create temp debug dir for DOCX PDF: %v", debugErr)
+							ui.Warnf("Failed to create temp debug dir for DOCX PDF: %v", debugErr)
 						} else {
 							if pdfErr := compileHTMLToPDF(sugar, htmlContent, pdfOutputPath, debugDir); pdfErr != nil {
-								// Keep debug dir on failure
 								persistedDebug := filepath.Join(runDir, desiredBase+"."+tmpl.Name+"_debug")
 								if mvErr := os.Rename(debugDir, persistedDebug); mvErr != nil {
-									sugar.Warnf("Failed to persist debug dir: %v (temp dir: %s)", mvErr, debugDir)
+									ui.Warnf("Failed to persist debug dir: %v (temp dir: %s)", mvErr, debugDir)
 								} else {
-									sugar.Warnf("Failed to generate PDF for DOCX template %s: %v (debug: %s)", tmpl.Name, pdfErr, persistedDebug)
+									ui.Warnf("Failed to generate PDF for DOCX template %s: %v", tmpl.Name, pdfErr)
 								}
 							} else {
 								_ = os.RemoveAll(debugDir)
-								sugar.Infof("Generated PDF alongside DOCX: %s", pdfOutputPath)
+								ui.PhaseOk("Generated PDF alongside DOCX", pdfOutputPath)
 							}
 						}
 					}
@@ -200,25 +219,29 @@ var runCmd = &cobra.Command{
 			// Standard template-based generation for HTML and LaTeX
 			content, err := generator.GenerateWithTemplate(tmpl, td)
 			if err != nil {
-				sugar.Fatalf("Failed to generate resume with template %s: %v", tmpl.Name, err)
+				ui.Errorf("Failed to generate resume with template %s: %v", tmpl.Name, err)
+				os.Exit(1)
 			}
 
 			pdfOutputPath, err := ensureUniqueOutputPath(runDir, desiredBase, tmpl.Name, pdfExt)
 			if err != nil {
-				sugar.Fatalf("Error determining output filename for template %s: %v", tmpl.Name, err)
+				ui.Errorf("Error determining output filename for template %s: %v", tmpl.Name, err)
+				os.Exit(1)
 			}
 
 			// Use a temp directory for debug artifacts; only persist on failure
 			debugDir, err := os.MkdirTemp("", "resume-debug-*")
 			if err != nil {
-				sugar.Fatalf("Failed to create temp debug directory: %v", err)
+				ui.Errorf("Failed to create temp debug directory: %v", err)
+				os.Exit(1)
 			}
 
 			var templateDir string
 			if tmpl.Embedded && tmpl.EmbeddedDir != "" {
 				extractedDir, extractErr := generators.ExtractEmbeddedTemplateDir(tmpl.EmbeddedDir)
 				if extractErr != nil {
-					sugar.Fatalf("Failed to extract embedded template files for %s: %v", tmpl.Name, extractErr)
+					ui.Errorf("Failed to extract embedded template files for %s: %v", tmpl.Name, extractErr)
+					os.Exit(1)
 				}
 				defer func() { _ = os.RemoveAll(extractedDir) }()
 				templateDir = extractedDir
@@ -233,16 +256,19 @@ var runCmd = &cobra.Command{
 			case generators.TemplateTypeHTML:
 				compileErr = compileHTMLToPDF(sugar, content, pdfOutputPath, debugDir)
 			default:
-				sugar.Fatalf("Unknown template type: %s", tmpl.Type)
+				ui.Errorf("Unknown template type: %s", tmpl.Type)
+				os.Exit(1)
 			}
 
 			if compileErr != nil {
 				// Persist debug dir next to output on failure
 				persistedDebug := filepath.Join(runDir, desiredBase+"."+tmpl.Name+"_debug")
 				if mvErr := os.Rename(debugDir, persistedDebug); mvErr != nil {
-					sugar.Warnf("Failed to persist debug dir: %v (temp dir: %s)", mvErr, debugDir)
+					ui.Warnf("Failed to persist debug dir: %v (temp dir: %s)", mvErr, debugDir)
 				}
-				sugar.Fatalf("Failed to compile template %s: %v (debug: %s)", tmpl.Name, compileErr, persistedDebug)
+				ui.Errorf("Failed to compile template %s: %v", tmpl.Name, compileErr)
+				ui.Infof("Debug artifacts: %s", persistedDebug)
+				os.Exit(1)
 			}
 
 			// Success: clean up debug artifacts
@@ -255,14 +281,15 @@ var runCmd = &cobra.Command{
 			})
 		}
 
+		ui.Blank()
 		for _, result := range results {
-			sugar.Infof("Successfully generated resume (%s) using %s at %s", result.tType, result.template, result.outPath)
+			ui.PhaseOk(fmt.Sprintf("Generated (%s) using %s", result.tType, result.template), result.outPath)
 
 			// Warn if the generated PDF exceeds one page
 			if strings.HasSuffix(result.outPath, ".pdf") {
 				if pdfData, readErr := os.ReadFile(result.outPath); readErr == nil {
 					if pages := compilers.CountPDFPages(pdfData); pages > 1 {
-						sugar.Warnf("Resume generated with template %s has %d pages (exceeds 1 page)", result.template, pages)
+						ui.Warnf("Resume with template %s has %d pages (exceeds 1 page)", result.template, pages)
 					}
 				}
 			}
@@ -295,7 +322,7 @@ func compileLaTeXToPDF(logger *zap.SugaredLogger, latexContent, outputPath, debu
 
 	resolvedTemplateDir := filepath.Clean(templateDir)
 	if resolvedTemplateDir != "" && !utils.DirExists(resolvedTemplateDir) {
-		logger.Warnf("Template directory not found at %s, LaTeX compilation may fail", resolvedTemplateDir)
+		ui.Warnf("Template directory not found at %s, LaTeX compilation may fail", resolvedTemplateDir)
 		resolvedTemplateDir = ""
 	}
 
@@ -303,7 +330,7 @@ func compileLaTeXToPDF(logger *zap.SugaredLogger, latexContent, outputPath, debu
 	var compiler compilers.Compiler
 	if LaTeXEngine != "" {
 		// User specified an engine
-		logger.Infof("Using specified LaTeX engine: %s", LaTeXEngine)
+		ui.Infof("Using specified LaTeX engine: %s", LaTeXEngine)
 		compiler = compilers.NewLaTeXCompiler(LaTeXEngine, logger)
 	} else {
 		// Auto-detect available engine

@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
+	"github.com/urmzd/resume-generator/internal/ui"
 	"github.com/urmzd/resume-generator/pkg/compilers"
 	"github.com/urmzd/resume-generator/pkg/generators"
 	"github.com/urmzd/resume-generator/pkg/resume"
@@ -30,44 +33,57 @@ var screenshotsCmd = &cobra.Command{
 		logger, _ := zap.NewProduction()
 		sugar := logger.Sugar()
 
+		ui.Header("resume-generator screenshots")
+
 		inputPath, err := utils.ResolvePath(InputFile)
 		if err != nil {
-			sugar.Fatalf("Error resolving input path: %s", err)
+			ui.Errorf("Error resolving input path: %s", err)
+			os.Exit(1)
 		}
 		if !utils.FileExists(inputPath) {
-			sugar.Fatalf("Input file does not exist: %s", inputPath)
+			ui.Errorf("Input file does not exist: %s", inputPath)
+			os.Exit(1)
 		}
 
 		inputData, err := resume.LoadResumeFromFile(inputPath)
 		if err != nil {
-			sugar.Fatalf("Error loading resume data: %s", err)
+			ui.Errorf("Error loading resume data: %s", err)
+			os.Exit(1)
 		}
 		if err := inputData.Validate(); err != nil {
-			sugar.Fatalf("Validation error: %s", err)
+			ui.Errorf("Validation error: %s", err)
+			os.Exit(1)
 		}
 		resumeData := inputData.ToResume()
 		sectionOrder := inputData.GetSectionOrder()
 		td := generators.NewTemplateData(resumeData, sectionOrder)
+		ui.PhaseOk("Loaded resume data", "")
 
 		allTemplates, err := generators.ListTemplates()
 		if err != nil {
-			sugar.Fatalf("Failed to list templates: %v", err)
+			ui.Errorf("Failed to list templates: %v", err)
+			os.Exit(1)
 		}
 
 		htmlFallback, err := generators.LoadTemplate("modern-html")
 		if err != nil {
-			sugar.Fatalf("Failed to load HTML fallback template: %v", err)
+			ui.Errorf("Failed to load HTML fallback template: %v", err)
+			os.Exit(1)
 		}
 
 		generator := generators.NewGenerator(sugar)
 
 		outputDir, err := utils.ResolvePath(screenshotsOutputDir)
 		if err != nil {
-			sugar.Fatalf("Error resolving output directory: %s", err)
+			ui.Errorf("Error resolving output directory: %s", err)
+			os.Exit(1)
 		}
 		if err := utils.EnsureDir(outputDir); err != nil {
-			sugar.Fatalf("Error creating output directory: %s", err)
+			ui.Errorf("Error creating output directory: %s", err)
+			os.Exit(1)
 		}
+
+		ui.Infof("Generating screenshots for %d template(s)", len(allTemplates))
 
 		for _, tmpl := range allTemplates {
 			tmplPtr := &tmpl
@@ -78,17 +94,20 @@ var screenshotsCmd = &cobra.Command{
 
 			htmlContent, err := generator.GenerateWithTemplate(tmplPtr, td)
 			if err != nil {
-				sugar.Errorf("Failed to generate HTML for template %s: %v", tmpl.Name, err)
+				ui.Errorf("Failed to generate HTML for template %s: %v", tmpl.Name, err)
 				continue
 			}
 
 			outputPath := filepath.Join(outputDir, tmpl.Name+".png")
 			if err := compilers.ScreenshotHTML(sugar, htmlContent, outputPath, 1200); err != nil {
-				sugar.Errorf("Failed to screenshot template %s: %v", tmpl.Name, err)
+				ui.Errorf("Failed to screenshot template %s: %v", tmpl.Name, err)
 				continue
 			}
 
-			sugar.Infof("Generated screenshot for %s: %s", tmpl.Name, outputPath)
+			ui.PhaseOk(fmt.Sprintf("Screenshot: %s", tmpl.Name), outputPath)
 		}
+
+		ui.Blank()
+		ui.PhaseOk("Screenshots complete", outputDir)
 	},
 }

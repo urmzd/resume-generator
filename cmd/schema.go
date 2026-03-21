@@ -7,6 +7,7 @@ import (
 
 	"github.com/invopop/jsonschema"
 	"github.com/spf13/cobra"
+	"github.com/urmzd/resume-generator/internal/ui"
 	"github.com/urmzd/resume-generator/pkg/resume"
 )
 
@@ -45,8 +46,10 @@ Examples:
   # Use with validation tools
   resume-generator schema | jq '.'`,
 	Run: func(cmd *cobra.Command, args []string) {
+		ui.Header("resume-generator schema")
+
 		if err := generateSchema(); err != nil {
-			fmt.Fprintf(os.Stderr, "Error generating schema: %v\n", err)
+			ui.Errorf("Error generating schema: %v", err)
 			os.Exit(1)
 		}
 	},
@@ -90,10 +93,11 @@ Key features:
 		if err := os.WriteFile(SchemaOutput, schemaJSON, 0644); err != nil {
 			return fmt.Errorf("failed to write schema file: %w", err)
 		}
-		fmt.Fprintf(os.Stderr, "Schema written to: %s\n", SchemaOutput)
+		ui.PhaseOk("Schema written", SchemaOutput)
 	} else {
-		// Print to stdout
+		// Print to stdout (data output, not UI)
 		fmt.Println(string(schemaJSON))
+		ui.PhaseOk("Schema printed to stdout", "")
 	}
 
 	return nil

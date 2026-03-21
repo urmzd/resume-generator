@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/urmzd/resume-generator/internal/ui"
 	"github.com/urmzd/resume-generator/pkg/compilers"
 	"github.com/urmzd/resume-generator/pkg/generators"
 	"github.com/urmzd/resume-generator/pkg/utils"
@@ -28,18 +29,17 @@ var templatesListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List available templates",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Available Resume Templates:")
-		fmt.Println()
+		ui.Header("resume-generator templates list")
 
 		// Use the new template system
 		templates, err := generators.ListTemplates()
 		if err != nil {
-			fmt.Printf("Error listing templates: %v\n", err)
-			return
+			ui.Errorf("Error listing templates: %v", err)
+			os.Exit(1)
 		}
 
 		if len(templates) == 0 {
-			fmt.Println("No templates found in templates/")
+			ui.Warn("No templates found in templates/")
 			return
 		}
 
@@ -61,56 +61,57 @@ var templatesListCmd = &cobra.Command{
 
 		// Display HTML templates
 		if len(htmlTemplates) > 0 {
-			fmt.Println("HTML Templates:")
+			ui.Blank()
+			ui.Section("HTML Templates")
 			for _, tmpl := range htmlTemplates {
 				name := tmpl.DisplayName
 				if name == "" {
 					name = tmpl.Name
 				}
-				fmt.Printf("  %s (%s)\n", name, tmpl.Name)
+				ui.PhaseOk(fmt.Sprintf("%s (%s)", name, tmpl.Name), "")
 				if tmpl.Description != "" {
-					fmt.Printf("      %s\n", tmpl.Description)
+					ui.Detail(tmpl.Description)
 				}
 			}
-			fmt.Println()
 		}
 
 		// Display LaTeX templates
 		if len(latexTemplates) > 0 {
-			fmt.Println("LaTeX Templates (PDF):")
+			ui.Blank()
+			ui.Section("LaTeX Templates (PDF)")
 			for _, tmpl := range latexTemplates {
 				name := tmpl.DisplayName
 				if name == "" {
 					name = tmpl.Name
 				}
-				fmt.Printf("  %s (%s)\n", name, tmpl.Name)
+				ui.PhaseOk(fmt.Sprintf("%s (%s)", name, tmpl.Name), "")
 				if tmpl.Description != "" {
-					fmt.Printf("      %s\n", tmpl.Description)
+					ui.Detail(tmpl.Description)
 				}
 			}
-			fmt.Println()
 		}
 
 		// Display Markdown templates
 		if len(markdownTemplates) > 0 {
-			fmt.Println("Markdown Templates:")
+			ui.Blank()
+			ui.Section("Markdown Templates")
 			for _, tmpl := range markdownTemplates {
 				name := tmpl.DisplayName
 				if name == "" {
 					name = tmpl.Name
 				}
-				fmt.Printf("  %s (%s)\n", name, tmpl.Name)
+				ui.PhaseOk(fmt.Sprintf("%s (%s)", name, tmpl.Name), "")
 				if tmpl.Description != "" {
-					fmt.Printf("      %s\n", tmpl.Description)
+					ui.Detail(tmpl.Description)
 				}
 			}
-			fmt.Println()
 		}
 
-		fmt.Println("Usage:")
-		fmt.Println("  resume-generator run -i resume.yml -t modern-html")
-		fmt.Println("  resume-generator run -i resume.yml -t modern-latex")
-		fmt.Println("  resume-generator run -i resume.yml -t modern-markdown")
+		ui.Blank()
+		ui.Info("Usage:")
+		ui.Detail("resume-generator run -i resume.yml -t modern-html")
+		ui.Detail("resume-generator run -i resume.yml -t modern-latex")
+		ui.Detail("resume-generator run -i resume.yml -t modern-markdown")
 	},
 }
 
@@ -119,26 +120,28 @@ var templatesValidateCmd = &cobra.Command{
 	Short: "Validate a template file",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		ui.Header("resume-generator templates validate")
+
 		// Resolve template path
 		templatePath, err := utils.ResolvePath(args[0])
 		if err != nil {
-			fmt.Printf("Error resolving template path: %v\n", err)
-			return
+			ui.Errorf("Error resolving template path: %v", err)
+			os.Exit(1)
 		}
 
-		fmt.Printf("Validating template: %s\n", templatePath)
+		ui.Infof("Validating %s", templatePath)
 
 		// Check if file exists
 		if !utils.FileExists(templatePath) {
-			fmt.Printf("Error: Template file not found: %s\n", templatePath)
-			return
+			ui.Errorf("Template file not found: %s", templatePath)
+			os.Exit(1)
 		}
 
 		// Read template content
 		content, err := os.ReadFile(templatePath)
 		if err != nil {
-			fmt.Printf("Error reading template: %v\n", err)
-			return
+			ui.Errorf("Error reading template: %v", err)
+			os.Exit(1)
 		}
 
 		// Basic validation checks
@@ -147,37 +150,35 @@ var templatesValidateCmd = &cobra.Command{
 
 		switch ext {
 		case ".html":
-			// Check for basic HTML structure
 			if !strings.Contains(templateStr, "<!DOCTYPE html>") && !strings.Contains(templateStr, "<html") {
-				fmt.Println("Warning: Template appears to be a fragment (no DOCTYPE or html tag)")
+				ui.Warn("Template appears to be a fragment (no DOCTYPE or html tag)")
 			}
 			if !strings.Contains(templateStr, "{{") {
-				fmt.Println("Warning: Template doesn't appear to use Go template syntax")
+				ui.Warn("Template doesn't appear to use Go template syntax")
 			}
-			fmt.Println("✓ HTML template appears valid")
+			ui.PhaseOk("HTML template appears valid", "")
 
 		case ".tex", ".ltx":
-			// Assume LaTeX template
 			if !strings.Contains(templateStr, "\\documentclass") && !strings.Contains(templateStr, "\\begin{document}") {
-				fmt.Println("Warning: Template doesn't appear to be a LaTeX document")
+				ui.Warn("Template doesn't appear to be a LaTeX document")
 			}
 			if !strings.Contains(templateStr, "{{") {
-				fmt.Println("Warning: Template doesn't appear to use Go template syntax")
+				ui.Warn("Template doesn't appear to use Go template syntax")
 			}
-			fmt.Println("✓ LaTeX template appears valid")
+			ui.PhaseOk("LaTeX template appears valid", "")
 
 		case ".md":
 			if !strings.Contains(templateStr, "{{") {
-				fmt.Println("Warning: Template doesn't appear to use Go template syntax")
+				ui.Warn("Template doesn't appear to use Go template syntax")
 			}
-			fmt.Println("OK Markdown template appears valid")
+			ui.PhaseOk("Markdown template appears valid", "")
 
 		default:
-			fmt.Printf("Warning: Unknown template type: %s\n", ext)
+			ui.Warnf("Unknown template type: %s", ext)
 		}
 
-		fmt.Printf("\nTemplate size: %d bytes\n", len(content))
-		fmt.Println("Validation complete!")
+		ui.Infof("Template size: %d bytes", len(content))
+		ui.PhaseOk("Validation complete", "")
 	},
 }
 
@@ -186,38 +187,38 @@ var latexEnginesCmd = &cobra.Command{
 	Short: "List available LaTeX engines on the system",
 	Long:  `List all LaTeX compilation engines available on your system (xelatex, pdflatex, lualatex, latex)`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Checking for LaTeX engines...")
-		fmt.Println()
+		ui.Header("resume-generator templates engines")
+		ui.Info("Checking for LaTeX engines...")
 
 		available := compilers.GetAvailableLaTeXEngines()
 
 		if len(available) == 0 {
-			fmt.Println("❌ No LaTeX engines found on your system.")
-			fmt.Println()
-			fmt.Println("To install LaTeX, please use one of the following:")
-			fmt.Println("  - TeX Live:   https://www.tug.org/texlive/")
-			fmt.Println("  - MiKTeX:     https://miktex.org/")
-			fmt.Println("  - MacTeX:     https://www.tug.org/mactex/ (macOS)")
+			ui.Blank()
+			ui.Error("No LaTeX engines found on your system.")
+			ui.Blank()
+			ui.Info("To install LaTeX, use one of the following:")
+			ui.Detail("TeX Live:   https://www.tug.org/texlive/")
+			ui.Detail("MiKTeX:     https://miktex.org/")
+			ui.Detail("MacTeX:     https://www.tug.org/mactex/ (macOS)")
 			return
 		}
 
-		fmt.Printf("✓ Found %d LaTeX engine(s):\n\n", len(available))
+		ui.Blank()
+		ui.PhaseOk(fmt.Sprintf("Found %d LaTeX engine(s)", len(available)), "")
 		for i, engine := range available {
-			prefix := "  "
 			if i == 0 {
-				prefix = "✓ "
-				fmt.Printf("%s%s (default - will be used if no engine is specified)\n", prefix, engine)
+				ui.Detail(fmt.Sprintf("%s (default - will be used if no engine is specified)", engine))
 			} else {
-				fmt.Printf("%s%s\n", prefix, engine)
+				ui.Detail(engine)
 			}
 		}
 
-		fmt.Println()
-		fmt.Println("Usage:")
-		fmt.Println("  # Use default engine (auto-detected)")
-		fmt.Println("  resume-generator run -i resume.yml -t modern-latex")
-		fmt.Println()
-		fmt.Println("  # Specify a particular engine")
-		fmt.Printf("  resume-generator run -i resume.yml -t modern-latex --latex-engine %s\n", available[0])
+		ui.Blank()
+		ui.Info("Usage:")
+		ui.Detail("# Use default engine (auto-detected)")
+		ui.Detail("resume-generator run -i resume.yml -t modern-latex")
+		ui.Blank()
+		ui.Detail("# Specify a particular engine")
+		ui.Detail(fmt.Sprintf("resume-generator run -i resume.yml -t modern-latex --latex-engine %s", available[0]))
 	},
 }
