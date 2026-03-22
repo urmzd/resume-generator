@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="urmzd/resume-generator"
+REPO="urmzd/incipit"
 INSTALL_DIR="$HOME/.local/bin"
 
 # Detect OS
@@ -38,15 +38,15 @@ TMPDIR_INSTALL="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR_INSTALL"' EXIT
 
 if [ "$PLATFORM" = "darwin" ]; then
-  ASSET_NAME="resume-generator-darwin"
+  ASSET_NAME="incipit-darwin"
 else
-  ASSET_NAME="resume-generator-${RESUME_GENERATOR_VARIANT:-linux}"
+  ASSET_NAME="incipit-${INCIPIT_VARIANT:-linux}"
 fi
 
 ASSET_URL="https://github.com/$REPO/releases/download/$TAG/$ASSET_NAME"
 echo "Downloading $ASSET_URL..."
-curl -fsSL -o "$TMPDIR_INSTALL/resume-generator" "$ASSET_URL"
-BINARY="$TMPDIR_INSTALL/resume-generator"
+curl -fsSL -o "$TMPDIR_INSTALL/incipit" "$ASSET_URL"
+BINARY="$TMPDIR_INSTALL/incipit"
 
 if [ ! -f "$BINARY" ]; then
   echo "Error: Binary not found after download." >&2
@@ -55,12 +55,13 @@ fi
 
 # Install
 mkdir -p "$INSTALL_DIR"
-cp "$BINARY" "$INSTALL_DIR/resume-generator"
-chmod +x "$INSTALL_DIR/resume-generator"
+cp "$BINARY" "$INSTALL_DIR/incipit"
+chmod +x "$INSTALL_DIR/incipit"
 
-echo "Installed resume-generator ($TAG) to $INSTALL_DIR/resume-generator"
+echo "Installed incipit ($TAG) to $INSTALL_DIR/incipit"
 
-# Check PATH
+# Check PATH and ensure binary is accessible for init
+INCIPIT_BIN="$INSTALL_DIR/incipit"
 case ":$PATH:" in
   *":$INSTALL_DIR:"*) ;;
   *)
@@ -72,3 +73,7 @@ case ":$PATH:" in
     echo ""
     ;;
 esac
+
+# Initialize: download bundled templates and create config
+echo "Initializing templates..."
+"$INCIPIT_BIN" init --version "$TAG"

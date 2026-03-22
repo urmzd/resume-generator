@@ -1,6 +1,6 @@
-# Contributing to Resume Generator
+# Contributing to Incipit
 
-Thank you for your interest in contributing to Resume Generator! This document provides guidelines and instructions for contributing to the project.
+Thank you for your interest in contributing to Incipit! This document provides guidelines and instructions for contributing to the project.
 
 ## Table of Contents
 
@@ -41,13 +41,13 @@ Before contributing, ensure you have:
 1. Fork the repository on GitHub
 2. Clone your fork locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/resume-generator.git
-   cd resume-generator
+   git clone https://github.com/urmzd/incipit.git
+   cd incipit
    ```
 
 3. Add the upstream repository:
    ```bash
-   git remote add upstream https://github.com/urmzd/resume-generator.git
+   git remote add upstream https://github.com/urmzd/incipit.git
    ```
 
 ## Development Setup
@@ -56,7 +56,7 @@ Before contributing, ensure you have:
 
 ```bash
 # Build the binary
-go build -o resume-generator .
+go build -o incipit ./cmd/incipit
 
 # Or use the justfile
 just install
@@ -118,25 +118,25 @@ Test your changes with example inputs:
 
 ```bash
 # Test with resume format
-./resume-generator run -i assets/example_resumes/software_engineer.yml -t modern-html
+./incipit run -i assets/example_resumes/software_engineer.yml -t modern-html
 
 # Test with LaTeX template
-./resume-generator run -i assets/example_resumes/software_engineer.yml -t modern-latex
+./incipit run -i assets/example_resumes/software_engineer.yml -t modern-latex
 
 # Test validation
-./resume-generator validate assets/example_resumes/software_engineer.yml
+./incipit validate assets/example_resumes/software_engineer.yml
 
 # Test preview
-./resume-generator preview assets/example_resumes/software_engineer.yml
+./incipit preview assets/example_resumes/software_engineer.yml
 
 # Test assess (requires Ollama running locally)
-./resume-generator assess -i assets/example_resumes/software_engineer.yml
+./incipit assess -i assets/example_resumes/software_engineer.yml
 
 # Test template listing
-./resume-generator templates list
+./incipit templates list
 
 # Test LaTeX engine detection
-./resume-generator templates engines
+./incipit templates engines
 ```
 
 ### Automated Testing
@@ -344,7 +344,7 @@ func LoadTemplate(name string) (*Template, error) {
 
 5. **Test the template:**
    ```bash
-   ./resume-generator run -i assets/example_resumes/software_engineer.yml -t your-template-name
+   ./incipit run -i assets/example_resumes/software_engineer.yml -t your-template-name
    ```
 
 6. **Add example output:**
@@ -416,4 +416,4 @@ Contributors will be recognized in:
 - CHANGELOG.md for significant contributions
 - Release notes for major features
 
-Thank you for contributing to Resume Generator!
+Thank you for contributing to Incipit!

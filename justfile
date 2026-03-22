@@ -1,6 +1,6 @@
-# Resume Generator
+# Incipit — here begins the new career.
 
-cli_binary := "resume-generator"
+cli_binary := "incipit"
 example_input := "assets/example_resumes/software_engineer.yml"
 outputs_dir := "outputs"
 
@@ -14,7 +14,7 @@ init:
 
 # Build CLI binary
 install:
-    CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o {{cli_binary}} .
+    CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o {{cli_binary}} ./cmd/incipit
 
 # Build (if needed) and generate a resume
 run input=example_input output=outputs_dir *args="": install
@@ -25,6 +25,3 @@ run input=example_input output=outputs_dir *args="": install
 screenshots: install
     ./{{cli_binary}} screenshots --input {{example_input}}
 
-# Record CLI demo GIF (requires: brew install vhs)
-demo-cli:
-    vhs docs/demo.tape

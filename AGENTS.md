@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**resume-generator** is a Go CLI tool that converts structured resume data (YAML/JSON/TOML) into PDF, HTML, LaTeX, DOCX, and Markdown output formats. It uses Go's `text/template` and `html/template` engines with a formatter abstraction layer for output-specific escaping and rendering.
+**incipit** is a Go CLI tool that converts structured resume data (YAML/JSON/TOML) into PDF, HTML, LaTeX, DOCX, and Markdown output formats. It uses Go's `text/template` and `html/template` engines with a formatter abstraction layer for output-specific escaping and rendering.
 
 ## Repository Structure
 
@@ -90,7 +90,7 @@ Templates are embedded at build time via `//go:embed` in `main.go` and loaded th
 2. Create the template file (`template.html`, `template.tex`, or `template.md`)
 3. Use Go template syntax with the formatter's `TemplateFuncs()` helpers
 4. The template is auto-discovered — no code changes needed
-5. Test: `go build && ./resume-generator run -i assets/example_resumes/software_engineer.yml -t <name>`
+5. Test: `go build && ./incipit run -i assets/example_resumes/software_engineer.yml -t <name>`
 
 ## How to Add a New Output Format
 
@@ -123,7 +123,7 @@ Date format in YAML: RFC3339 (`2024-01-15T00:00:00Z`)
 ```bash
 # Build CLI binary
 just install
-# or: CGO_ENABLED=0 go build -trimpath -o resume-generator .
+# or: CGO_ENABLED=0 go build -trimpath -o incipit .
 
 # Run all tests
 go test ./...
@@ -193,9 +193,9 @@ Debug artifacts are only produced when compilation fails. On failure, a `_debug/
 Requires [Ollama](https://ollama.com) running locally. The `assess` command uses a multi-agent architecture: a coordinator identifies the target industry, delegates to four specialist sub-agents (content, writing, industry, format), then synthesizes a final scored report.
 
 ```bash
-./resume-generator assess -i resume.yml                    # uses default model (qwen3:4b)
-./resume-generator assess -i resume.yml -m llama3.2        # specify model
-./resume-generator assess -i resume.yml --ollama-url http://host:11434  # custom host
+./incipit assess -i resume.yml                    # uses default model (qwen3:4b)
+./incipit assess -i resume.yml -m llama3.2        # specify model
+./incipit assess -i resume.yml --ollama-url http://host:11434  # custom host
 ```
 
 Sub-agents are registered via graph-agent-dev-kit's `SubAgentDef` and automatically exposed as `delegate_to_*` tools. The coordinator's system prompt instructs it to call all four. Each sub-agent scores its dimension 1-10 with structured feedback. The coordinator produces a weighted overall score (content 30%, industry 25%, writing 25%, format 20%).

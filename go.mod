@@ -1,4 +1,4 @@
-module github.com/urmzd/resume-generator
+module github.com/urmzd/incipit
 
 go 1.25.5
 

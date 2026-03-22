@@ -54,13 +54,13 @@ jobs:
         include:
           - os: ubuntu-latest
             platform: linux
-            artifact: resume-generator-linux
+            artifact: incipit-linux
           - os: macos-latest
             platform: darwin
-            artifact: resume-generator-darwin
+            artifact: incipit-darwin
           - os: windows-latest
             platform: windows
-            artifact: resume-generator.exe
+            artifact: incipit.exe
     steps:
       - uses: actions/checkout@v4
         with:
@@ -75,13 +75,32 @@ jobs:
         run: |
           CGO_ENABLED=0 go build -trimpath \
             -ldflags "-X main.version=${{ needs.release.outputs.version }} -X main.commit=${{ github.sha }} -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            -o build/bin/${{ matrix.artifact }} .
+            -o build/bin/${{ matrix.artifact }} ./cmd/incipit
 
       - name: Upload to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: gh release upload "${{ needs.release.outputs.tag }}" "build/bin/${{ matrix.artifact }}" --clobber
+
+  bundle-templates:
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release.outputs.tag }}
+
+      - name: Create templates tarball
+        run: tar czf templates.tar.gz -C templates --exclude='*.go' .
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ needs.release.outputs.tag }}" templates.tar.gz --clobber
 
   update-assets:
     needs: release
@@ -103,10 +122,10 @@ jobs:
         uses: urmzd/teasr@v0
 
       - name: Build CLI
-        run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o resume-generator .
+        run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o incipit ./cmd/incipit
 
       - name: Generate screenshots
-        run: ./resume-generator screenshots --input assets/example_resumes/software_engineer.yml
+        run: ./incipit screenshots --input assets/example_resumes/software_engineer.yml
 
       - name: Commit assets to main
         run: |

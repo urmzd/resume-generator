@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/urmzd/resume-generator/pkg/resume/resume",
+  "$id": "https://github.com/urmzd/incipit/pkg/resume/resume",
   "properties": {
     "contact": {
       "properties": {

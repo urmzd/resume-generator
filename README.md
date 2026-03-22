@@ -1,18 +1,20 @@
 <p align="center">
-  <h1 align="center">Resume Generator</h1>
+  <h1 align="center">Incipit</h1>
   <p align="center">
+    <em>Here begins the new career.</em>
+    <br />
     A CLI tool that converts structured resume data (YAML/JSON/TOML) into polished PDFs, HTML, LaTeX, DOCX, and Markdown.
     <br /><br />
-    <a href="https://github.com/urmzd/resume-generator/releases">Download</a>
+    <a href="https://github.com/urmzd/incipit/releases">Download</a>
     &middot;
-    <a href="https://github.com/urmzd/resume-generator/issues">Report Bug</a>
+    <a href="https://github.com/urmzd/incipit/issues">Report Bug</a>
     &middot;
-    <a href="https://github.com/urmzd/resume-generator/tree/main/assets">Examples</a>
+    <a href="https://github.com/urmzd/incipit/tree/main/assets">Examples</a>
   </p>
 </p>
 
 <p align="center">
-  <a href="https://github.com/urmzd/resume-generator/actions/workflows/ci.yml"><img src="https://github.com/urmzd/resume-generator/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/urmzd/incipit/actions/workflows/ci.yml"><img src="https://github.com/urmzd/incipit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
 </p>
 
 <br />
@@ -48,39 +50,39 @@
 ### Pre-built Binary
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/urmzd/resume-generator/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/urmzd/incipit/main/install.sh | bash
 ```
 
-Supports **macOS** (Apple Silicon) and **Linux** (x86_64). After installation, run `resume-generator` from anywhere.
+Supports **macOS** (Apple Silicon) and **Linux** (x86_64). After installation, run `incipit` from anywhere.
 
 ### Build from Source
 
 ```bash
-git clone https://github.com/urmzd/resume-generator.git
-cd resume-generator
-go build -o resume-generator .
+git clone https://github.com/urmzd/incipit.git
+cd incipit
+go build -o incipit ./cmd/incipit
 ```
 
 ## Quick Start
 
 ```bash
 # Generate PDF with a specific template
-./resume-generator run -i assets/example_resumes/software_engineer.yml -t modern-html
+./incipit run -i assets/example_resumes/software_engineer.yml -t modern-html
 
 # Generate with all templates
-./resume-generator run -i assets/example_resumes/software_engineer.yml
+./incipit run -i assets/example_resumes/software_engineer.yml
 
 # Generate an editable DOCX
-./resume-generator run -i resume.yml -t modern-docx
+./incipit run -i resume.yml -t modern-docx
 
 # Validate input data
-./resume-generator validate resume.yml
+./incipit validate resume.yml
 
 # List available templates
-./resume-generator templates list
+./incipit templates list
 
 # AI assessment (requires Ollama)
-./resume-generator assess -i resume.yml
+./incipit assess -i resume.yml
 ```
 
 ## CLI Usage
@@ -89,27 +91,27 @@ go build -o resume-generator .
 
 ```bash
 # Single template
-./resume-generator run -i resume.yml -t modern-html
+./incipit run -i resume.yml -t modern-html
 
 # Multiple templates
-./resume-generator run -i resume.yml -t modern-html -t modern-latex
+./incipit run -i resume.yml -t modern-html -t modern-latex
 
 # Comma-separated
-./resume-generator run -i resume.yml -t modern-html,modern-latex
+./incipit run -i resume.yml -t modern-html,modern-latex
 
 # Custom output directory
-./resume-generator run -i resume.yml -o outputs/custom -t modern-html
+./incipit run -i resume.yml -o outputs/custom -t modern-html
 ```
 
 ### Other Commands
 
 ```bash
-./resume-generator validate resume.yml          # Validate resume data
-./resume-generator preview resume.yml           # HTML live preview
-./resume-generator templates list               # List templates
-./resume-generator templates engines            # Check LaTeX engines
-./resume-generator schema                       # Export JSON Schema
-./resume-generator screenshots -i resume.yml    # Generate template screenshots
+./incipit validate resume.yml          # Validate resume data
+./incipit preview resume.yml           # HTML live preview
+./incipit templates list               # List templates
+./incipit templates engines            # Check LaTeX engines
+./incipit schema                       # Export JSON Schema
+./incipit screenshots -i resume.yml    # Generate template screenshots
 ```
 
 ### Path Resolution
@@ -117,7 +119,7 @@ go build -o resume-generator .
 The CLI supports flexible path resolution — relative paths, absolute paths, `~` home directory expansion, and custom output locations. Each run creates a dated workspace:
 
 ```
-~/Documents/ResumeGeneratorOutputs/
+~/Documents/IncipitOutputs/
 └── john_doe/
     └── 2025-10-25/
         ├── modern_html/
@@ -153,7 +155,7 @@ Create your own by adding a `templates/<name>/` directory with `config.yml` + te
 This project ships an [Agent Skill](https://github.com/vercel-labs/skills) for Claude Code, Cursor, and other compatible agents.
 
 ```sh
-npx skills add urmzd/resume-generator
+npx skills add urmzd/incipit
 ```
 
 Once installed, use `/resume-generate` to generate resumes from your agent.

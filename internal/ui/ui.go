@@ -1,4 +1,4 @@
-// Package ui provides styled terminal output helpers for the resume-generator CLI.
+// Package ui provides styled terminal output helpers for the incipit CLI.
 // All output is written to stderr so that stdout remains clean for data (e.g. JSON schema).
 package ui
 

@@ -64,7 +64,7 @@ jobs:
         run: go test ./...
 
       - name: Fuzz smoke test
-        run: go test -run=FuzzSanitizePhone -fuzz=FuzzSanitizePhone -fuzztime=10s ./pkg/generators
+        run: go test -run=FuzzSanitizePhone -fuzz=FuzzSanitizePhone -fuzztime=10s ./generators
 
   screenshots:
     if: github.actor != 'github-actions[bot]'
@@ -82,10 +82,10 @@ jobs:
           go-version-file: go.mod
 
       - name: Build CLI
-        run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o resume-generator .
+        run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o incipit ./cmd/incipit
 
       - name: Regenerate screenshots
-        run: ./resume-generator screenshots --input assets/example_resumes/software_engineer.yml
+        run: ./incipit screenshots --input assets/example_resumes/software_engineer.yml
 
       - name: Commit updated screenshots
         run: |
