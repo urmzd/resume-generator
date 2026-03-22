@@ -1,0 +1,46 @@
+branches:
+  - main
+
+tag_prefix: "v"
+
+commit_pattern: '^(?P<type>\w+)(?:\((?P<scope>[^)]+)\))?(?P<breaking>!)?:\s+(?P<description>.+)'
+
+breaking_section: Breaking Changes
+
+misc_section: Miscellaneous
+
+types:
+  - name: feat
+    bump: minor
+    section: Features
+  - name: fix
+    bump: patch
+    section: Bug Fixes
+  - name: perf
+    bump: patch
+    section: Performance
+  - name: docs
+    section: Documentation
+  - name: refactor
+    bump: patch
+    section: Refactoring
+  - name: fmt
+    bump: patch
+    section: Formatting
+  - name: revert
+    section: Reverts
+  - name: chore
+  - name: ci
+  - name: test
+  - name: build
+  - name: style
+
+floating_tags: true
+
+hooks:
+  pre-commit:
+    - gofmt -l . | grep . && exit 1 || true
+    - golangci-lint run ./...
+    - go test ./...
+  commit-msg:
+    - sr hook commit-msg
