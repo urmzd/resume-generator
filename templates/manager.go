@@ -3,6 +3,7 @@ package templates
 import (
 	"archive/tar"
 	"compress/gzip"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,19 +25,63 @@ func ConfigDir() string {
 	return filepath.Join(base, "templates")
 }
 
+// VersionedTemplateDir returns the path for a specific template version.
+// e.g. ~/.config/incipit/templates/modern-html/1.0.0
+func VersionedTemplateDir(name, version string) string {
+	base := ConfigDir()
+	if base == "" {
+		return ""
+	}
+	return filepath.Join(base, name, version)
+}
+
+// LatestVersion queries the GitHub API for the latest release tag of incipit.
+func LatestVersion() (string, error) {
+	resp, err := http.Get("https://api.github.com/repos/urmzd/incipit/releases/latest") //nolint:gosec
+	if err != nil {
+		return "", fmt.Errorf("failed to query latest release: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to query latest release: HTTP %d", resp.StatusCode)
+	}
+
+	var release struct {
+		TagName string `json:"tag_name"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+		return "", fmt.Errorf("failed to parse release response: %w", err)
+	}
+
+	if release.TagName == "" {
+		return "", fmt.Errorf("no release tag found")
+	}
+
+	return release.TagName, nil
+}
+
 // InstallOptions configures template installation.
 type InstallOptions struct {
 	// Version is the release tag to download (e.g. "v1.2.0").
 	Version string
-	// Force overwrites existing templates if true.
+	// Force overwrites existing template versions if true.
 	Force bool
 }
 
-// Install downloads templates from a GitHub release and extracts them
-// to the platform config directory. Returns the installed path.
-func Install(opts InstallOptions) (string, error) {
+// InstalledTemplate describes a single template that was installed.
+type InstalledTemplate struct {
+	Name    string
+	Version string
+	Path    string
+}
+
+// Install downloads templates from a GitHub release, extracts them into
+// versioned subdirectories (templates/<name>/<version>/), and returns
+// the list of installed templates.
+func Install(opts InstallOptions) ([]InstalledTemplate, error) {
 	if opts.Version == "" {
-		return "", fmt.Errorf("version is required")
+		return nil, fmt.Errorf("version is required")
 	}
 
 	version := opts.Version
@@ -44,36 +89,79 @@ func Install(opts InstallOptions) (string, error) {
 		version = "v" + version
 	}
 
-	targetDir := ConfigDir()
-	if targetDir == "" {
-		return "", fmt.Errorf("could not determine config directory")
-	}
-
-	if utils.DirExists(targetDir) && !opts.Force {
-		return targetDir, fmt.Errorf("templates already installed at %s (use Force to overwrite)", targetDir)
+	baseDir := ConfigDir()
+	if baseDir == "" {
+		return nil, fmt.Errorf("could not determine config directory")
 	}
 
 	url := fmt.Sprintf("https://github.com/urmzd/incipit/releases/download/%s/templates.tar.gz", version)
 
 	resp, err := http.Get(url) //nolint:gosec // URL constructed from known pattern
 	if err != nil {
-		return "", fmt.Errorf("failed to download templates: %w", err)
+		return nil, fmt.Errorf("failed to download templates: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("failed to download templates: HTTP %d (url: %s)", resp.StatusCode, url)
+		return nil, fmt.Errorf("failed to download templates: HTTP %d (url: %s)", resp.StatusCode, url)
 	}
 
-	if err := os.MkdirAll(targetDir, 0755); err != nil {
-		return "", fmt.Errorf("failed to create templates directory: %w", err)
+	// Extract to a temp directory first, then move into versioned layout.
+	tmpDir, err := os.MkdirTemp("", "incipit-templates-*")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temp directory: %w", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	if err := extractTarGz(resp.Body, tmpDir); err != nil {
+		return nil, fmt.Errorf("failed to extract templates: %w", err)
 	}
 
-	if err := extractTarGz(resp.Body, targetDir); err != nil {
-		return "", fmt.Errorf("failed to extract templates: %w", err)
+	// Move each template subdirectory into templates/<name>/<version>/
+	entries, err := os.ReadDir(tmpDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read extracted templates: %w", err)
 	}
 
-	return targetDir, nil
+	var installed []InstalledTemplate
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		tmplName := entry.Name()
+		srcDir := filepath.Join(tmpDir, tmplName)
+
+		// Version comes from the release tag, not metadata.yml
+		tmplVersion := strings.TrimPrefix(version, "v")
+
+		destDir := VersionedTemplateDir(tmplName, tmplVersion)
+
+		if utils.DirExists(destDir) {
+			if !opts.Force {
+				continue
+			}
+			if err := os.RemoveAll(destDir); err != nil {
+				return nil, fmt.Errorf("failed to remove existing template %s:%s: %w", tmplName, tmplVersion, err)
+			}
+		}
+
+		if err := os.MkdirAll(filepath.Dir(destDir), 0755); err != nil {
+			return nil, fmt.Errorf("failed to create template directory: %w", err)
+		}
+
+		if err := os.Rename(srcDir, destDir); err != nil {
+			return nil, fmt.Errorf("failed to move template %s to %s: %w", tmplName, destDir, err)
+		}
+
+		installed = append(installed, InstalledTemplate{
+			Name:    tmplName,
+			Version: tmplVersion,
+			Path:    destDir,
+		})
+	}
+
+	return installed, nil
 }
 
 func extractTarGz(r io.Reader, destDir string) error {
