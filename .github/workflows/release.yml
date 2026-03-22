@@ -122,10 +122,10 @@ jobs:
         uses: urmzd/teasr@v0
 
       - name: Build CLI
-        run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o incipit ./cmd/incipit
+        run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o bin/incipit ./cmd/incipit
 
       - name: Generate screenshots
-        run: ./incipit screenshots --input assets/example_resumes/software_engineer.yml
+        run: ./bin/incipit screenshots --input assets/example_resumes/software_engineer.yml
 
       - name: Commit assets to main
         run: |
