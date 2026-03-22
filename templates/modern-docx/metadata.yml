@@ -3,8 +3,7 @@ display_name: Modern DOCX
 description: Editable Word document with professional formatting, suitable for further editing in Microsoft Word or Google Docs.
 format: docx
 template_file: template.xml
-version: "1.0.0"
-author: Resume Generator Team
+author: "@urmzd"
 tags:
   - docx
   - word

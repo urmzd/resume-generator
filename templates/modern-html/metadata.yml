@@ -2,8 +2,7 @@ name: modern-html
 display_name: Modern HTML
 description: Clean, traditional resume template with serif typography and professional styling suitable for print and web.
 format: html
-version: "1.0.0"
-author: Resume Generator Team
+author: "@urmzd"
 tags:
   - html
   - traditional

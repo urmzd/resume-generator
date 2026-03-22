@@ -2,8 +2,7 @@ name: modern-latex
 display_name: Base LaTeX
 description: Clean LaTeX template that produces a professional PDF resume.
 format: latex
-version: "1.0.0"
-author: Resume Generator Team
+author: "@urmzd"
 tags:
   - latex
   - classic
