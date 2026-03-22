@@ -42,7 +42,6 @@ type TemplateConfig struct {
 	DisplayName  string   `yaml:"display_name"`
 	Description  string   `yaml:"description"`
 	Format       string   `yaml:"format"`
-	Version      string   `yaml:"version,omitempty"`
 	Author       string   `yaml:"author,omitempty"`
 	Tags         []string `yaml:"tags,omitempty"`
 	TemplateFile string   `yaml:"template_file,omitempty"`
@@ -69,20 +68,27 @@ func templatesNotFoundError() error {
 		configDir)
 }
 
-// LoadTemplate loads a template by name.
+// LoadTemplate loads a template by reference (name or name:version).
 // It checks: (1) config manifest entries, (2) RESUME_TEMPLATES_DIR / filesystem resolution.
-func LoadTemplate(templateName string) (*Template, error) {
+func LoadTemplate(templateRef string) (*Template, error) {
+	name, version := tmplmgr.ParseTemplateRef(templateRef)
+
 	// Check config manifest first
 	if cfg, err := tmplmgr.LoadConfig(); err == nil {
-		if entry := cfg.Lookup(templateName); entry != nil && utils.DirExists(entry.Path) {
-			return loadTemplateFromFS(entry.Path, templateName)
+		if entry := cfg.Lookup(name, version); entry != nil && utils.DirExists(entry.Path) {
+			tmpl, err := loadTemplateFromFS(entry.Path, name)
+			if err != nil {
+				return nil, err
+			}
+			tmpl.Version = entry.Version
+			return tmpl, nil
 		}
 	}
 
 	// Fall back to filesystem resolution (env var, config dir, cwd, exe dir)
-	templateDir, err := utils.ResolveAssetPath(filepath.Join("templates", templateName))
+	templateDir, err := utils.ResolveAssetPath(filepath.Join("templates", name))
 	if err == nil && utils.DirExists(templateDir) {
-		return loadTemplateFromFS(templateDir, templateName)
+		return loadTemplateFromFS(templateDir, name)
 	}
 	return nil, templatesNotFoundError()
 }
@@ -103,7 +109,9 @@ func ListTemplates() ([]Template, error) {
 			if err != nil {
 				continue
 			}
-			seen[tmpl.Name] = true
+			tmpl.Version = entry.Version
+			key := tmpl.Name + ":" + tmpl.Version
+			seen[key] = true
 			result = append(result, *tmpl)
 		}
 	}
@@ -114,8 +122,9 @@ func ListTemplates() ([]Template, error) {
 		fsTmpls, err := listTemplatesFromFS(templatesDir)
 		if err == nil {
 			for _, tmpl := range fsTmpls {
-				if !seen[tmpl.Name] {
-					seen[tmpl.Name] = true
+				key := tmpl.Name + ":" + tmpl.Version
+				if !seen[key] {
+					seen[key] = true
 					result = append(result, tmpl)
 				}
 			}
@@ -170,7 +179,6 @@ func loadTemplateFromFS(templateDir, templateName string) (*Template, error) {
 		Path:        templatePath,
 		DisplayName: config.DisplayName,
 		Description: config.Description,
-		Version:     config.Version,
 		Author:      config.Author,
 		Tags:        config.Tags,
 		Config:      config,

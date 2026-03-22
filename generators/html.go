@@ -24,7 +24,7 @@ type htmlPayload struct {
 	CSS template.CSS
 }
 
-// NewHTMLGenerator creates a new HTML resume generator
+// NewHTMLGenerator creates a new HTML generator
 func NewHTMLGenerator(logger *zap.SugaredLogger) *HTMLGenerator {
 	formatter := newHTMLFormatter()
 	return &HTMLGenerator{
