@@ -41,7 +41,7 @@ func LatestVersion() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to query latest release: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("failed to query latest release: HTTP %d", resp.StatusCode)
@@ -100,7 +100,7 @@ func Install(opts InstallOptions) ([]InstalledTemplate, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to download templates: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("failed to download templates: HTTP %d (url: %s)", resp.StatusCode, url)
@@ -111,7 +111,7 @@ func Install(opts InstallOptions) ([]InstalledTemplate, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp directory: %w", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	if err := extractTarGz(resp.Body, tmpDir); err != nil {
 		return nil, fmt.Errorf("failed to extract templates: %w", err)
@@ -169,7 +169,7 @@ func extractTarGz(r io.Reader, destDir string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create gzip reader: %w", err)
 	}
-	defer gz.Close()
+	defer func() { _ = gz.Close() }()
 
 	tr := tar.NewReader(gz)
 	for {
@@ -202,10 +202,12 @@ func extractTarGz(r io.Reader, destDir string) error {
 				return fmt.Errorf("failed to create file %s: %w", target, err)
 			}
 			if _, err := io.Copy(f, io.LimitReader(tr, 50<<20)); err != nil { // 50MB limit per file
-				f.Close()
+				_ = f.Close()
 				return fmt.Errorf("failed to write file %s: %w", target, err)
 			}
-			f.Close()
+			if err := f.Close(); err != nil {
+				return fmt.Errorf("failed to close file %s: %w", target, err)
+			}
 		}
 	}
 	return nil

@@ -245,8 +245,7 @@ func (g *Generator) GenerateDOCXWithTemplate(tmpl *Template, td *TemplateData) (
 	}
 
 	scaffoldDir := "docx_scaffold"
-	var scaffoldFS fs.FS
-	scaffoldFS = os.DirFS(filepath.Dir(tmpl.Path))
+	scaffoldFS := fs.FS(os.DirFS(filepath.Dir(tmpl.Path)))
 
 	docxGen := NewDOCXGenerator(g.logger)
 	return docxGen.Generate(string(templateContent), td, scaffoldFS, scaffoldDir)
