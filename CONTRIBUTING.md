@@ -56,7 +56,7 @@ Before contributing, ensure you have:
 
 ```bash
 # Build the binary
-go build -o incipit ./cmd/incipit
+go install ./cmd/incipit
 
 # Or use the justfile
 just install
@@ -118,25 +118,25 @@ Test your changes with example inputs:
 
 ```bash
 # Test with resume format
-./incipit run -i assets/example_resumes/software_engineer.yml -t modern-html
+incipit run -i assets/example_resumes/software_engineer.yml -t modern-html
 
 # Test with LaTeX template
-./incipit run -i assets/example_resumes/software_engineer.yml -t modern-latex
+incipit run -i assets/example_resumes/software_engineer.yml -t modern-latex
 
 # Test validation
-./incipit validate assets/example_resumes/software_engineer.yml
+incipit validate assets/example_resumes/software_engineer.yml
 
 # Test preview
-./incipit preview assets/example_resumes/software_engineer.yml
+incipit preview assets/example_resumes/software_engineer.yml
 
 # Test assess (requires Ollama running locally)
-./incipit assess -i assets/example_resumes/software_engineer.yml
+incipit assess -i assets/example_resumes/software_engineer.yml
 
 # Test template listing
-./incipit templates list
+incipit templates list
 
 # Test LaTeX engine detection
-./incipit templates engines
+incipit templates engines
 ```
 
 ### Automated Testing
@@ -344,7 +344,7 @@ func LoadTemplate(name string) (*Template, error) {
 
 5. **Test the template:**
    ```bash
-   ./incipit run -i assets/example_resumes/software_engineer.yml -t your-template-name
+   incipit run -i assets/example_resumes/software_engineer.yml -t your-template-name
    ```
 
 6. **Add example output:**

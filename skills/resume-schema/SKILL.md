@@ -97,7 +97,7 @@ incipit schema -o ./schemas/resume.schema.json
 
 1. Generate the schema:
    ```bash
-   ./incipit schema -o ./schemas/resume.schema.json
+   incipit schema -o ./schemas/resume.schema.json
    ```
 2. Paste the schema into your LLM prompt alongside your request.
 
@@ -172,6 +172,6 @@ if (!validate(resume)) {
 **Solution**: Make sure you're running the CLI from the repo root (or the binary is on your PATH) and that your Go build is up to date:
 
 ```bash
-go build -o incipit ./cmd/incipit
-./incipit schema
+go install ./cmd/incipit
+incipit schema
 ```

@@ -18,19 +18,19 @@ just install
 just run
 
 # Generate with specific input and template
-./incipit run -i resume.yml -t modern-html
+incipit run -i resume.yml -t modern-html
 
 # Generate DOCX
-./incipit run -i resume.yml -t modern-docx
+incipit run -i resume.yml -t modern-docx
 
 # Generate with all templates
-./incipit run -i resume.yml
+incipit run -i resume.yml
 
 # Validate input
-./incipit validate resume.yml
+incipit validate resume.yml
 
 # List templates
-./incipit templates list
+incipit templates list
 ```
 
 ## Template Types

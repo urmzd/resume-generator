@@ -60,29 +60,29 @@ Supports **macOS** (Apple Silicon) and **Linux** (x86_64). After installation, r
 ```bash
 git clone https://github.com/urmzd/incipit.git
 cd incipit
-go build -o incipit ./cmd/incipit
+go install ./cmd/incipit
 ```
 
 ## Quick Start
 
 ```bash
 # Generate PDF with a specific template
-./incipit run -i assets/example_resumes/software_engineer.yml -t modern-html
+incipit run -i assets/example_resumes/software_engineer.yml -t modern-html
 
 # Generate with all templates
-./incipit run -i assets/example_resumes/software_engineer.yml
+incipit run -i assets/example_resumes/software_engineer.yml
 
 # Generate an editable DOCX
-./incipit run -i resume.yml -t modern-docx
+incipit run -i resume.yml -t modern-docx
 
 # Validate input data
-./incipit validate resume.yml
+incipit validate resume.yml
 
 # List available templates
-./incipit templates list
+incipit templates list
 
 # AI assessment (requires Ollama)
-./incipit assess -i resume.yml
+incipit assess -i resume.yml
 ```
 
 ## CLI Usage
@@ -91,27 +91,27 @@ go build -o incipit ./cmd/incipit
 
 ```bash
 # Single template
-./incipit run -i resume.yml -t modern-html
+incipit run -i resume.yml -t modern-html
 
 # Multiple templates
-./incipit run -i resume.yml -t modern-html -t modern-latex
+incipit run -i resume.yml -t modern-html -t modern-latex
 
 # Comma-separated
-./incipit run -i resume.yml -t modern-html,modern-latex
+incipit run -i resume.yml -t modern-html,modern-latex
 
 # Custom output directory
-./incipit run -i resume.yml -o outputs/custom -t modern-html
+incipit run -i resume.yml -o outputs/custom -t modern-html
 ```
 
 ### Other Commands
 
 ```bash
-./incipit validate resume.yml          # Validate resume data
-./incipit preview resume.yml           # HTML live preview
-./incipit templates list               # List templates
-./incipit templates engines            # Check LaTeX engines
-./incipit schema                       # Export JSON Schema
-./incipit screenshots -i resume.yml    # Generate template screenshots
+incipit validate resume.yml          # Validate resume data
+incipit preview resume.yml           # HTML live preview
+incipit templates list               # List templates
+incipit templates engines            # Check LaTeX engines
+incipit schema                       # Export JSON Schema
+incipit screenshots -i resume.yml    # Generate template screenshots
 ```
 
 ### Path Resolution

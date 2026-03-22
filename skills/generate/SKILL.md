@@ -18,19 +18,19 @@ just install
 just run
 
 # Generate with specific input and template
-./incipit run -i resume.yml -t modern-html
+incipit run -i resume.yml -t modern-html
 
 # Generate DOCX
-./incipit run -i resume.yml -t modern-docx
+incipit run -i resume.yml -t modern-docx
 
 # Generate with all templates
-./incipit run -i resume.yml
+incipit run -i resume.yml
 
 # Validate input
-./incipit validate resume.yml
+incipit validate resume.yml
 
 # List templates
-./incipit templates list
+incipit templates list
 ```
 
 ## Templates
@@ -49,16 +49,16 @@ Five built-in templates ship with incipit. Each lives in `templates/<name>/` wit
 
 ```sh
 # Single template
-./incipit run -i resume.yml -t modern-html
+incipit run -i resume.yml -t modern-html
 
 # Multiple templates
-./incipit run -i resume.yml -t modern-html -t modern-latex
+incipit run -i resume.yml -t modern-html -t modern-latex
 
 # Comma-separated
-./incipit run -i resume.yml -t modern-html,modern-latex
+incipit run -i resume.yml -t modern-html,modern-latex
 
 # All templates (omit -t)
-./incipit run -i resume.yml
+incipit run -i resume.yml
 ```
 
 ### HTML Template Features
@@ -81,10 +81,10 @@ Create `templates/<name>/` with:
 
 ```sh
 # Register a local template directory
-./incipit templates add my-template ./path/to/template
+incipit templates add my-template ./path/to/template
 
 # Install templates from a release
-./incipit templates install --version v1.0.0
+incipit templates install --version v1.0.0
 ```
 
 ## Output Structure
