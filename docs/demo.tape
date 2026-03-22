@@ -1,5 +1,5 @@
 # Resume Generator — CLI Demo
-# Requires: vhs (https://github.com/charmbracelet/vhs)
+# Requires: teasr (https://github.com/urmzd/teasr)
 
 Output assets/demo-cli.gif
 
