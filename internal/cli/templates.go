@@ -24,12 +24,13 @@ func initTemplatesCmd() {
 	templatesCmd.AddCommand(templatesListCmd)
 	templatesCmd.AddCommand(templatesValidateCmd)
 	templatesCmd.AddCommand(templatesInstallCmd)
+	templatesCmd.AddCommand(templatesUpdateCmd)
 	templatesCmd.AddCommand(templatesAddCmd)
 	templatesCmd.AddCommand(templatesRemoveCmd)
 	templatesCmd.AddCommand(latexEnginesCmd)
 	rootCmd.AddCommand(templatesCmd)
 
-	templatesInstallCmd.Flags().StringVar(&templatesInstallVersion, "version", "", "Template version to install (default: binary version)")
+	templatesInstallCmd.Flags().StringVar(&templatesInstallVersion, "version", "", "Template version to install (default: latest GitHub release)")
 	templatesInstallCmd.Flags().BoolVar(&templatesInstallForce, "force", false, "Overwrite existing templates")
 }
 
@@ -44,15 +45,14 @@ var templatesListCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ui.Header("incipit templates list")
 
-		// Use the new template system
-		templates, err := generators.ListTemplates()
+		tmpls, err := generators.ListTemplates()
 		if err != nil {
 			ui.Errorf("Error listing templates: %v", err)
 			os.Exit(1)
 		}
 
-		if len(templates) == 0 {
-			ui.Warn("No templates found in templates/")
+		if len(tmpls) == 0 {
+			ui.Warn("No templates found")
 			return
 		}
 
@@ -61,7 +61,7 @@ var templatesListCmd = &cobra.Command{
 		latexTemplates := []generators.Template{}
 		markdownTemplates := []generators.Template{}
 
-		for _, tmpl := range templates {
+		for _, tmpl := range tmpls {
 			switch tmpl.Type {
 			case generators.TemplateTypeHTML:
 				htmlTemplates = append(htmlTemplates, tmpl)
@@ -72,59 +72,36 @@ var templatesListCmd = &cobra.Command{
 			}
 		}
 
-		// Display HTML templates
-		if len(htmlTemplates) > 0 {
+		displayTemplateGroup := func(title string, group []generators.Template) {
+			if len(group) == 0 {
+				return
+			}
 			ui.Blank()
-			ui.Section("HTML Templates")
-			for _, tmpl := range htmlTemplates {
+			ui.Section(title)
+			for _, tmpl := range group {
 				name := tmpl.DisplayName
 				if name == "" {
 					name = tmpl.Name
 				}
-				ui.PhaseOk(fmt.Sprintf("%s (%s)", name, tmpl.Name), "")
+				ref := tmpl.Name
+				if tmpl.Version != "" {
+					ref += ":" + tmpl.Version
+				}
+				ui.PhaseOk(fmt.Sprintf("%s (%s)", name, ref), "")
 				if tmpl.Description != "" {
 					ui.Detail(tmpl.Description)
 				}
 			}
 		}
 
-		// Display LaTeX templates
-		if len(latexTemplates) > 0 {
-			ui.Blank()
-			ui.Section("LaTeX Templates (PDF)")
-			for _, tmpl := range latexTemplates {
-				name := tmpl.DisplayName
-				if name == "" {
-					name = tmpl.Name
-				}
-				ui.PhaseOk(fmt.Sprintf("%s (%s)", name, tmpl.Name), "")
-				if tmpl.Description != "" {
-					ui.Detail(tmpl.Description)
-				}
-			}
-		}
-
-		// Display Markdown templates
-		if len(markdownTemplates) > 0 {
-			ui.Blank()
-			ui.Section("Markdown Templates")
-			for _, tmpl := range markdownTemplates {
-				name := tmpl.DisplayName
-				if name == "" {
-					name = tmpl.Name
-				}
-				ui.PhaseOk(fmt.Sprintf("%s (%s)", name, tmpl.Name), "")
-				if tmpl.Description != "" {
-					ui.Detail(tmpl.Description)
-				}
-			}
-		}
+		displayTemplateGroup("HTML Templates", htmlTemplates)
+		displayTemplateGroup("LaTeX Templates (PDF)", latexTemplates)
+		displayTemplateGroup("Markdown Templates", markdownTemplates)
 
 		ui.Blank()
 		ui.Info("Usage:")
 		ui.Detail("incipit run -i resume.yml -t modern-html")
-		ui.Detail("incipit run -i resume.yml -t modern-latex")
-		ui.Detail("incipit run -i resume.yml -t modern-markdown")
+		ui.Detail("incipit run -i resume.yml -t modern-html:1.0.0")
 	},
 }
 
@@ -135,7 +112,6 @@ var templatesValidateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ui.Header("incipit templates validate")
 
-		// Resolve template path
 		templatePath, err := utils.ResolvePath(args[0])
 		if err != nil {
 			ui.Errorf("Error resolving template path: %v", err)
@@ -144,20 +120,17 @@ var templatesValidateCmd = &cobra.Command{
 
 		ui.Infof("Validating %s", templatePath)
 
-		// Check if file exists
 		if !utils.FileExists(templatePath) {
 			ui.Errorf("Template file not found: %s", templatePath)
 			os.Exit(1)
 		}
 
-		// Read template content
 		content, err := os.ReadFile(templatePath)
 		if err != nil {
 			ui.Errorf("Error reading template: %v", err)
 			os.Exit(1)
 		}
 
-		// Basic validation checks
 		templateStr := string(content)
 		ext := filepath.Ext(templatePath)
 
@@ -203,17 +176,19 @@ var templatesInstallCmd = &cobra.Command{
 
 		version := templatesInstallVersion
 		if version == "" {
-			version = Version
-		}
-		if version == "" || version == "dev" {
-			ui.Error("Cannot determine version for template download.")
-			ui.Detail("Specify a version with --version, e.g.: incipit templates install --version 1.0.0")
-			os.Exit(1)
+			ui.Info("Checking for latest release...")
+			latest, err := templates.LatestVersion()
+			if err != nil {
+				ui.Error("Cannot determine version for template download.")
+				ui.Detail("Specify a version with --version, e.g.: incipit templates install --version 1.0.0")
+				os.Exit(1)
+			}
+			version = latest
 		}
 
 		ui.Infof("Downloading templates (%s)...", version)
 
-		installedPath, err := templates.Install(templates.InstallOptions{
+		installed, err := templates.Install(templates.InstallOptions{
 			Version: version,
 			Force:   templatesInstallForce,
 		})
@@ -222,7 +197,65 @@ var templatesInstallCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		ui.PhaseOk("Templates installed", installedPath)
+		// Register in config
+		cfg, err := templates.LoadConfig()
+		if err != nil {
+			cfg = &templates.Config{}
+		}
+
+		for _, tmpl := range installed {
+			_ = cfg.Add(tmpl.Name, tmpl.Version, tmpl.Path)
+			ui.PhaseOk(fmt.Sprintf("Installed %s:%s", tmpl.Name, tmpl.Version), tmpl.Path)
+		}
+
+		if err := templates.SaveConfig(cfg); err != nil {
+			ui.Errorf("Failed to save config: %v", err)
+			os.Exit(1)
+		}
+	},
+}
+
+var templatesUpdateCmd = &cobra.Command{
+	Use:   "update",
+	Short: "Update default templates to the latest release",
+	Run: func(cmd *cobra.Command, args []string) {
+		ui.Header("incipit templates update")
+
+		ui.Info("Checking for latest release...")
+		version, err := templates.LatestVersion()
+		if err != nil {
+			ui.Errorf("Failed to determine latest version: %v", err)
+			os.Exit(1)
+		}
+		ui.Infof("Latest release: %s", version)
+
+		ui.Infof("Downloading templates (%s)...", version)
+		installed, err := templates.Install(templates.InstallOptions{
+			Version: version,
+			Force:   true,
+		})
+		if err != nil {
+			ui.Errorf("Failed to install templates: %v", err)
+			os.Exit(1)
+		}
+
+		// Register new versions in config (preserving user-added templates)
+		cfg, err := templates.LoadConfig()
+		if err != nil {
+			cfg = &templates.Config{}
+		}
+
+		for _, tmpl := range installed {
+			_ = cfg.Add(tmpl.Name, tmpl.Version, tmpl.Path)
+			ui.PhaseOk(fmt.Sprintf("Updated %s:%s", tmpl.Name, tmpl.Version), tmpl.Path)
+		}
+
+		if err := templates.SaveConfig(cfg); err != nil {
+			ui.Errorf("Failed to save config: %v", err)
+			os.Exit(1)
+		}
+
+		ui.PhaseOk("Templates updated", fmt.Sprintf("%d template(s) registered", len(cfg.Templates)))
 	},
 }
 
@@ -244,7 +277,6 @@ var templatesAddCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// Read metadata.yml to get template name
 		metadataPath := filepath.Join(tmplPath, "metadata.yml")
 		if !utils.FileExists(metadataPath) {
 			ui.Errorf("Template directory is missing metadata.yml: %s", tmplPath)
@@ -257,7 +289,6 @@ var templatesAddCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		// Parse full metadata for validation
 		var meta struct {
 			Name         string `yaml:"name"`
 			Format       string `yaml:"format"`
@@ -301,7 +332,7 @@ var templatesAddCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if err := cfg.Add(meta.Name, tmplPath); err != nil {
+		if err := cfg.Add(meta.Name, "", tmplPath); err != nil {
 			ui.Errorf("%v", err)
 			os.Exit(1)
 		}
@@ -316,13 +347,13 @@ var templatesAddCmd = &cobra.Command{
 }
 
 var templatesRemoveCmd = &cobra.Command{
-	Use:   "remove <name>",
+	Use:   "remove <name or name:version>",
 	Short: "Unregister a template (does not delete files)",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ui.Header("incipit templates remove")
 
-		name := args[0]
+		name, version := templates.ParseTemplateRef(args[0])
 
 		cfg, err := templates.LoadConfig()
 		if err != nil {
@@ -330,7 +361,7 @@ var templatesRemoveCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		if err := cfg.Remove(name); err != nil {
+		if err := cfg.Remove(name, version); err != nil {
 			ui.Errorf("%v", err)
 			os.Exit(1)
 		}
@@ -340,7 +371,11 @@ var templatesRemoveCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		ui.PhaseOk(fmt.Sprintf("Unregistered template %q", name), "")
+		ref := name
+		if version != "" {
+			ref += ":" + version
+		}
+		ui.PhaseOk(fmt.Sprintf("Unregistered template %q", ref), "")
 	},
 }
 

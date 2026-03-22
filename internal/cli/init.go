@@ -3,8 +3,6 @@ package cli
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/urmzd/incipit/internal/ui"
@@ -18,29 +16,26 @@ var (
 
 func initInitCmd() {
 	rootCmd.AddCommand(initCmd)
-	initCmd.Flags().StringVar(&initVersion, "version", "", "Template version to install (default: binary version)")
+	initCmd.Flags().StringVar(&initVersion, "version", "", "Template version to install (default: latest GitHub release)")
 	initCmd.Flags().BoolVar(&initForce, "force", false, "Overwrite existing config and templates")
 }
 
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Initialize incipit: create config and install bundled templates",
+	Short: "Initialize incipit: create config and install default templates",
 	Run: func(cmd *cobra.Command, args []string) {
 		ui.Header("incipit init")
 
 		version := initVersion
 		if version == "" {
-			version = Version
-		}
-		if version == "" || version == "dev" {
-			ui.Error("Cannot determine version for template download.")
-			ui.Detail("Specify a version with --version, e.g.: incipit init --version 1.0.0")
-			os.Exit(1)
-		}
-
-		// Ensure version has v prefix
-		if !strings.HasPrefix(version, "v") {
-			version = "v" + version
+			ui.Info("Checking for latest release...")
+			latest, err := templates.LatestVersion()
+			if err != nil {
+				ui.Error("Cannot determine version for template download.")
+				ui.Detail("Specify a version with --version, e.g.: incipit init --version 1.0.0")
+				os.Exit(1)
+			}
+			version = latest
 		}
 
 		configPath := templates.ConfigPath()
@@ -62,9 +57,9 @@ var initCmd = &cobra.Command{
 			return
 		}
 
-		// Download bundled templates
-		ui.Infof("Downloading bundled templates (%s)...", version)
-		installedDir, err := templates.Install(templates.InstallOptions{
+		// Download and install templates into versioned subdirectories
+		ui.Infof("Downloading templates (%s)...", version)
+		installed, err := templates.Install(templates.InstallOptions{
 			Version: version,
 			Force:   initForce,
 		})
@@ -72,22 +67,12 @@ var initCmd = &cobra.Command{
 			ui.Errorf("Failed to install templates: %v", err)
 			os.Exit(1)
 		}
-		ui.PhaseOk("Templates downloaded", installedDir)
 
-		// Discover and register installed templates
-		entries, err := os.ReadDir(installedDir)
-		if err != nil {
-			ui.Errorf("Failed to read templates directory: %v", err)
-			os.Exit(1)
-		}
-
+		// Register installed templates
 		newCfg := &templates.Config{}
-		for _, entry := range entries {
-			if !entry.IsDir() {
-				continue
-			}
-			tmplPath := filepath.Join(installedDir, entry.Name())
-			_ = newCfg.Add(entry.Name(), tmplPath)
+		for _, tmpl := range installed {
+			_ = newCfg.Add(tmpl.Name, tmpl.Version, tmpl.Path)
+			ui.PhaseOk(fmt.Sprintf("Installed %s:%s", tmpl.Name, tmpl.Version), tmpl.Path)
 		}
 
 		// Set sensible defaults
