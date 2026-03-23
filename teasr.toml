@@ -1,0 +1,54 @@
+[output]
+dir = "./showcase"
+
+# ── Template previews (page 1 of each generated PDF) ──
+
+[[scenes]]
+type = "file"
+path = "showcase/pdfs/modern-html.pdf"
+name = "modern-html"
+viewport = { width = 1200, height = 900 }
+formats = [{ output_type = "png" }]
+
+[[scenes]]
+type = "file"
+path = "showcase/pdfs/modern-latex.pdf"
+name = "modern-latex"
+viewport = { width = 1200, height = 900 }
+formats = [{ output_type = "png" }]
+
+[[scenes]]
+type = "file"
+path = "showcase/pdfs/modern-cv.pdf"
+name = "modern-cv"
+viewport = { width = 1200, height = 900 }
+formats = [{ output_type = "png" }]
+
+[[scenes]]
+type = "file"
+path = "showcase/pdfs/modern-docx.pdf"
+name = "modern-docx"
+viewport = { width = 1200, height = 900 }
+formats = [{ output_type = "png" }]
+
+# ── Terminal demo ──
+
+[[scenes]]
+type = "terminal"
+name = "demo-cli"
+theme = "dracula"
+cols = 100
+rows = 30
+formats = [{ output_type = "gif" }]
+frame_duration = 80
+
+[[scenes.interactions]]
+type = "type"
+text = "incipit run -i assets/example_resumes/software_engineer.yml -t modern-html"
+speed = 30
+[[scenes.interactions]]
+type = "key"
+key = "enter"
+[[scenes.interactions]]
+type = "wait"
+duration = 8000

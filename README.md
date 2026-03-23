@@ -20,17 +20,17 @@
 <br />
 
 <p align="center">
-  <img src="assets/demo-cli.gif" alt="CLI Demo" width="80%">
+  <img src="showcase/demo-cli.gif" alt="CLI Demo" width="80%">
 </p>
 
 ## Output Examples
 
 <p align="center">
-  <img src="assets/example_results/modern-html.png" alt="Modern HTML" width="30%">
+  <img src="showcase/modern-html.png" alt="Modern HTML" width="30%">
   &nbsp;
-  <img src="assets/example_results/modern-latex.png" alt="Modern LaTeX" width="30%">
+  <img src="showcase/modern-latex.png" alt="Modern LaTeX" width="30%">
   &nbsp;
-  <img src="assets/example_results/modern-cv.png" alt="Modern CV" width="30%">
+  <img src="showcase/modern-cv.png" alt="Modern CV" width="30%">
 </p>
 <p align="center">
   <em>Modern HTML &nbsp;&middot;&nbsp; Modern LaTeX &nbsp;&middot;&nbsp; Modern CV</em>
@@ -111,7 +111,6 @@ incipit preview resume.yml           # HTML live preview
 incipit templates list               # List templates
 incipit templates engines            # Check LaTeX engines
 incipit schema                       # Export JSON Schema
-incipit screenshots -i resume.yml    # Generate template screenshots
 ```
 
 ### Path Resolution

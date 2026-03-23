@@ -20,7 +20,9 @@ run input=example_input output=outputs_dir *args="": install
     @mkdir -p {{output}}
     incipit run -i {{input}} -o {{output}} {{args}}
 
-# Generate PNG screenshots for each template
-screenshots: install
-    incipit screenshots --input {{example_input}}
-
+# Generate showcase assets (template previews + demo GIF) via teasr
+showcase: install
+    @mkdir -p showcase/pdfs
+    incipit run -i {{example_input}} -o showcase/build
+    @find showcase/build -name '*.pdf' -exec sh -c 'cp "$1" showcase/pdfs/"$(echo "$1" | sed "s/.*\.\(.*\)\.pdf/\1.pdf/")"' _ {} \;
+    teasr showme

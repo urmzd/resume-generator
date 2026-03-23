@@ -118,20 +118,23 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y ffmpeg ttyd tree
 
-      - name: Record demo
-        uses: urmzd/teasr@v0
-
       - name: Build CLI
         run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o bin/incipit ./cmd/incipit
 
-      - name: Generate screenshots
-        run: ./bin/incipit screenshots --input assets/example_resumes/software_engineer.yml
+      - name: Generate PDFs for showcase
+        run: |
+          mkdir -p showcase/pdfs
+          ./bin/incipit run -i assets/example_resumes/software_engineer.yml -o showcase/build
+          find showcase/build -name '*.pdf' -exec sh -c 'cp "$1" showcase/pdfs/"$(echo "$1" | sed "s/.*\.\(.*\)\.pdf/\1.pdf/")"' _ {} \;
+
+      - name: Capture showcase assets
+        uses: urmzd/teasr@v0
 
       - name: Commit assets to main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add assets/demo-cli.gif assets/example_results/*.png
+          git add showcase/*.png showcase/*.gif
           git diff --cached --quiet && exit 0
-          git commit -m "chore: update demo and screenshot assets [skip ci]"
+          git commit -m "chore: update showcase assets [skip ci]"
           git push origin HEAD:main

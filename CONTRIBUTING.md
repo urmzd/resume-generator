@@ -349,7 +349,7 @@ func LoadTemplate(name string) (*Template, error) {
 
 6. **Add example output:**
    - Generate a sample PDF
-   - Add screenshot to `assets/example_results/`
+   - Run `just showcase` to regenerate preview assets
 
 ### Template Guidelines
 
