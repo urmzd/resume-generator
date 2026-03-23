@@ -2,45 +2,36 @@
 
 ## Project Overview
 
-**incipit** is a Go CLI tool that converts structured resume data (YAML/JSON/TOML) into PDF, HTML, LaTeX, DOCX, and Markdown output formats. It uses Go's `text/template` and `html/template` engines with a formatter abstraction layer for output-specific escaping and rendering.
+**incipit** is a Go CLI tool that converts structured resume data (JSON/Markdown) into PDF, HTML, LaTeX, DOCX, and Markdown output formats. It includes AI-powered commands for reviewing, optimizing, and creating resumes using multiple LLM providers (Anthropic, OpenAI, Google, Ollama).
 
 ## Repository Structure
 
 ```
 .
-├── main.go                     # Entry point, embeds templates via //go:embed
-├── cmd/                        # Cobra CLI commands
-│   ├── root.go                 # Root command, embedded FS setup
-│   ├── run.go                  # `run` command: loads resume → generates output
-│   ├── assess.go               # `assess` command: LLM-based resume rating via Ollama
-│   ├── output.go               # Output path/filename generation helpers
-│   ├── templates.go            # `templates list|validate|engines` subcommands
-│   ├── validate.go             # `validate` command for resume data
-│   ├── preview.go              # `preview` command (HTML live preview)
-│   └── schema.go               # `schema` command (JSON Schema output)
-├── pkg/
-│   ├── generators/
-│   │   ├── generator.go        # Core: template loading, type dispatch, embed FS
-│   │   ├── formatter.go        # Formatter interface definition
-│   │   ├── formatter_base.go   # Shared formatting logic (dates, location, GPA)
-│   │   ├── formatter_html.go   # HTML-specific formatter
-│   │   ├── formatter_latex.go  # LaTeX-specific formatter
-│   │   ├── formatter_markdown.go # Markdown-specific formatter
-│   │   ├── html.go             # HTMLGenerator (html/template)
-│   │   ├── latex.go            # LaTeXGenerator (text/template)
-│   │   ├── markdown.go         # MarkdownGenerator (text/template)
-│   │   └── docx.go             # DOCXGenerator (programmatic)
-│   ├── compilers/              # PDF compilation (LaTeX engines, Rod/Chromium)
-│   ├── resume/                 # Resume data model and validation
-│   └── utils/                  # Path resolution, file helpers
-├── templates/
-│   ├── modern-html/            # config.yml + template.html
-│   ├── modern-latex/           # config.yml + template.tex + default.cls
-│   ├── modern-cv/              # config.yml + template.tex
-│   ├── modern-docx/            # config.yml (programmatic generation)
-│   └── modern-markdown/        # config.yml + template.md
-├── assets/example_resumes/     # Example YAML resume files
-└── justfile                    # Task runner (build, run, dev, demo)
+├── cmd/incipit/main.go             # Entry point
+├── internal/cli/                   # Cobra CLI commands
+│   ├── root.go                     # Root command setup
+│   ├── run.go                      # `run` command: loads resume, generates output
+│   ├── generate.go                 # `generate` command: JSON output, dry-run, schema
+│   ├── ai.go                       # `ai` parent command + shared provider flags
+│   ├── ai_review.go                # `ai review`: multi-agent resume assessment
+│   ├── ai_optimize.go              # `ai optimize`: resume optimization for a role
+│   ├── ai_create.go                # `ai create`: plain text to structured JSON
+│   └── templates.go                # `templates list|validate|engines` subcommands
+├── ai/                             # AI agent logic
+│   ├── provider.go                 # Multi-provider resolution (Anthropic/OpenAI/Google/Ollama)
+│   ├── schema.go                   # Resume JSON Schema to saige ParameterSchema converter
+│   ├── review.go                   # Coordinator + 4 sub-agent review architecture
+│   ├── optimize.go                 # Single-agent resume optimizer with structured output
+│   └── create.go                   # Single-agent text to JSON converter with structured output
+├── generators/                     # Template loading, formatters, HTML/LaTeX/MD/DOCX generators
+├── compilers/                      # PDF compilation (LaTeX engines, Rod/Chromium)
+├── resume/                         # Resume data model, validation, JSON/Markdown parsing
+├── services/                       # High-level service layer
+├── templates/                      # Built-in templates (modern-html, modern-latex, etc.)
+├── assets/example_resumes/         # Example JSON resume files
+├── skills/resume/                  # Agent skill definition
+└── justfile                        # Task runner
 ```
 
 ## Architecture
@@ -48,156 +39,72 @@
 ### Data Flow
 
 ```
-Input (YAML/JSON/TOML) → resume.LoadResumeFromFile() → Resume struct
-    → Generator.GenerateWithTemplate(template, resume)
-        → Formatter.TemplateFuncs() provides template helpers
-        → text/template or html/template renders output
-    → Compiler (LaTeX→PDF or HTML→PDF via Rod/Chromium)
-    → Output file (.pdf, .html, .docx, .md)
+Input (JSON/Markdown) -> resume.LoadResumeFromFile() -> Resume struct
+    -> Generator.GenerateWithTemplate(template, resume)
+        -> Formatter.TemplateFuncs() provides template helpers
+        -> text/template or html/template renders output
+    -> Compiler (LaTeX->PDF or HTML->PDF via Rod/Chromium)
+    -> Output file (.pdf, .html, .docx, .md)
 
-Assess flow (multi-agent):
-    Input → Resume → Markdown render → Coordinator agent
-        → delegate_to_content_analyst  (quantity, metrics, specificity, impact)
-        → delegate_to_writing_analyst  (succinctness, clarity, readability, grammar)
-        → delegate_to_industry_analyst (keywords, conventions, role fit, ATS)
-        → delegate_to_format_analyst   (structure, ordering, length, density)
-    → Coordinator synthesizes final scored report → stdout
+AI review flow (multi-agent via saige):
+    Input -> Resume JSON -> Coordinator agent
+        -> delegate_to_content_analyst  (quantity, metrics, specificity, impact)
+        -> delegate_to_writing_analyst  (succinctness, clarity, readability, grammar)
+        -> delegate_to_industry_analyst (keywords, conventions, role fit, ATS)
+        -> delegate_to_format_analyst   (structure, ordering, length, density)
+    -> Coordinator synthesizes final scored report -> stdout
+
+AI create/optimize flow (structured output via saige):
+    Input -> plain text or resume JSON -> Agent with ResponseSchema
+    -> LLM produces valid Resume JSON (constrained by schema)
+    -> Output JSON file
 ```
 
-### Formatter Pattern
+### AI Provider Resolution
 
-Each output format has a formatter that embeds `baseFormatter` and overrides format-specific behavior:
+The `ai/` package supports multiple LLM providers, auto-detected from environment:
 
-- `baseFormatter` — shared date, location, GPA, list formatting
-- `htmlFormatter` — HTML escaping, CSS layout helpers
-- `latexFormatter` — LaTeX escaping, `\href{}{}` links, `\textendash` dates
-- `markdownFormatter` — Markdown escaping, `[text](url)` links
+1. `ANTHROPIC_API_KEY` -> Anthropic (Claude)
+2. `OPENAI_API_KEY` -> OpenAI (GPT)
+3. `GOOGLE_API_KEY` -> Google (Gemini)
+4. Fallback -> Ollama (local, no API key needed)
 
-All formatters implement the `Formatter` interface and expose `TemplateFuncs()` returning a `template.FuncMap`.
+Override with `--provider` / `--model` flags on the `ai` parent command.
+
+### Input Formats
+
+Resume data is accepted as **JSON** or **Markdown**. Unrecognized file extensions fall through to the Markdown parser.
 
 ### Template System
 
 Templates live in `templates/<name>/` with:
-- `config.yml` — metadata (name, format, description, tags)
+- `metadata.yml` -- metadata (name, format, description, tags)
 - Template file (`template.html`, `template.tex`, `template.md`)
 - Optional support files (`.cls` for LaTeX)
 
-Templates are embedded at build time via `//go:embed` in `main.go` and loaded through `generator.go`'s `LoadTemplate()` / `ListTemplates()` functions.
-
-## How to Add a New Template
-
-1. Create `templates/<name>/config.yml` with format, display_name, description
-2. Create the template file (`template.html`, `template.tex`, or `template.md`)
-3. Use Go template syntax with the formatter's `TemplateFuncs()` helpers
-4. The template is auto-discovered — no code changes needed
-5. Test: `just install && incipit run -i assets/example_resumes/software_engineer.yml -t <name>`
-
-## How to Add a New Output Format
-
-1. Create `pkg/generators/formatter_<format>.go` — embed `baseFormatter`, implement `Formatter`
-2. Create `pkg/generators/<format>.go` — generator struct with `Generate()` method
-3. In `generator.go`:
-   - Add `TemplateType<Format>` constant
-   - Add case in `parseTemplateType()`
-   - Add case in `resolveTemplateFilename()`
-   - Add case in `GenerateWithTemplate()` switch
-   - Add `render<Format>()` method
-4. In `cmd/run.go`: add output handling (direct file write or PDF compilation)
-5. In `cmd/templates.go`: add display group and validation case
-6. Create at least one template in `templates/modern-<format>/`
-7. Write tests in `pkg/generators/<format>_test.go`
-
 ## Resume Data Model
 
-See `pkg/resume/resume.go` for the full struct. Key types:
+See `resume/resume.go` for the full struct. Key types:
 
-- `Resume` — top-level: Contact, Summary, Skills, Experience, Projects, Education, Languages, Certifications, Layout
-- `Contact` — Name (required), Email (required), Phone, Location, Links
-- `DateRange` — Start (time.Time), End (*time.Time, nil = Present)
-- `Layout` — Sections ordering, density, typography, header style
+- `Resume` -- Contact, Summary, Skills, Experience, Projects, Education, Languages, Certifications, Layout
+- `PartialDate` -- date with precision (year, month, or full)
+- `DateRange` -- Start (PartialDate), End (*PartialDate, nil = Present)
 
-Date format in YAML: RFC3339 (`2024-01-15T00:00:00Z`)
+Date formats in JSON: `"2024"`, `"2024-01"`, or `"2024-01-15T00:00:00Z"`
 
 ## Build & Test
 
 ```bash
-# Build CLI binary
 just install
-# or: CGO_ENABLED=0 go install -trimpath ./cmd/incipit
-
-# Run all tests
 go test ./...
-
-# Run specific package tests
-go test ./pkg/generators/... -v
-
-# Format check
 gofmt -l .
-
-# Lint (if installed)
 golangci-lint run
-
-# Fuzz testing
-go test ./pkg/generators/ -fuzz=FuzzHTMLGenerate -fuzztime=10s
 ```
-
-## CI Checks
-
-- `gofmt` — all Go files must be formatted
-- `go test ./...` — all tests must pass
-- `golangci-lint run` — no lint errors
-- Fuzz smoke test — 10-second fuzz run
 
 ## Commit Convention
 
 Use conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, `ci:`
 
-Examples:
-- `feat: add markdown output format`
-- `fix: handle nil date range in LaTeX formatter`
-- `docs: update AGENTS.md with new format guide`
-
-## Output Structure
-
-Output uses a flat, timestamped layout:
-
-```
-<root>/<slug>/<YYYY-MM-DD_HH-MM>/
-├── Name.modern-html.pdf
-├── Name.modern-latex.pdf
-├── Name.modern-markdown.md
-└── Name.modern-docx.docx
-```
-
-Debug artifacts (intermediate HTML/LaTeX source) are written to a temp directory during compilation and **only preserved on failure**, placed as `Name.template-name_debug/` next to the output.
-
 ## Dependencies
 
-- **graph-agent-dev-kit** (`github.com/urmzd/graph-agent-dev-kit`) — provides the streaming agent loop, Ollama provider, sub-agent delegation, and TUI for the `assess` command.
-
-## Common Tasks
-
-### Modify a template
-Edit the template file directly. Use `{{escape .Field}}` for user content, formatter helpers for dates/locations/links.
-
-### Add a resume field
-1. Add field to the appropriate struct in `pkg/resume/resume.go`
-2. Add to the input adapter in `pkg/resume/` (YAML/JSON/TOML mapping)
-3. Update templates that should display the field
-4. Add validation if required
-
-### Debug template rendering
-Debug artifacts are only produced when compilation fails. On failure, a `_debug/` directory is preserved next to the output file containing intermediate files (rendered HTML, LaTeX source).
-
-### Assess a resume
-Requires [Ollama](https://ollama.com) running locally. The `assess` command uses a multi-agent architecture: a coordinator identifies the target industry, delegates to four specialist sub-agents (content, writing, industry, format), then synthesizes a final scored report.
-
-```bash
-incipit assess -i resume.yml                    # uses default model (qwen3:4b)
-incipit assess -i resume.yml -m llama3.2        # specify model
-incipit assess -i resume.yml --ollama-url http://host:11434  # custom host
-```
-
-Sub-agents are registered via graph-agent-dev-kit's `SubAgentDef` and automatically exposed as `delegate_to_*` tools. The coordinator's system prompt instructs it to call all four. Each sub-agent scores its dimension 1-10 with structured feedback. The coordinator produces a weighted overall score (content 30%, industry 25%, writing 25%, format 20%).
-
-If Ollama is not available, the command exits with a clear error message and install instructions.
+- **saige** (`github.com/urmzd/saige`) -- streaming AI agent framework with multi-provider support and structured output. Used by the `ai` commands.

@@ -3,7 +3,7 @@
   <p align="center">
     <em>Here begins the new career.</em>
     <br />
-    A CLI tool that converts structured resume data (YAML/JSON/TOML) into polished PDFs, HTML, LaTeX, DOCX, and Markdown.
+    A CLI tool that converts structured resume data (JSON/Markdown) into polished PDFs, HTML, LaTeX, DOCX, and Markdown — with AI-powered review, optimization, and creation.
     <br /><br />
     <a href="https://github.com/urmzd/incipit/releases">Download</a>
     &middot;
@@ -39,9 +39,9 @@
 ## Features
 
 - **Multiple Output Formats** — generate PDFs from LaTeX or HTML templates, plus native DOCX and Markdown
-- **Data-Driven** — provide resume content as YAML, JSON, or TOML; the tool handles rendering
+- **Data-Driven** — provide resume content as JSON or Markdown; the tool handles rendering
 - **Template System** — modular templates with embedded assets; customize or create your own
-- **AI Resume Assessment** — rate your resume with multi-agent LLM analysis via Ollama
+- **AI-Powered Tools** — review, optimize, and create resumes using multi-provider LLMs (Anthropic, OpenAI, Google, Ollama)
 - **Flexible Paths** — supports `~`, relative paths, and creates dated output workspaces
 - **Schema Generation** — export JSON Schema for IDE autocompletion and validation
 
@@ -67,22 +67,28 @@ go install ./cmd/incipit
 
 ```bash
 # Generate PDF with a specific template
-incipit run -i assets/example_resumes/software_engineer.yml -t modern-html
+incipit run -i assets/example_resumes/software_engineer.json -t modern-html
 
 # Generate with all templates
-incipit run -i assets/example_resumes/software_engineer.yml
+incipit run -i assets/example_resumes/software_engineer.json
 
 # Generate an editable DOCX
-incipit run -i resume.yml -t modern-docx
+incipit run -i resume.json -t modern-docx
 
 # Validate input data
-incipit validate resume.yml
+incipit validate resume.json
 
 # List available templates
 incipit templates list
 
-# AI assessment (requires Ollama)
-incipit assess -i resume.yml
+# AI: create resume from plain text
+incipit ai create resume.txt -o resume.json
+
+# AI: review a resume
+incipit ai review resume.json
+
+# AI: optimize for a job description
+incipit ai optimize resume.json --job "Senior Go developer..."
 ```
 
 ## CLI Usage
@@ -91,53 +97,62 @@ incipit assess -i resume.yml
 
 ```bash
 # Single template
-incipit run -i resume.yml -t modern-html
+incipit run -i resume.json -t modern-html
 
 # Multiple templates
-incipit run -i resume.yml -t modern-html -t modern-latex
-
-# Comma-separated
-incipit run -i resume.yml -t modern-html,modern-latex
+incipit run -i resume.json -t modern-html -t modern-latex
 
 # Custom output directory
-incipit run -i resume.yml -o outputs/custom -t modern-html
+incipit run -i resume.json -o outputs/custom -t modern-html
+```
+
+### AI Commands
+
+AI commands support multiple providers, auto-detected from API keys (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`) or falling back to local Ollama.
+
+```bash
+# Create structured JSON from plain text
+incipit ai create resume.txt -o resume.json
+
+# Review/score a resume (multi-agent analysis)
+incipit ai review resume.json
+
+# Optimize resume for a specific role
+incipit ai optimize resume.json --job "Senior Go developer at a startup..."
+incipit ai optimize resume.json --job job-description.txt -o optimized.json
+
+# Specify provider explicitly
+incipit ai review resume.json -p anthropic -m claude-sonnet-4-6-20250514
+incipit ai review resume.json -p ollama -m qwen3.5:4b
 ```
 
 ### Other Commands
 
 ```bash
-incipit validate resume.yml          # Validate resume data
-incipit preview resume.yml           # HTML live preview
-incipit templates list               # List templates
-incipit templates engines            # Check LaTeX engines
-incipit schema                       # Export JSON Schema
+incipit validate resume.json          # Validate resume data
+incipit preview resume.json           # Preview resume contents
+incipit templates list                # List templates
+incipit templates engines             # Check LaTeX engines
+incipit schema                        # Export JSON Schema
 ```
 
-### Path Resolution
+## Input Formats
 
-The CLI supports flexible path resolution — relative paths, absolute paths, `~` home directory expansion, and custom output locations. Each run creates a dated workspace:
+Resumes are provided as **JSON** or **Markdown** files. Use `incipit schema` to get the full JSON Schema.
 
-```
-~/Documents/IncipitOutputs/
-└── john_doe/
-    └── 2025-10-25/
-        ├── modern_html/
-        │   └── john_doe_resume.pdf
-        └── modern_latex/
-            └── john_doe_resume.pdf
-```
+Any text file (`.txt`, `.yml`, `.yaml`) is parsed through the Markdown parser. To convert freeform text to structured JSON, use `incipit ai create`.
 
 ## Prerequisites
 
-- **Go 1.24+**
+- **Go 1.25+**
 - **TeX Live** (only for LaTeX templates)
 - **Chromium** — auto-downloaded by Rod on first use, or set `ROD_BROWSER_BIN`
 - [just](https://github.com/casey/just) (optional, for helper commands)
-- [Ollama](https://ollama.com) (optional, for `assess` command)
+- An LLM provider for AI commands: [Anthropic](https://anthropic.com), [OpenAI](https://openai.com), [Google](https://ai.google.dev), or [Ollama](https://ollama.com)
 
 ## Templates
 
-Built-in templates live in `templates/`, one folder per template with a `config.yml` and template file:
+Built-in templates live in `templates/`, one folder per template with a `metadata.yml` and template file:
 
 | Template | Format | Output |
 |----------|--------|--------|
@@ -147,7 +162,7 @@ Built-in templates live in `templates/`, one folder per template with a `config.
 | `modern-docx` | DOCX | Word document |
 | `modern-markdown` | Markdown | `.md` file |
 
-Create your own by adding a `templates/<name>/` directory with `config.yml` + template file. See existing templates for patterns.
+Create your own by adding a `templates/<name>/` directory with `metadata.yml` + template file.
 
 ## Agent Skill
 
@@ -157,11 +172,7 @@ This project ships an [Agent Skill](https://github.com/vercel-labs/skills) for C
 npx skills add urmzd/incipit
 ```
 
-Once installed, use `/resume-generate` to generate resumes from your agent.
-
-## Related
-
-- [resume-generator-app](https://github.com/urmzd/resume-generator-app) — native desktop GUI with live preview, template gallery, and inline editing. If you prefer a visual interface over the command line, use the desktop app instead.
+Once installed, use `/resume` to create, review, optimize, and generate resumes from your agent.
 
 ## Contributing
 
