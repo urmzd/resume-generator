@@ -46,7 +46,7 @@ type ResumeAdapter struct {
 	SectionOrder     []string
 }
 
-func (a *ResumeAdapter) ToResume() *Resume        { return a.Resume }
+func (a *ResumeAdapter) ToResume() *Resume         { return a.Resume }
 func (a *ResumeAdapter) GetFormat() string         { return a.SerializationFmt }
 func (a *ResumeAdapter) GetSectionOrder() []string { return a.SectionOrder }
 

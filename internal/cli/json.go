@@ -31,4 +31,3 @@ func stderrLog(msg string) {
 		fmt.Fprintln(os.Stderr, msg)
 	}
 }
-

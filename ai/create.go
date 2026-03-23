@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/urmzd/incipit/resume"
 	agentsdk "github.com/urmzd/saige/agent"
 	"github.com/urmzd/saige/agent/types"
-	"github.com/urmzd/incipit/resume"
 )
 
 // CreateResult holds the converted JSON output.
