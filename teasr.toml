@@ -39,6 +39,7 @@ name = "demo-cli"
 theme = "dracula"
 cols = 100
 rows = 30
+cwd = "."
 formats = [{ output_type = "gif" }]
 frame_duration = 80
 
