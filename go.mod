@@ -2,7 +2,7 @@ module github.com/urmzd/incipit
 
 go 1.25.5
 
-require github.com/urmzd/saige v0.3.1
+require github.com/urmzd/saige v0.4.0
 
 require (
 	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834
@@ -72,5 +72,3 @@ require (
 	google.golang.org/grpc v1.66.2 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 )
-
-replace github.com/urmzd/saige => ../saige
