@@ -43,8 +43,8 @@ func TestGolden(t *testing.T) {
 		name string
 		file string
 	}{
-		{"software_engineer", "software_engineer.yml"},
-		{"minimal", "minimal.yml"},
+		{"software_engineer", "software_engineer.json"},
+		{"minimal", "minimal.json"},
 	}
 
 	templates := []struct {

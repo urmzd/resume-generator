@@ -93,6 +93,7 @@ version: "1.0"
 
 func TestListTemplates(t *testing.T) {
 	tmpDir := t.TempDir()
+	t.Setenv("HOME", tmpDir)
 	templatesDir := filepath.Join(tmpDir, "templates")
 
 	// Create multiple test templates
@@ -216,6 +217,7 @@ format: html
 func TestFormatTemplateName(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("RESUME_TEMPLATES_DIR", tmpDir)
+	t.Setenv("HOME", tmpDir)
 
 	originalDir, err := os.Getwd()
 	if err != nil {
