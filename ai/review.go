@@ -1,21 +1,18 @@
-package assess
+package ai
 
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
-	agentsdk "github.com/urmzd/graph-agent-dev-kit/agent"
-	"github.com/urmzd/graph-agent-dev-kit/agent/core"
-	"github.com/urmzd/graph-agent-dev-kit/agent/provider/ollama"
+	agentsdk "github.com/urmzd/saige/agent"
+	"github.com/urmzd/saige/agent/types"
 )
 
-// Result is the structured output of a resume assessment.
-type Result struct {
+// ReviewResult is the structured output of a resume review.
+type ReviewResult struct {
 	ContentScore  float64          `json:"contentScore"`
 	WritingScore  float64          `json:"writingScore"`
 	IndustryScore float64          `json:"industryScore"`
@@ -25,86 +22,50 @@ type Result struct {
 	Categories    []CategoryResult `json:"categories"`
 }
 
-// CategoryResult holds the score and feedback items for one assessment dimension.
+// CategoryResult holds the score and feedback for one assessment dimension.
 type CategoryResult struct {
-	Label string         `json:"label"`
-	Score float64        `json:"score"`
-	Items []FeedbackItem `json:"items"`
+	Label string  `json:"label"`
+	Score float64 `json:"score"`
 }
 
-// FeedbackItem is a single feedback point from the assessment.
-type FeedbackItem struct {
-	Status string `json:"status"` // "good", "warn", "bad"
-	Text   string `json:"text"`
-}
-
-// Options configures the assessment run.
-type Options struct {
-	Model    string
-	Endpoint string
-}
-
-// CheckOllama verifies the Ollama server is reachable.
-func CheckOllama(endpoint string) error {
-	httpClient := &http.Client{Timeout: 5 * time.Second}
-	resp, err := httpClient.Get(endpoint) //nolint:gosec
+// Review runs a multi-agent resume review and returns structured results.
+func Review(ctx context.Context, resumeYAML string, opts ProviderOptions) (*ReviewResult, error) {
+	provider, err := ResolveProvider(ctx, opts)
 	if err != nil {
-		return fmt.Errorf("ollama is not available at %s. Install Ollama (https://ollama.com) and start it with 'ollama serve'.\n  error: %v", endpoint, err)
-	}
-	_ = resp.Body.Close()
-	return nil
-}
-
-// NewAgent creates a configured assessment agent with the coordinator and four sub-agents.
-func NewAgent(opts Options) *agentsdk.Agent {
-	client := ollama.NewClient(opts.Endpoint, opts.Model, "")
-	adapter := ollama.NewAdapter(client)
-
-	return agentsdk.NewAgent(agentsdk.AgentConfig{
-		Name:         "resume-coordinator",
-		Provider:     adapter,
-		MaxIter:      10,
-		SystemPrompt: coordinatorPrompt,
-		SubAgents:    buildSubAgents(adapter),
-	})
-}
-
-// BuildPrompt creates the user message for the assessment from resume YAML text.
-func BuildPrompt(resumeYAML string) string {
-	return fmt.Sprintf("Assess the following resume (in YAML format):\n\n---\n%s\n---", resumeYAML)
-}
-
-// Run executes the full assessment pipeline: checks Ollama, runs the agent,
-// collects the report, and parses scores.
-func Run(ctx context.Context, resumeYAML string, opts Options) (*Result, error) {
-	if err := CheckOllama(opts.Endpoint); err != nil {
 		return nil, err
 	}
 
-	agent := NewAgent(opts)
-	prompt := BuildPrompt(resumeYAML)
+	agent := agentsdk.NewAgent(agentsdk.AgentConfig{
+		Name:         "resume-coordinator",
+		Provider:     provider,
+		MaxIter:      10,
+		SystemPrompt: coordinatorPrompt,
+		SubAgents:    buildReviewSubAgents(provider),
+	})
 
-	stream := agent.Invoke(ctx, []core.Message{
-		core.NewUserMessage(prompt),
+	prompt := fmt.Sprintf("Assess the following resume (in YAML format):\n\n---\n%s\n---", resumeYAML)
+
+	stream := agent.Invoke(ctx, []types.Message{
+		types.NewUserMessage(prompt),
 	})
 
 	var report strings.Builder
 	for delta := range stream.Deltas() {
-		if td, ok := delta.(core.TextContentDelta); ok {
+		if td, ok := delta.(types.TextContentDelta); ok {
 			report.WriteString(td.Content)
 		}
 	}
 
 	if err := stream.Wait(); err != nil {
-		return nil, fmt.Errorf("assessment failed: %w", err)
+		return nil, fmt.Errorf("review failed: %w", err)
 	}
 
 	return ParseReport(report.String()), nil
 }
 
 // ParseReport extracts structured scores from the raw assessment report text.
-func ParseReport(report string) *Result {
-	result := &Result{Report: report}
+func ParseReport(report string) *ReviewResult {
+	result := &ReviewResult{Report: report}
 
 	scores := make([]float64, 4)
 	for i, pattern := range scorePatterns {
@@ -155,7 +116,7 @@ Your process:
 
 Always delegate to all four analysts. Do not skip any. Present the final report in a clean, readable format.`
 
-func buildSubAgents(provider core.Provider) []agentsdk.SubAgentDef {
+func buildReviewSubAgents(provider types.Provider) []agentsdk.SubAgentDef {
 	return []agentsdk.SubAgentDef{
 		{
 			Name:     "content_analyst",
