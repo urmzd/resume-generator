@@ -124,7 +124,7 @@ jobs:
       - name: Generate PDFs for showcase
         run: |
           mkdir -p showcase/pdfs
-          ./bin/incipit run -i assets/example_resumes/software_engineer.yml -o showcase/build
+          ./bin/incipit run -i assets/example_resumes/software_engineer.json -o showcase/build
           find showcase/build -name '*.pdf' -exec sh -c 'cp "$1" showcase/pdfs/"$(echo "$1" | sed "s/.*\.\(.*\)\.pdf/\1.pdf/")"' _ {} \;
 
       - name: Capture showcase assets

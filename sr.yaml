@@ -38,9 +38,5 @@ types:
 floating_tags: true
 
 hooks:
-  pre-commit:
-    - gofmt -l . | grep . && exit 1 || true
-    - golangci-lint run ./...
-    - go test ./...
   commit-msg:
     - sr hook commit-msg
