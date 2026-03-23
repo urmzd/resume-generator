@@ -25,6 +25,9 @@ func NewRodHTMLToPDFCompiler(logger *zap.SugaredLogger) *RodHTMLToPDFCompiler {
 	return &RodHTMLToPDFCompiler{logger: logger}
 }
 
+// Name returns the engine identifier.
+func (c *RodHTMLToPDFCompiler) Name() string { return "rod" }
+
 // Compile converts HTML content to a PDF file at outputPath.
 func (c *RodHTMLToPDFCompiler) Compile(htmlContent, outputPath string) error {
 	pdfBytes, err := c.CompileToBytes(htmlContent)
