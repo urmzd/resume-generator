@@ -26,7 +26,7 @@ func (e *LaTeXEngine) Compile(content string, outputPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create temp directory: %w", err)
 	}
-	defer os.RemoveAll(debugDir)
+	defer func() { _ = os.RemoveAll(debugDir) }()
 
 	// Use the old LaTeXCompiler internally for the actual compilation step.
 	compiler := NewLaTeXCompiler(e.command, e.logger)
