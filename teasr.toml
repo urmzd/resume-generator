@@ -45,7 +45,7 @@ frame_duration = 80
 
 [[scenes.interactions]]
 type = "type"
-text = "incipit run -i assets/example_resumes/software_engineer.yml -t modern-html"
+text = "incipit generate assets/example_resumes/software_engineer.yml -t modern-html"
 speed = 30
 [[scenes.interactions]]
 type = "key"
