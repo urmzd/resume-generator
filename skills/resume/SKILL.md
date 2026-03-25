@@ -1,7 +1,8 @@
 ---
 name: resume
 description: Generate polished resumes (PDF, DOCX, Markdown) from JSON data. Installs the incipit CLI, provides the resume schema, and uses templates for rendering. The agent writes JSON directly — no AI subcommands needed.
-argument-hint: [file]
+metadata:
+  argument-hint: [file]
 ---
 
 # Resume
@@ -24,7 +25,7 @@ Verify: `incipit --version`
 Get the full JSON Schema for resume data:
 
 ```sh
-incipit schema
+incipit generate --schema
 ```
 
 Use this schema to write or validate resume JSON files directly.
@@ -116,18 +117,19 @@ Date formats: `"2024"` (year), `"2024-01"` (month), `"2024-01-15T00:00:00Z"` (fu
 ### Generate output
 
 ```sh
-incipit run resume.json -t modern-html          # HTML → PDF
-incipit run resume.json -t modern-latex          # LaTeX → PDF
-incipit run resume.json -t modern-docx           # Word document
-incipit run resume.json -t modern-markdown       # Markdown file
-incipit run resume.json                          # All templates
-incipit run resume.json -t modern-html -o ./out  # Custom output dir
+incipit generate resume.json -t modern-html          # HTML -> PDF
+incipit generate resume.json -t modern-latex          # LaTeX -> PDF
+incipit generate resume.json -t modern-docx           # Word document
+incipit generate resume.json -t modern-markdown       # Markdown file
+incipit generate resume.json                          # All templates
+incipit generate resume.json -t modern-html -o ./out  # Custom output dir
+incipit generate resume.json --dry-run                # Validate without generating
 ```
 
-### Validate
+### Schema
 
 ```sh
-incipit validate resume.json
+incipit generate --schema
 ```
 
 ### List templates
@@ -136,13 +138,32 @@ incipit validate resume.json
 incipit templates list
 ```
 
+### AI commands
+
+```sh
+# Create structured JSON from plain text
+incipit ai create resume.txt
+incipit ai create resume.txt -o my-resume.json
+
+# Review and score a resume
+incipit ai review resume.json
+
+# Optimize for a job description
+incipit ai optimize resume.json -j "Senior Go developer..."
+incipit ai optimize resume.json -j job-description.txt -o optimized.json
+
+# Specify provider explicitly
+incipit ai review resume.json -p anthropic -m claude-sonnet-4-6-20250514
+incipit ai review resume.json -p ollama -m qwen3.5:4b
+```
+
 ## Available Templates
 
 | Template | Format | Description |
 |----------|--------|-------------|
-| `modern-html` | HTML → PDF | Clean, modern design via Chromium |
-| `modern-latex` | LaTeX → PDF | Classic academic style |
-| `modern-cv` | LaTeX → PDF | Detailed CV format |
+| `modern-html` | HTML -> PDF | Clean, modern design via Chromium |
+| `modern-latex` | LaTeX -> PDF | Classic academic style |
+| `modern-cv` | LaTeX -> PDF | Detailed CV format |
 | `modern-docx` | DOCX | Microsoft Word document |
 | `modern-markdown` | Markdown | Plain `.md` file |
 
@@ -159,7 +180,7 @@ When creating or improving resume highlights, follow these guidelines:
 
 ## Workflow
 
-1. Get the schema: `incipit schema`
+1. Get the schema: `incipit generate --schema`
 2. Write `resume.json` matching the schema (the agent does this directly)
-3. Validate: `incipit validate resume.json`
-4. Generate: `incipit run resume.json -t modern-html`
+3. Validate: `incipit generate resume.json --dry-run`
+4. Generate: `incipit generate resume.json -t modern-html`

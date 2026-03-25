@@ -11,7 +11,6 @@
 ├── cmd/incipit/main.go             # Entry point
 ├── internal/cli/                   # Cobra CLI commands
 │   ├── root.go                     # Root command setup
-│   ├── run.go                      # `run` command: loads resume, generates output
 │   ├── generate.go                 # `generate` command: JSON output, dry-run, schema
 │   ├── ai.go                       # `ai` parent command + shared provider flags
 │   ├── ai_review.go                # `ai review`: multi-agent resume assessment

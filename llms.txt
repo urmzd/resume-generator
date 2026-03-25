@@ -11,7 +11,7 @@
 ## API / Key Files
 
 - [cmd/incipit/main.go](https://github.com/urmzd/incipit/blob/main/cmd/incipit/main.go): Binary entry point
-- [internal/cli/](https://github.com/urmzd/incipit/blob/main/internal/cli/): Cobra CLI commands (run, generate, ai, templates)
+- [internal/cli/](https://github.com/urmzd/incipit/blob/main/internal/cli/): Cobra CLI commands (generate, ai, templates, config, init)
 - [ai/](https://github.com/urmzd/incipit/blob/main/ai/): AI agent logic (provider resolution, review, optimize, create)
 - [generators/](https://github.com/urmzd/incipit/blob/main/generators/): Core generation logic, formatters, HTML/LaTeX/Markdown/DOCX generators
 - [resume/](https://github.com/urmzd/incipit/blob/main/resume/): Resume data model, validation, JSON/Markdown parsing

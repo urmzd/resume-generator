@@ -21,7 +21,7 @@ go test ./...
 
 ```bash
 # Test with JSON resume
-incipit run -i assets/example_resumes/software_engineer.json -t modern-html
+incipit generate assets/example_resumes/software_engineer.json -t modern-html
 
 # Test AI review (requires LLM provider)
 incipit ai review assets/example_resumes/software_engineer.json
@@ -38,4 +38,4 @@ Use conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore
 
 1. Create `templates/<name>/metadata.yml` with format, display_name, description
 2. Create the template file (`template.html`, `template.tex`, or `template.md`)
-3. Test: `incipit run -i assets/example_resumes/software_engineer.json -t <name>`
+3. Test: `incipit generate assets/example_resumes/software_engineer.json -t <name>`

@@ -67,16 +67,16 @@ go install ./cmd/incipit
 
 ```bash
 # Generate PDF with a specific template
-incipit run -i assets/example_resumes/software_engineer.json -t modern-html
+incipit generate assets/example_resumes/software_engineer.json -t modern-html
 
 # Generate with all templates
-incipit run -i assets/example_resumes/software_engineer.json
+incipit generate assets/example_resumes/software_engineer.json
 
 # Generate an editable DOCX
-incipit run -i resume.json -t modern-docx
+incipit generate resume.json -t modern-docx
 
 # Validate input data
-incipit validate resume.json
+incipit generate resume.json --dry-run
 
 # List available templates
 incipit templates list
@@ -97,13 +97,13 @@ incipit ai optimize resume.json --job "Senior Go developer..."
 
 ```bash
 # Single template
-incipit run -i resume.json -t modern-html
+incipit generate resume.json -t modern-html
 
 # Multiple templates
-incipit run -i resume.json -t modern-html -t modern-latex
+incipit generate resume.json -t modern-html -t modern-latex
 
 # Custom output directory
-incipit run -i resume.json -o outputs/custom -t modern-html
+incipit generate resume.json -o outputs/custom -t modern-html
 ```
 
 ### AI Commands
@@ -129,18 +129,17 @@ incipit ai review resume.json -p ollama -m qwen3.5:4b
 ### Other Commands
 
 ```bash
-incipit validate resume.json          # Validate resume data
-incipit preview resume.json           # Preview resume contents
-incipit templates list                # List templates
-incipit templates engines             # Check LaTeX engines
-incipit schema                        # Export JSON Schema
+incipit generate resume.json --dry-run  # Validate and preview as JSON
+incipit generate --schema               # Export JSON Schema
+incipit templates list                   # List templates
+incipit templates engines               # Check LaTeX engines
 ```
 
 ## Input Formats
 
-Resumes are provided as **JSON** or **Markdown** files. Use `incipit schema` to get the full JSON Schema.
+Resumes are provided as **JSON** files. Use `incipit generate --schema` to get the full JSON Schema.
 
-Any text file (`.txt`, `.yml`, `.yaml`) is parsed through the Markdown parser. To convert freeform text to structured JSON, use `incipit ai create`.
+To convert freeform text to structured JSON, use `incipit ai create`.
 
 ## Prerequisites
 
@@ -166,11 +165,7 @@ Create your own by adding a `templates/<name>/` directory with `metadata.yml` + 
 
 ## Agent Skill
 
-This project ships an [Agent Skill](https://github.com/vercel-labs/skills) for Claude Code, Cursor, and other compatible agents.
-
-```sh
-npx skills add urmzd/incipit
-```
+This repo's conventions are available as portable agent skills in [`skills/`](skills/), following the [Agent Skills Specification](https://agentskills.io/specification).
 
 Once installed, use `/resume` to create, review, optimize, and generate resumes from your agent.
 
