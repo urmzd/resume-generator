@@ -31,7 +31,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: urmzd/semantic-release@v1
+      - uses: urmzd/sr@v2
         id: sr
         with:
           force: ${{ inputs.force }}
