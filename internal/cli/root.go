@@ -7,9 +7,7 @@ import (
 )
 
 var (
-	InputFile     string
-	GeneratorType string
-	LaTeXEngine   string
+	LaTeXEngine string
 
 	Version   = "dev"
 	Commit    = "none"
@@ -18,12 +16,10 @@ var (
 
 func initRootCmd() {
 	initInitCmd()
-	initRunCmd()
 	initGenerateCmd()
 	initTemplatesCmd()
 	initConfigCmd()
 	initAICmd()
-	rootCmd.PersistentFlags().StringVarP(&GeneratorType, "generator", "g", "base", "The type of generator to use (e.g., base, json-resume)")
 }
 
 var rootCmd = &cobra.Command{

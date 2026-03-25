@@ -25,7 +25,7 @@ var aiCreateCmd = &cobra.Command{
 	Short: "Convert plain text or Markdown to structured resume JSON via LLM",
 	Args:  cobra.ExactArgs(1),
 	Long: `Convert a freeform plain-text resume into structured JSON that can be
-used with 'incipit run' to generate polished PDFs.
+used with 'incipit generate' to generate polished PDFs.
 
 The conversion uses an LLM to extract structured data from your plain text
 and map it to the resume schema. The generated JSON file can be reviewed
@@ -77,6 +77,6 @@ Examples:
 		}
 
 		ui.PhaseOk("Created", fmt.Sprintf("%s → %s", filepath.Base(inputPath), outPath))
-		ui.Infof("Review the generated JSON and run: incipit run %s", outPath)
+		ui.Infof("Review the generated JSON and run: incipit generate %s", outPath)
 	},
 }

@@ -94,6 +94,6 @@ Examples:
 		}
 
 		ui.PhaseOk("Optimized", fmt.Sprintf("%s → %s", filepath.Base(inputPath), outPath))
-		ui.Infof("Review the optimized JSON and run: incipit run %s", outPath)
+		ui.Infof("Review the optimized JSON and run: incipit generate %s", outPath)
 	},
 }

@@ -100,8 +100,8 @@ var templatesListCmd = &cobra.Command{
 
 		ui.Blank()
 		ui.Info("Usage:")
-		ui.Detail("incipit run -i resume.yml -t modern-html")
-		ui.Detail("incipit run -i resume.yml -t modern-html:1.0.0")
+		ui.Detail("incipit generate resume.yml -t modern-html")
+		ui.Detail("incipit generate resume.yml -t modern-html:1.0.0")
 	},
 }
 
@@ -413,9 +413,9 @@ var latexEnginesCmd = &cobra.Command{
 		ui.Blank()
 		ui.Info("Usage:")
 		ui.Detail("# Use default engine (auto-detected)")
-		ui.Detail("incipit run -i resume.yml -t modern-latex")
+		ui.Detail("incipit generate resume.yml -t modern-latex")
 		ui.Blank()
 		ui.Detail("# Specify a particular engine")
-		ui.Detail(fmt.Sprintf("incipit run -i resume.yml -t modern-latex --latex-engine %s", available[0]))
+		ui.Detail(fmt.Sprintf("incipit generate resume.yml -t modern-latex --latex-engine %s", available[0]))
 	},
 }
