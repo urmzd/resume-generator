@@ -64,4 +64,4 @@ jobs:
         run: go test ./...
 
       - name: Fuzz smoke test
-        run: go test -run=FuzzSanitizePhone -fuzz=FuzzSanitizePhone -fuzztime=10s ./generators
+        run: go test -run=FuzzSanitizePhone -fuzz=FuzzSanitizePhone -fuzztime=10s -timeout=60s ./generators
