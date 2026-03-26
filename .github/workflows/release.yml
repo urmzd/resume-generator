@@ -20,20 +20,30 @@ permissions:
 
 jobs:
   ci:
-    if: github.actor != 'github-actions[bot]'
+    if: github.actor != 'sr-releaser[bot]'
     uses: ./.github/workflows/ci.yml
 
   release:
     needs: ci
     runs-on: ubuntu-latest
     steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.SR_RELEASER_APP_ID }}
+          private-key: ${{ secrets.SR_RELEASER_PRIVATE_KEY }}
+          repositories: ${{ github.event.repository.name }}
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
 
       - uses: urmzd/sr@v2
         id: sr
         with:
+          github-token: ${{ steps.app-token.outputs.token }}
           force: ${{ inputs.force }}
 
     outputs:
@@ -107,9 +117,18 @@ jobs:
     if: needs.release.outputs.released == 'true'
     runs-on: ubuntu-latest
     steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.SR_RELEASER_APP_ID }}
+          private-key: ${{ secrets.SR_RELEASER_PRIVATE_KEY }}
+          repositories: ${{ github.event.repository.name }}
+
       - uses: actions/checkout@v4
         with:
           ref: main
+          token: ${{ steps.app-token.outputs.token }}
 
       - uses: actions/setup-go@v5
         with:
@@ -132,8 +151,8 @@ jobs:
 
       - name: Commit assets to main
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "sr-releaser[bot]"
+          git config user.email "sr-releaser[bot]@users.noreply.github.com"
           git add showcase/*.png showcase/*.gif
           git diff --cached --quiet && exit 0
           git commit -m "chore: update showcase assets [skip ci]"
