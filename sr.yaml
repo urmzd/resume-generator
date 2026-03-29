@@ -24,9 +24,6 @@ types:
   - name: refactor
     bump: patch
     section: Refactoring
-  - name: fmt
-    bump: patch
-    section: Formatting
   - name: revert
     section: Reverts
   - name: chore

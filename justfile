@@ -20,6 +20,31 @@ run input=example_input output=outputs_dir *args="": install
     @mkdir -p {{output}}
     incipit generate {{input}} -o {{output}} {{args}}
 
+# Run golangci-lint
+lint:
+    golangci-lint run ./...
+
+# Run go vet
+vet:
+    go vet ./...
+
+# Run govulncheck
+vuln:
+    govulncheck ./...
+
+# Quality gate: lint + vet + test
+check: lint vet
+    go test ./...
+
+# Full CI gate
+ci: lint vet
+    go build ./...
+    go test ./...
+
+# Record showcase with teasr
+record:
+    teasr showme
+
 # Generate showcase assets (template previews + demo GIF) via teasr
 showcase: install
     @mkdir -p showcase/pdfs
