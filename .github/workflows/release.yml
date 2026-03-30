@@ -40,7 +40,7 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
 
-      - uses: urmzd/sr@v2
+      - uses: urmzd/sr@v3
         id: sr
         with:
           github-token: ${{ steps.app-token.outputs.token }}
