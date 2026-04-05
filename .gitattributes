@@ -26,3 +26,30 @@
 *.woff2 binary
 *.ttf binary
 *.eot binary
+
+# ── Linguist overrides ──────────────────────────────────────────────────────
+# Prevent non-code files from skewing GitHub language statistics
+
+# Markup / documentation
+*.html linguist-documentation
+*.css linguist-documentation
+*.scss linguist-documentation
+*.tex linguist-documentation
+*.ipynb linguist-documentation
+
+# Config / infrastructure
+Justfile linguist-vendored
+justfile linguist-vendored
+Makefile linguist-vendored
+Dockerfile linguist-vendored
+*.dockerfile linguist-vendored
+*.nix linguist-vendored
+*.sh linguist-vendored
+
+# Generated output
+*.svg linguist-generated
+dist/ linguist-generated
+build/ linguist-generated
+out/ linguist-generated
+target/ linguist-generated
+
