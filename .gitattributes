@@ -30,11 +30,9 @@
 # ── Linguist overrides ──────────────────────────────────────────────────────
 # Prevent non-code files from skewing GitHub language statistics
 
-# Markup / documentation
-*.html linguist-documentation
+# Markup / documentation (*.html and *.tex excluded — they are Go runtime templates)
 *.css linguist-documentation
 *.scss linguist-documentation
-*.tex linguist-documentation
 *.ipynb linguist-documentation
 
 # Config / infrastructure
