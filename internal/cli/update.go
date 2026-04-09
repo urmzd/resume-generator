@@ -28,7 +28,7 @@ func selfUpdate(current string) error {
 	if err != nil {
 		return fmt.Errorf("fetching release info: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
@@ -70,7 +70,7 @@ func selfUpdate(current string) error {
 	if err != nil {
 		return fmt.Errorf("downloading update: %w", err)
 	}
-	defer dlResp.Body.Close()
+	defer func() { _ = dlResp.Body.Close() }()
 
 	if dlResp.StatusCode != http.StatusOK {
 		return fmt.Errorf("download returned status %d", dlResp.StatusCode)
@@ -81,13 +81,13 @@ func selfUpdate(current string) error {
 		return fmt.Errorf("creating temp file: %w", err)
 	}
 	tmpName := tmp.Name()
-	defer os.Remove(tmpName)
+	defer func() { _ = os.Remove(tmpName) }()
 
 	if _, err := io.Copy(tmp, dlResp.Body); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return fmt.Errorf("writing update: %w", err)
 	}
-	tmp.Close()
+	_ = tmp.Close()
 
 	if err := os.Chmod(tmpName, 0755); err != nil {
 		return fmt.Errorf("chmod: %w", err)
