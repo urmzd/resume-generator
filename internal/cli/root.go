@@ -20,6 +20,8 @@ func initRootCmd() {
 	initTemplatesCmd()
 	initConfigCmd()
 	initAICmd()
+	initUpdateCmd()
+	initVersionCmd()
 }
 
 var rootCmd = &cobra.Command{
