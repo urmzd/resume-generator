@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.13.0 (2026-04-09)
+
+### Features
+
+- **cli**: add update and version commands ([029bbeb](https://github.com/urmzd/incipit/commit/029bbeb13b9ca26948526339da3cc6e41ef76a2e))
+
+### Bug Fixes
+
+- handle errcheck lint violations in self-update ([ca8cf4b](https://github.com/urmzd/incipit/commit/ca8cf4bfb144f681bffb37f1475f6e122506f0e3))
+
+### Miscellaneous
+
+- update showcase assets [skip ci] ([a6eebe3](https://github.com/urmzd/incipit/commit/a6eebe343228e404e698bd2fab2eac368bbb7f4c))
+- **deps**: bump actions/create-github-app-token from 1 to 3 ([df549ec](https://github.com/urmzd/incipit/commit/df549ec3bed348e803629c8f9336e6b6f2fc80b1))
+
+[Full Changelog](https://github.com/urmzd/incipit/compare/v0.12.4...v0.13.0)
+
+
 ## 0.12.4 (2026-04-05)
 
 ### Bug Fixes
