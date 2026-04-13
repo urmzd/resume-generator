@@ -1,15 +1,11 @@
-branches:
-  - main
+# sr v4 configuration
+# Reference: https://github.com/urmzd/sr#configuration
 
-tag_prefix: "v"
-
-commit_pattern: '^(?P<type>\w+)(?:\((?P<scope>[^)]+)\))?(?P<breaking>!)?:\s+(?P<description>.+)'
-
-breaking_section: Breaking Changes
-
-misc_section: Miscellaneous
-
-types:
+commit:
+  pattern: ^(?P<type>\w+)(?:\((?P<scope>[^)]+)\))?(?P<breaking>!)?:\s+(?P<description>.+)
+  breaking_section: Breaking Changes
+  misc_section: Miscellaneous
+  types:
   - name: feat
     bump: minor
     section: Features
@@ -31,9 +27,11 @@ types:
   - name: test
   - name: build
   - name: style
-
-floating_tags: true
-
-hooks:
-  commit-msg:
-    - sr hook commit-msg
+release:
+  branches:
+  - main
+  tag_prefix: v
+  changelog:
+    file: CHANGELOG.md
+  version_files: []
+  floating_tags: true
