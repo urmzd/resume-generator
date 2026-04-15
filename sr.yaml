@@ -1,37 +1,60 @@
-# sr v4 configuration
+# sr v7 configuration
 # Reference: https://github.com/urmzd/sr#configuration
 
-commit:
-  pattern: ^(?P<type>\w+)(?:\((?P<scope>[^)]+)\))?(?P<breaking>!)?:\s+(?P<description>.+)
-  breaking_section: Breaking Changes
-  misc_section: Miscellaneous
-  types:
-  - name: feat
-    bump: minor
-    section: Features
-  - name: fix
-    bump: patch
-    section: Bug Fixes
-  - name: perf
-    bump: patch
-    section: Performance
-  - name: docs
-    section: Documentation
-  - name: refactor
-    bump: patch
-    section: Refactoring
-  - name: revert
-    section: Reverts
-  - name: chore
-  - name: ci
-  - name: test
-  - name: build
-  - name: style
-release:
-  branches:
-  - main
+git:
   tag_prefix: v
-  changelog:
-    file: CHANGELOG.md
-  version_files: []
-  floating_tags: true
+  floating_tag: true
+
+commit:
+  types:
+    minor:
+      - feat
+    patch:
+      - fix
+      - perf
+      - refactor
+    none:
+      - docs
+      - revert
+      - chore
+      - ci
+      - test
+      - build
+      - style
+
+changelog:
+  file: CHANGELOG.md
+  groups:
+    - name: breaking
+      content:
+        - breaking
+    - name: features
+      content:
+        - feat
+    - name: bug-fixes
+      content:
+        - fix
+    - name: performance
+      content:
+        - perf
+    - name: refactoring
+      content:
+        - refactor
+    - name: misc
+      content:
+        - docs
+        - revert
+        - chore
+        - ci
+        - test
+        - build
+        - style
+
+channels:
+  default: stable
+  branch: main
+  content:
+    - name: stable
+
+packages:
+  - path: .
