@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.13.1 (2026-04-16)
+
+### Bug Fixes
+
+- **ci**: migrate sr v4 to v7 for artifact and input support (#11) ([d36f7d0](https://github.com/urmzd/incipit/commit/d36f7d0092b31c2afb8f4101349d369f07af161f))
+
+### Misc
+
+- migrate sr config and action to v4 ([760df1e](https://github.com/urmzd/incipit/commit/760df1e1f1b950b8a78e96e9ac146b80f6a34042))
+- update showcase assets [skip ci] ([b12379a](https://github.com/urmzd/incipit/commit/b12379abcf1eeb602e4793b8b8fd654ffc86a417))
+
+[Full Changelog](https://github.com/urmzd/incipit/compare/v0.13.0...v0.13.1)
+
+
 ## 0.13.0 (2026-04-09)
 
 ### Features
