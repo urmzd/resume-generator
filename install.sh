@@ -1,79 +1,124 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+# install.sh — Installs the incipit binary from GitHub releases.
+#
+# Usage:
+#   curl -fsSL https://raw.githubusercontent.com/urmzd/incipit/main/install.sh | sh
+#
+# Environment variables:
+#   INCIPIT_VERSION     — version to install (e.g. "v1.0.0"); defaults to latest
+#   INCIPIT_INSTALL_DIR — installation directory; defaults to $HOME/.local/bin
+
+set -eu
 
 REPO="urmzd/incipit"
-INSTALL_DIR="$HOME/.local/bin"
 
-# Detect OS
-OS="$(uname -s)"
-case "$OS" in
-  Darwin) PLATFORM="darwin" ;;
-  Linux)  PLATFORM="linux" ;;
-  *)
-    echo "Error: Unsupported OS '$OS'. This script supports macOS and Linux." >&2
+# curl with optional auth — uses GH_TOKEN or GITHUB_TOKEN if set.
+gh_curl() {
+    token="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
+    if [ -n "$token" ]; then
+        curl -fsSL -H "Authorization: token $token" "$@"
+    else
+        curl -fsSL "$@"
+    fi
+}
+
+main() {
+    os=$(uname -s)
+    arch=$(uname -m)
+
+    case "$os" in
+        Linux)
+            case "$arch" in
+                x86_64)  target="x86_64-unknown-linux-musl" ;;
+                aarch64) target="aarch64-unknown-linux-musl" ;;
+                *)       err "Unsupported Linux architecture: $arch" ;;
+            esac
+            ;;
+        Darwin)
+            case "$arch" in
+                x86_64)  target="x86_64-apple-darwin" ;;
+                arm64)   target="aarch64-apple-darwin" ;;
+                *)       err "Unsupported macOS architecture: $arch" ;;
+            esac
+            ;;
+        MINGW*|MSYS*|CYGWIN*|Windows_NT)
+            err "Windows is not supported by this installer. Download a binary from https://github.com/$REPO/releases/latest"
+            ;;
+        *)
+            err "Unsupported operating system: $os"
+            ;;
+    esac
+
+    if [ -n "${INCIPIT_VERSION:-}" ]; then
+        tag="$INCIPIT_VERSION"
+    else
+        tag=$(gh_curl "https://api.github.com/repos/$REPO/releases/latest" \
+            | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p')
+        if [ -z "$tag" ]; then
+            err "Failed to fetch latest release tag"
+        fi
+    fi
+
+    artifact="incipit-${target}"
+    url="https://github.com/$REPO/releases/download/${tag}/${artifact}"
+
+    install_dir="${INCIPIT_INSTALL_DIR:-$HOME/.local/bin}"
+    mkdir -p "$install_dir"
+
+    echo "Downloading incipit $tag for $target..."
+    gh_curl "$url" -o "$install_dir/incipit"
+
+    chmod +x "$install_dir/incipit"
+
+    echo "Installed incipit to $install_dir/incipit"
+
+    # Initialize: download bundled templates and create config
+    echo "Initializing templates..."
+    "$install_dir/incipit" init --version "$tag"
+
+    case ":$PATH:" in
+        *":$install_dir:"*) ;;
+        *) add_to_path "$install_dir" ;;
+    esac
+}
+
+add_to_path() {
+    install_dir="$1"
+
+    case "$(basename "$SHELL")" in
+        zsh)  profile="$HOME/.zshrc" ;;
+        bash)
+            if [ -f "$HOME/.bashrc" ]; then
+                profile="$HOME/.bashrc"
+            else
+                profile="$HOME/.profile"
+            fi
+            ;;
+        fish) profile="$HOME/.config/fish/config.fish" ;;
+        *)    profile="$HOME/.profile" ;;
+    esac
+
+    if [ "$(basename "$SHELL")" = "fish" ]; then
+        if ! grep -q "$install_dir" "$profile" 2>/dev/null; then
+            mkdir -p "$(dirname "$profile")"
+            echo "" >> "$profile"
+            echo "# Added by incipit installer" >> "$profile"
+            echo "set -Ux fish_user_paths $install_dir \$fish_user_paths" >> "$profile"
+            echo "Added $install_dir to $profile"
+            echo "Restart your shell or run: source $profile"
+        fi
+    elif [ -n "$profile" ] && ! grep -q "$install_dir" "$profile" 2>/dev/null; then
+        echo "" >> "$profile"
+        echo "# Added by incipit installer" >> "$profile"
+        echo "export PATH=\"$install_dir:\$PATH\"" >> "$profile"
+        echo "Added $install_dir to $profile"
+        echo "Restart your shell or run: source $profile"
+    fi
+}
+
+err() {
+    echo "Error: $1" >&2
     exit 1
-    ;;
-esac
+}
 
-# Check dependencies
-if ! command -v curl &>/dev/null; then
-  echo "Error: curl is required but not installed." >&2
-  exit 1
-fi
-
-# Fetch latest release tag
-echo "Fetching latest release..."
-RELEASE_JSON="$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest")"
-TAG="$(echo "$RELEASE_JSON" | grep '"tag_name"' | head -1 | sed 's/.*: *"//;s/".*//')"
-
-if [ -z "$TAG" ]; then
-  echo "Error: Could not determine latest release tag." >&2
-  exit 1
-fi
-
-echo "Latest release: $TAG"
-
-# Download and install
-TMPDIR_INSTALL="$(mktemp -d)"
-trap 'rm -rf "$TMPDIR_INSTALL"' EXIT
-
-if [ "$PLATFORM" = "darwin" ]; then
-  ASSET_NAME="incipit-darwin"
-else
-  ASSET_NAME="incipit-${INCIPIT_VARIANT:-linux}"
-fi
-
-ASSET_URL="https://github.com/$REPO/releases/download/$TAG/$ASSET_NAME"
-echo "Downloading $ASSET_URL..."
-curl -fsSL -o "$TMPDIR_INSTALL/incipit" "$ASSET_URL"
-BINARY="$TMPDIR_INSTALL/incipit"
-
-if [ ! -f "$BINARY" ]; then
-  echo "Error: Binary not found after download." >&2
-  exit 1
-fi
-
-# Install
-mkdir -p "$INSTALL_DIR"
-cp "$BINARY" "$INSTALL_DIR/incipit"
-chmod +x "$INSTALL_DIR/incipit"
-
-echo "Installed incipit ($TAG) to $INSTALL_DIR/incipit"
-
-# Check PATH and ensure binary is accessible for init
-INCIPIT_BIN="$INSTALL_DIR/incipit"
-case ":$PATH:" in
-  *":$INSTALL_DIR:"*) ;;
-  *)
-    echo ""
-    echo "WARNING: $INSTALL_DIR is not in your PATH."
-    echo "Add it by appending this line to your shell profile (~/.bashrc, ~/.zshrc, etc.):"
-    echo ""
-    echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
-    echo ""
-    ;;
-esac
-
-# Initialize: download bundled templates and create config
-echo "Initializing templates..."
-"$INCIPIT_BIN" init --version "$TAG"
+main

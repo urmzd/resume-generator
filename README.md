@@ -50,7 +50,7 @@
 ### Pre-built Binary
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/urmzd/incipit/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/urmzd/incipit/main/install.sh | sh
 ```
 
 Supports **macOS** (Apple Silicon) and **Linux** (x86_64). After installation, run `incipit` from anywhere.
