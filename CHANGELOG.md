@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.13.2 (2026-04-16)
+
+### Bug Fixes
+
+- rewrite install.sh to standard pattern with ~/.local/bin default ([0839a34](https://github.com/urmzd/incipit/commit/0839a3493c7140998d7bb6cea577daa690aa393e))
+
+### Misc
+
+- update showcase assets [skip ci] ([cfeab05](https://github.com/urmzd/incipit/commit/cfeab050b1be85cf4ffbb7b510ae922225e9a6ea))
+
+[Full Changelog](https://github.com/urmzd/incipit/compare/v0.13.1...v0.13.2)
+
+
 ## 0.13.1 (2026-04-16)
 
 ### Bug Fixes
