@@ -15,6 +15,8 @@
 
 <p align="center">
   <a href="https://github.com/urmzd/incipit/actions/workflows/ci.yml"><img src="https://github.com/urmzd/incipit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  &nbsp;
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/urmzd/incipit" alt="License"></a>
 </p>
 
 <br />
