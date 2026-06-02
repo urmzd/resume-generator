@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.13.3 (2026-06-02)
+
+### Bug Fixes
+
+- **release**: publish per-arch binaries matching install.sh and self-update ([b33fde1](https://github.com/urmzd/incipit/commit/b33fde1bc7632f9ee2e9275814a62c40958f1055))
+
+### Misc
+
+- **showcase**: migrate previews to web-rendered screenshots ([fe0ce39](https://github.com/urmzd/incipit/commit/fe0ce395b5b7583db5f69a0980f54852534d7565))
+- **ci**: bump sr to v8 ([19c22e2](https://github.com/urmzd/incipit/commit/19c22e244877512a2802493e34e93245ca53da44))
+- **ci**: remove unused force input from release workflow ([e27864f](https://github.com/urmzd/incipit/commit/e27864fedefdac28e0d13dfd1d113b3270a24979))
+- **community**: add GitHub community-health files ([bd97a74](https://github.com/urmzd/incipit/commit/bd97a742f7e51a93c1e604576493abd7391717a5))
+- **fix**: standardize README format ([08d98e8](https://github.com/urmzd/incipit/commit/08d98e8475a9d5daa4cc17b7a4a2a7f709de1b8d))
+
+[Full Changelog](https://github.com/urmzd/incipit/compare/v0.13.2...v0.13.3)
+
+
 ## 0.13.2 (2026-04-16)
 
 ### Bug Fixes
