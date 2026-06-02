@@ -54,6 +54,9 @@ func selfUpdate(current string) error {
 	goos := runtime.GOOS
 	goarch := runtime.GOARCH
 	assetName := fmt.Sprintf("incipit-%s-%s", goos, goarch)
+	if goos == "windows" {
+		assetName += ".exe"
+	}
 
 	var downloadURL string
 	for _, asset := range release.Assets {

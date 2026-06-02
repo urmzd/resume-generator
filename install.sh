@@ -29,15 +29,15 @@ main() {
     case "$os" in
         Linux)
             case "$arch" in
-                x86_64)  target="x86_64-unknown-linux-musl" ;;
-                aarch64) target="aarch64-unknown-linux-musl" ;;
-                *)       err "Unsupported Linux architecture: $arch" ;;
+                x86_64)          target="linux-amd64" ;;
+                aarch64|arm64)   target="linux-arm64" ;;
+                *)               err "Unsupported Linux architecture: $arch" ;;
             esac
             ;;
         Darwin)
             case "$arch" in
-                x86_64)  target="x86_64-apple-darwin" ;;
-                arm64)   target="aarch64-apple-darwin" ;;
+                x86_64)  target="darwin-amd64" ;;
+                arm64)   target="darwin-arm64" ;;
                 *)       err "Unsupported macOS architecture: $arch" ;;
             esac
             ;;
