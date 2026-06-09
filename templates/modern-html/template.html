@@ -16,7 +16,7 @@
         {{range .Certifications.Items}}
         <li>
             {{- .Name -}}
-            {{- if .Issuer}} — {{.Issuer}}{{end -}}
+            {{- if .Issuer}}, {{.Issuer}}{{end -}}
             {{- if .Notes}} ({{.Notes}}){{end -}}
         </li>
         {{end}}
@@ -55,7 +55,7 @@
             <td colspan="2" class="education-subtitle">
                 {{- if .Thesis.Title -}}
                 Thesis: <em>{{.Thesis.Title}}</em>
-                {{- if .Thesis.Link.URI}} — <a href="{{.Thesis.Link.URI}}">{{if .Thesis.Link.Label}}{{.Thesis.Link.Label}}{{else}}{{.Thesis.Link.URI}}{{end}}</a>{{end -}}
+                {{- if .Thesis.Link.URI}} | <a href="{{.Thesis.Link.URI}}">{{if .Thesis.Link.Label}}{{.Thesis.Link.Label}}{{else}}{{.Thesis.Link.URI}}{{end}}</a>{{end -}}
                 {{- end -}}
                 {{- range .Thesis.Highlights}}. {{.}}{{end -}}
             </td>
@@ -87,7 +87,7 @@
     {{range sortExperienceByOrder .Experience.Positions}}
     <div class="job">
         <div class="job-header">
-            <div class="job-title">{{.Title}}{{if .Company}} <span class="job-company">— {{.Company}}</span>{{end}}</div>
+            <div class="job-title">{{.Title}}{{if .Company}} <span class="job-company">| {{.Company}}</span>{{end}}</div>
             <div class="job-dates">{{fmtDateRange .Dates}}</div>
         </div>
         {{if .Technologies}}
@@ -116,7 +116,7 @@
     {{range sortProjectsByOrder .Projects.Projects}}
     <div class="project">
         <div class="project-header">
-            <div class="project-name">{{.Name}}{{if .Link.URI}} — <a class="project-link" href="{{.Link.URI}}">{{if .Link.Label}}{{.Link.Label}}{{else}}{{.Link.URI}}{{end}}</a>{{end}}</div>
+            <div class="project-name">{{.Name}}{{if .Link.URI}} | <a class="project-link" href="{{.Link.URI}}">{{if .Link.Label}}{{.Link.Label}}{{else}}{{.Link.URI}}{{end}}</a>{{end}}</div>
             {{if .Dates}}<div class="project-dates">{{fmtOptDateRange .Dates}}</div>{{end}}
         </div>
 
@@ -148,7 +148,7 @@
         {{range .Languages.Languages}}
         <li>
             {{- .Name -}}
-            {{- if .Proficiency}} — {{.Proficiency}}{{end -}}
+            {{- if .Proficiency}}, {{.Proficiency}}{{end -}}
         </li>
         {{end}}
     </ul>
