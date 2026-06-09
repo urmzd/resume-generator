@@ -194,6 +194,7 @@ type Link struct {
 
 type Contact struct {
 	Name        string    `json:"name" yaml:"name" toml:"name"`
+	Headline    string    `json:"headline,omitempty" yaml:"headline,omitempty" toml:"headline,omitempty"`
 	Email       string    `json:"email" yaml:"email" toml:"email"`
 	Phone       string    `json:"phone,omitempty" yaml:"phone,omitempty" toml:"phone,omitempty"`
 	Credentials string    `json:"credentials,omitempty" yaml:"credentials,omitempty" toml:"credentials,omitempty"`

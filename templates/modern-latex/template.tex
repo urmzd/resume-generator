@@ -19,6 +19,9 @@
 % HEADER
 % ============================================================================
 \resumename{ {{- escape .Contact.Name -}} }
+{{- if .Contact.Headline }}
+\resumetitle{ {{- escape .Contact.Headline -}} }
+{{- end }}
 
 \resumecontact{%
     \email{ {{- escape .Contact.Email -}} }%

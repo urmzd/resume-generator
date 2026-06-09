@@ -95,7 +95,10 @@
 {{- end}}
 
 # {{.Contact.Name}}
+{{- if .Contact.Headline}}
 
+*{{.Contact.Headline}}*
+{{- end}}
 {{- $sep := false -}}
 {{- if .Contact.Email -}}
 {{if $sep}} | {{end}}[{{.Contact.Email}}](mailto:{{.Contact.Email}})

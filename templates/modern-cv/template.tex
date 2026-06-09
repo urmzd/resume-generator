@@ -36,6 +36,9 @@
 % Header
 \begin{center}
 {\LARGE\bfseries {{ escape .Contact.Name }}}\\[4pt]
+{{- if .Contact.Headline }}
+{\large\itshape {{ escape .Contact.Headline }}}\\[4pt]
+{{- end }}
 {{ escape .Contact.Email }}
 {{- if .Contact.Phone }} $|$ {{ escape .Contact.Phone }}{{ end -}}
 {{- if .Contact.Credentials }} $|$ {{ escape .Contact.Credentials }}{{ end -}}

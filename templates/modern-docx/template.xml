@@ -16,6 +16,17 @@
       </w:r>
     </w:p>
 
+    {{- if .Contact.Headline }}
+    {{/* Headline / role - italic, centered */}}
+    <w:p>
+      <w:pPr><w:jc w:val="center"/></w:pPr>
+      <w:r>
+        <w:rPr><w:i/><w:sz w:val="24"/></w:rPr>
+        <w:t>{{escape .Contact.Headline}}</w:t>
+      </w:r>
+    </w:p>
+    {{- end }}
+
     {{/* Contact info line */}}
     {{- $contactParts := contactLine .Contact }}
     {{- if $contactParts }}

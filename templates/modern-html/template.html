@@ -604,6 +604,7 @@
     <div class="header">
         <div class="header-left">
             <h1>{{.Contact.Name}}</h1>
+            {{- if .Contact.Headline}}<div class="title">{{.Contact.Headline}}</div>{{end}}
         </div>
         <div class="header-right">
             <p class="contact">
