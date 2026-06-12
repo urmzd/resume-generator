@@ -100,6 +100,17 @@ gofmt -l .
 golangci-lint run
 ```
 
+### Golden files
+
+`generators/golden_test.go` compares generator output against snapshots in
+`generators/testdata/golden/`. Any intentional change to template output
+(separators, headings, layout) MUST regenerate the golden files in the same
+commit, or CI fails:
+
+```bash
+just golden   # go test ./generators -run TestGolden -update
+```
+
 ## Commit Convention
 
 Use conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, `ci:`
