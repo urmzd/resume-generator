@@ -41,8 +41,13 @@ type GenerationResult struct {
 	TemplateType generators.TemplateType
 	OutputFormat OutputFormat
 	OutputPath   string
-	PageCount    int // populated for PDFs, 0 otherwise
+	LatestPath   string // stable copy in the "latest" index directory, empty if syncing failed
+	PageCount    int    // populated for PDFs, 0 otherwise
 }
+
+// LatestDirName is the index directory, kept next to the timestamped run
+// directories, that always mirrors the most recent run's outputs.
+const LatestDirName = "latest"
 
 // Generate runs the full resume generation pipeline and returns the list of
 // generated files. Every template produces both its native format and a PDF.
@@ -92,7 +97,49 @@ func Generate(opts GenerateOptions) ([]GenerationResult, error) {
 		results = append(results, templateResults...)
 	}
 
+	if err := SyncLatestDir(runDir, desiredBase, results); err != nil {
+		sugar.Warnw("failed to sync latest output directory", "error", err)
+	}
+
 	return results, nil
+}
+
+// SyncLatestDir mirrors the run's outputs into a "latest" directory next to
+// the timestamped run directories, replacing whatever a previous run left
+// there, and records each copy's path in the corresponding result. Copies use
+// canonical "Base.template.ext" names, dropping any uniqueness suffixes the
+// run directory needed.
+func SyncLatestDir(runDir, desiredBase string, results []GenerationResult) error {
+	latestDir := filepath.Join(filepath.Dir(runDir), LatestDirName)
+	if err := os.RemoveAll(latestDir); err != nil {
+		return fmt.Errorf("failed to clear latest directory %s: %w", latestDir, err)
+	}
+	if err := utils.EnsureDir(latestDir); err != nil {
+		return fmt.Errorf("failed to create latest directory %s: %w", latestDir, err)
+	}
+
+	if desiredBase == "" {
+		desiredBase = "Resume"
+	}
+
+	for i := range results {
+		name := desiredBase + "." + results[i].Template + filepath.Ext(results[i].OutputPath)
+		dst := filepath.Join(latestDir, name)
+		if err := copyFile(results[i].OutputPath, dst); err != nil {
+			return fmt.Errorf("failed to copy %s into latest directory: %w", results[i].OutputPath, err)
+		}
+		results[i].LatestPath = dst
+	}
+
+	return nil
+}
+
+func copyFile(src, dst string) error {
+	data, err := os.ReadFile(src)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(dst, data, 0644)
 }
 
 func applyConfigDefaults(opts *GenerateOptions) {

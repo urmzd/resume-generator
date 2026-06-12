@@ -44,7 +44,7 @@
 - **Data-Driven** — provide resume content as JSON or Markdown; the tool handles rendering
 - **Template System** — modular templates with embedded assets; customize or create your own
 - **AI-Powered Tools** — review, optimize, and create resumes using multi-provider LLMs (Anthropic, OpenAI, Google, Ollama)
-- **Flexible Paths** — supports `~`, relative paths, and creates dated output workspaces
+- **Flexible Paths** — supports `~`, relative paths, and creates dated output workspaces with a `latest/` index pointing at the newest run
 - **Schema Generation** — export JSON Schema for IDE autocompletion and validation
 
 ## Install
@@ -106,6 +106,14 @@ incipit generate resume.json -t modern-html -t modern-latex
 
 # Custom output directory
 incipit generate resume.json -o outputs/custom -t modern-html
+```
+
+Each run writes to a timestamped directory under `<output-dir>/<resume-slug>/`. A `latest/` index directory alongside them always mirrors the most recent run, so the newest files are at a stable path:
+
+```
+outputs/software_engineer/
+├── 2026-06-11_21-44/Jane_Doe.modern-html.pdf   # this run
+└── latest/Jane_Doe.modern-html.pdf             # always the newest
 ```
 
 ### AI Commands

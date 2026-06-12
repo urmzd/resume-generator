@@ -37,7 +37,9 @@ var generateCmd = &cobra.Command{
 Accepts .json resume files directly. For unstructured text (.txt, .md), use
 "incipit ai create" to convert to JSON first.
 
-Each template produces both its native format and a PDF.
+Each template produces both its native format and a PDF. Outputs go to a
+timestamped run directory, and a sibling "latest" directory always mirrors
+the most recent run.
 
 Use --dry-run to validate and preview the resume without generating files.
 Use --schema to output the JSON schema for the resume input format.`,
@@ -77,25 +79,31 @@ Use --schema to output the JSON schema for the resume input format.`,
 		}
 
 		type resultJSON struct {
-			Template string `json:"template"`
-			Type     string `json:"type"`
-			Format   string `json:"format"`
-			Path     string `json:"path"`
-			Pages    int    `json:"pages,omitempty"`
+			Template   string `json:"template"`
+			Type       string `json:"type"`
+			Format     string `json:"format"`
+			Path       string `json:"path"`
+			LatestPath string `json:"latest_path,omitempty"`
+			Pages      int    `json:"pages,omitempty"`
 		}
 
 		out := make([]resultJSON, len(results))
 		for i, r := range results {
 			out[i] = resultJSON{
-				Template: r.Template,
-				Type:     string(r.TemplateType),
-				Format:   string(r.OutputFormat),
-				Path:     r.OutputPath,
-				Pages:    r.PageCount,
+				Template:   r.Template,
+				Type:       string(r.TemplateType),
+				Format:     string(r.OutputFormat),
+				Path:       r.OutputPath,
+				LatestPath: r.LatestPath,
+				Pages:      r.PageCount,
 			}
 		}
 
-		outputJSON(map[string]any{"results": out})
+		payload := map[string]any{"results": out}
+		if len(results) > 0 && results[0].LatestPath != "" {
+			payload["latest_dir"] = filepath.Dir(results[0].LatestPath)
+		}
+		outputJSON(payload)
 	},
 }
 
