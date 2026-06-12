@@ -1,18 +1,18 @@
 # Incipit
 
-> Here begins the new career. A Go CLI tool that converts structured resume data (JSON/Markdown) into polished PDFs, HTML, LaTeX, DOCX, and Markdown. Features AI-powered resume review, optimization, and creation via multiple LLM providers (Anthropic, OpenAI, Google, Ollama), a modular template system, and JSON Schema generation.
+> Here begins the new career. A Go CLI tool that converts structured resume data (JSON/Markdown) into polished PDFs, HTML, LaTeX, DOCX, and Markdown. Features ready-to-use LLM prompts for resume review, optimization, and creation (pipe to any LLM — no API keys), a modular template system, and JSON Schema generation.
 
 ## Docs
 
 - [README](https://github.com/urmzd/incipit/blob/main/README.md): Installation, CLI usage, templates, and prerequisites
-- [AGENTS.md](https://github.com/urmzd/incipit/blob/main/AGENTS.md): Architecture, data flow, AI provider system, and development guide
+- [AGENTS.md](https://github.com/urmzd/incipit/blob/main/AGENTS.md): Architecture, data flow, AI prompt commands, and development guide
 - [CONTRIBUTING](https://github.com/urmzd/incipit/blob/main/CONTRIBUTING.md): Setup, testing, adding templates
 
 ## API / Key Files
 
 - [cmd/incipit/main.go](https://github.com/urmzd/incipit/blob/main/cmd/incipit/main.go): Binary entry point
 - [internal/cli/](https://github.com/urmzd/incipit/blob/main/internal/cli/): Cobra CLI commands (generate, ai, templates, config, init)
-- [ai/](https://github.com/urmzd/incipit/blob/main/ai/): AI agent logic (provider resolution, review, optimize, create)
+- [ai/](https://github.com/urmzd/incipit/blob/main/ai/): LLM prompt builders (review, optimize, create)
 - [generators/](https://github.com/urmzd/incipit/blob/main/generators/): Core generation logic, formatters, HTML/LaTeX/Markdown/DOCX generators
 - [resume/](https://github.com/urmzd/incipit/blob/main/resume/): Resume data model, validation, JSON/Markdown parsing
 - [compilers/](https://github.com/urmzd/incipit/blob/main/compilers/): PDF compilation (LaTeX engines, Rod/Chromium)

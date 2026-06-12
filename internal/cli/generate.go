@@ -35,7 +35,7 @@ var generateCmd = &cobra.Command{
 	Long: `Generate resumes from a structured JSON data file using templates.
 
 Accepts .json resume files directly. For unstructured text (.txt, .md), use
-"incipit ai create" to convert to JSON first.
+"incipit ai create" to get an LLM prompt that converts it to JSON first.
 
 Each template produces both its native format and a PDF. Outputs go to a
 timestamped run directory, and a sibling "latest" directory always mirrors
@@ -151,7 +151,7 @@ func runSchema() {
 	schema.Title = "Resume Format (v2.0)"
 	schema.Description = `Unified resume format used by the CLI.
 
-Input format: JSON (.json). Use "incipit ai create" to convert unstructured text.
+Input format: JSON (.json). Use "incipit ai create" for a prompt that converts unstructured text.
 
 Sections: contact, experience, education, projects, skills, certifications, languages.`
 

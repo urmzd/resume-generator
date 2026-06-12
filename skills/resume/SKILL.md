@@ -140,21 +140,18 @@ incipit templates list
 
 ### AI commands
 
-```sh
-# Create structured JSON from plain text
-incipit ai create resume.txt
-incipit ai create resume.txt -o my-resume.json
+Each command prints a self-contained LLM prompt to stdout — no API keys needed. As an agent, you can run the command and follow the printed prompt yourself, or the user can pipe it to any LLM.
 
-# Review and score a resume
+```sh
+# Prompt to convert plain text into structured resume JSON (schema embedded)
+incipit ai create resume.txt
+
+# Prompt to review and score a resume
 incipit ai review resume.json
 
-# Optimize for a job description
+# Prompt to optimize for a job description
 incipit ai optimize resume.json -j "Senior Go developer..."
-incipit ai optimize resume.json -j job-description.txt -o optimized.json
-
-# Specify provider explicitly
-incipit ai review resume.json -p anthropic -m claude-sonnet-4-6-20250514
-incipit ai review resume.json -p ollama -m qwen3.5:4b
+incipit ai optimize resume.json -j job-description.txt
 ```
 
 ## Available Templates

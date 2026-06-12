@@ -43,7 +43,7 @@
 - **Multiple Output Formats** — generate PDFs from LaTeX or HTML templates, plus native DOCX and Markdown
 - **Data-Driven** — provide resume content as JSON or Markdown; the tool handles rendering
 - **Template System** — modular templates with embedded assets; customize or create your own
-- **AI-Powered Tools** — review, optimize, and create resumes using multi-provider LLMs (Anthropic, OpenAI, Google, Ollama)
+- **AI Prompts** — generate ready-to-use LLM prompts to review, optimize, and create resumes; pipe them to any LLM or agent
 - **Flexible Paths** — supports `~`, relative paths, and creates dated output workspaces with a `latest/` index pointing at the newest run
 - **Schema Generation** — export JSON Schema for IDE autocompletion and validation
 
@@ -83,13 +83,13 @@ incipit generate resume.json --dry-run
 # List available templates
 incipit templates list
 
-# AI: create resume from plain text
-incipit ai create resume.txt -o resume.json
+# AI: prompt to create a resume from plain text
+incipit ai create resume.txt | claude -p > resume.json
 
-# AI: review a resume
-incipit ai review resume.json
+# AI: prompt to review a resume
+incipit ai review resume.json | claude -p
 
-# AI: optimize for a job description
+# AI: prompt to optimize for a job description
 incipit ai optimize resume.json --job "Senior Go developer..."
 ```
 
@@ -118,22 +118,18 @@ outputs/software_engineer/
 
 ### AI Commands
 
-AI commands support multiple providers, auto-detected from API keys (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`) or falling back to local Ollama.
+The `ai` subcommands print self-contained LLM prompts to stdout — no API keys or network access required. Paste a prompt into any LLM, or pipe it to a CLI agent like `claude -p`.
 
 ```bash
-# Create structured JSON from plain text
-incipit ai create resume.txt -o resume.json
+# Prompt to convert plain text into structured JSON (schema embedded)
+incipit ai create resume.txt | claude -p > resume.json
 
-# Review/score a resume (multi-agent analysis)
-incipit ai review resume.json
+# Prompt to review/score a resume across four dimensions
+incipit ai review resume.json | claude -p
 
-# Optimize resume for a specific role
+# Prompt to optimize a resume, optionally for a specific role
 incipit ai optimize resume.json --job "Senior Go developer at a startup..."
-incipit ai optimize resume.json --job job-description.txt -o optimized.json
-
-# Specify provider explicitly
-incipit ai review resume.json -p anthropic -m claude-sonnet-4-6-20250514
-incipit ai review resume.json -p ollama -m qwen3.5:4b
+incipit ai optimize resume.json --job job-description.txt | claude -p > optimized.json
 ```
 
 ### Other Commands
@@ -149,7 +145,7 @@ incipit templates engines               # Check LaTeX engines
 
 Resumes are provided as **JSON** files. Use `incipit generate --schema` to get the full JSON Schema.
 
-To convert freeform text to structured JSON, use `incipit ai create`.
+To convert freeform text to structured JSON, use `incipit ai create` to generate a conversion prompt for your LLM of choice.
 
 ## Prerequisites
 
@@ -157,7 +153,6 @@ To convert freeform text to structured JSON, use `incipit ai create`.
 - **TeX Live** (only for LaTeX templates)
 - **Chromium** — auto-downloaded by Rod on first use, or set `ROD_BROWSER_BIN`
 - [just](https://github.com/casey/just) (optional, for helper commands)
-- An LLM provider for AI commands: [Anthropic](https://anthropic.com), [OpenAI](https://openai.com), [Google](https://ai.google.dev), or [Ollama](https://ollama.com)
 
 ## Templates
 

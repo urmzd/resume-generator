@@ -23,7 +23,7 @@ go test ./...
 # Test with JSON resume
 incipit generate assets/example_resumes/software_engineer.json -t modern-html
 
-# Test AI review (requires LLM provider)
+# Print the AI review prompt
 incipit ai review assets/example_resumes/software_engineer.json
 
 # Run all tests
