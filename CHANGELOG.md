@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.16.0 (2026-06-12)
+
+### Features
+
+- **templates**: add modern-grouped template ([685c9ab](https://github.com/urmzd/incipit/commit/685c9ab22a93ecc03759120f04ffe3fa883320fb))
+
+[Full Changelog](https://github.com/urmzd/incipit/compare/v0.15.0...v0.16.0)
+
+
 ## 0.15.0 (2026-06-12)
 
 ### Breaking
