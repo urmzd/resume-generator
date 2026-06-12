@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.15.0 (2026-06-12)
+
+### Breaking
+
+- **ai**: replace LLM provider integration with prompt generators (#13) ([19ded64](https://github.com/urmzd/incipit/commit/19ded64761debd9c755ff43809255af712d338ff))
+
+### Misc
+
+- **ci**: guard against stale golden files (#12) ([7c6e173](https://github.com/urmzd/incipit/commit/7c6e173152e6ee3a0fb2ccd9ea5bf2a3823a962a))
+- update showcase assets [skip ci] ([5cb4d29](https://github.com/urmzd/incipit/commit/5cb4d290bd76d31d1f29538c5a7441dca5fac59b))
+
+[Full Changelog](https://github.com/urmzd/incipit/compare/v0.14.0...v0.15.0)
+
+
 ## 0.14.0 (2026-06-12)
 
 ### Features
