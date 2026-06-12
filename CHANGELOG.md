@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.14.0 (2026-06-12)
+
+### Features
+
+- **generate**: mirror newest run into a latest/ index directory ([f85a181](https://github.com/urmzd/incipit/commit/f85a181bd16d2fff05a819ef85cfd3138b77b743))
+- **resume**: add optional Headline field to contact info ([3a341fd](https://github.com/urmzd/incipit/commit/3a341fd87e5e9ebbd37e7e6f269891738c95a4f9))
+
+### Misc
+
+- **generators**: update modern-html golden file for pipe separators ([1b904a0](https://github.com/urmzd/incipit/commit/1b904a070d8b6f32d315d4b8385f547a276a48b6))
+- **modern-html**: render summary as a lead paragraph without heading ([b8985a6](https://github.com/urmzd/incipit/commit/b8985a6934ce6f5d7cb027797f86274e8c9cb418))
+- **modern-html**: replace em-dash separators with commas and pipes ([8ef185b](https://github.com/urmzd/incipit/commit/8ef185bbe881b33fccb4e70a6328a97bdd4a1331))
+- update showcase assets [skip ci] ([bb312eb](https://github.com/urmzd/incipit/commit/bb312ebcdfaba444273f73a2aca75f0dda69860b))
+
+[Full Changelog](https://github.com/urmzd/incipit/compare/v0.13.3...v0.14.0)
+
+
 ## 0.13.3 (2026-06-02)
 
 ### Bug Fixes
