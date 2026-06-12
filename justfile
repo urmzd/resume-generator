@@ -32,6 +32,10 @@ vet:
 vuln:
     govulncheck ./...
 
+# Regenerate golden files after intentional template/output changes
+golden:
+    go test ./generators -run TestGolden -update
+
 # Quality gate: lint + vet + test
 check: lint vet
     go test ./...

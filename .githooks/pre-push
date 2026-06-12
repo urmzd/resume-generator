@@ -1,0 +1,7 @@
+#!/bin/sh
+# Block pushes when tests fail (most commonly: stale golden files after a
+# template change). Regenerate goldens with `just golden`.
+set -e
+
+echo "pre-push: running go test ./..."
+go test ./...
