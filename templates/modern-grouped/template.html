@@ -1,0 +1,740 @@
+{{define "section-summary"}}
+{{if .Summary}}
+<div class="section summary">
+    <p>{{.Summary}}</p>
+</div>
+{{end}}
+{{end}}
+
+{{define "section-certifications"}}
+{{if .Certifications}}
+{{if .Certifications.Items}}
+<div class="section">
+    <div class="section-title">{{default "Certifications" .Certifications.Title}}</div>
+    <ul class="cert-list">
+        {{range .Certifications.Items}}
+        <li>
+            {{- .Name -}}
+            {{- if .Issuer}}, {{.Issuer}}{{end -}}
+            {{- if .Notes}} ({{.Notes}}){{end -}}
+        </li>
+        {{end}}
+    </ul>
+</div>
+{{end}}
+{{end}}
+{{end}}
+
+{{define "section-education"}}
+{{if .Education.Institutions}}
+<div class="section">
+    <div class="section-title">{{default "Education" .Education.Title}}</div>
+    <table class="education-table">
+        {{range sortEducationByOrder .Education.Institutions}}
+        <tr>
+            <td class="institution">
+                {{.Institution}}
+                {{- if .Degree.Name}}, {{.Degree.Name}}{{end -}}
+                {{- if .GPA}}{{$gpa := formatGPA .GPA}}{{if $gpa}} <span class="details">(GPA: {{$gpa}})</span>{{end}}{{end -}}
+            </td>
+            <td class="dates">{{fmtDateRange .Dates}}</td>
+        </tr>
+        {{- $descriptions := filterEmpty .Degree.Descriptions -}}
+        {{- if $descriptions }}
+        <tr>
+            <td colspan="2">
+                <ul class="education-details">
+                    {{- range $descriptions}}<li>{{.}}</li>{{- end}}
+                </ul>
+            </td>
+        </tr>
+        {{- end }}
+        {{if .Thesis}}
+        <tr>
+            <td colspan="2" class="education-subtitle">
+                {{- if .Thesis.Title -}}
+                Thesis: <em>{{.Thesis.Title}}</em>
+                {{- if .Thesis.Link.URI}} | <a href="{{.Thesis.Link.URI}}">{{if .Thesis.Link.Label}}{{.Thesis.Link.Label}}{{else}}{{.Thesis.Link.URI}}{{end}}</a>{{end -}}
+                {{- end -}}
+                {{- range .Thesis.Highlights}}. {{.}}{{end -}}
+            </td>
+        </tr>
+        {{end}}
+        {{end}}
+    </table>
+</div>
+{{end}}
+{{end}}
+
+{{define "section-skills"}}
+{{if .Skills.Categories}}
+<div class="section">
+    <div class="section-title">{{default "Skills" .Skills.Title}}</div>
+    <ul class="skills-list">
+        {{range .Skills.Categories}}
+        <li><strong>{{.Category}}:</strong> {{formatList .Items}}</li>
+        {{end}}
+    </ul>
+</div>
+{{end}}
+{{end}}
+
+{{define "section-experience"}}
+{{if .Experience.Positions}}
+<div class="section">
+    <div class="section-title">{{default "Experience" .Experience.Title}}</div>
+    {{- /* Group every position under one heading per company. Positions are
+         sorted most-recent-first; a company appears where its most recent
+         non-co-op role falls, with all of its non-co-op roles (including
+         non-adjacent stints) listed beneath it. Co-op/intern roles (matched
+         on employment_type) are always collected into a single "Internships"
+         block at the end, keeping the career section strictly chronological
+         when co-op terms interleave with full-time roles. */ -}}
+    {{$sorted := sortExperienceByOrder .Experience.Positions}}
+    {{range $i, $p := $sorted}}
+    {{$pCoop := or (contains (lower $p.EmploymentType) "co-op") (contains (lower $p.EmploymentType) "intern")}}
+    {{if not $pCoop}}
+    {{- /* Emit the company block only at the company's first (most recent) non-co-op position. */ -}}
+    {{$seen := false}}
+    {{range $j, $q := $sorted}}
+    {{$qCoop := or (contains (lower $q.EmploymentType) "co-op") (contains (lower $q.EmploymentType) "intern")}}
+    {{if and (lt $j $i) (eq $q.Company $p.Company) (not $qCoop)}}{{$seen = true}}{{end}}
+    {{end}}
+    {{if not $seen}}
+    <div class="company">
+        <div class="company-name">{{$p.Company}}</div>
+        {{range $sorted}}
+        {{$qCoop := or (contains (lower .EmploymentType) "co-op") (contains (lower .EmploymentType) "intern")}}
+        {{if and (eq .Company $p.Company) (not $qCoop)}}
+        <div class="job">
+            <div class="job-header">
+                <div class="job-title">{{.Title}}</div>
+                <div class="job-dates">{{fmtDateRange .Dates}}</div>
+            </div>
+            {{if .Technologies}}
+            <div class="job-technologies"><em>{{formatList .Technologies}}</em></div>
+            {{end}}
+
+            {{$high := filterEmpty .Highlights}}
+            {{if $high}}
+            <ul class="job-duties">
+                {{range $high}}
+                <li>{{.}}</li>
+                {{end}}
+            </ul>
+            {{end}}
+        </div>
+        {{end}}
+        {{end}}
+    </div>
+    {{end}}
+    {{end}}
+    {{end}}
+    {{- /* Single aggregated block for all co-op/intern roles. */ -}}
+    {{$hasCoop := false}}
+    {{range $sorted}}{{if or (contains (lower .EmploymentType) "co-op") (contains (lower .EmploymentType) "intern")}}{{$hasCoop = true}}{{end}}{{end}}
+    {{if $hasCoop}}
+    <div class="company">
+        <div class="company-name">Internships</div>
+        {{range $sorted}}
+        {{if or (contains (lower .EmploymentType) "co-op") (contains (lower .EmploymentType) "intern")}}
+        <div class="job">
+            <div class="job-header">
+                <div class="job-title">{{.Title}}{{if .EmploymentType}} ({{.EmploymentType}}){{end}}{{if .Company}} <span class="job-company">| {{.Company}}</span>{{end}}</div>
+                <div class="job-dates">{{fmtDateRange .Dates}}</div>
+            </div>
+            {{if .Technologies}}
+            <div class="job-technologies"><em>{{formatList .Technologies}}</em></div>
+            {{end}}
+
+            {{$high := filterEmpty .Highlights}}
+            {{if $high}}
+            <ul class="job-duties">
+                {{range $high}}
+                <li>{{.}}</li>
+                {{end}}
+            </ul>
+            {{end}}
+        </div>
+        {{end}}
+        {{end}}
+    </div>
+    {{end}}
+</div>
+{{end}}
+{{end}}
+
+{{define "section-projects"}}
+{{if .Projects}}
+{{if .Projects.Projects}}
+<div class="section">
+    <div class="section-title">{{default "Projects" .Projects.Title}}</div>
+    {{range sortProjectsByOrder .Projects.Projects}}
+    <div class="project">
+        <div class="project-header">
+            <div class="project-name">{{.Name}}{{if .Link.URI}} | <a class="project-link" href="{{.Link.URI}}">{{if .Link.Label}}{{.Link.Label}}{{else}}{{.Link.URI}}{{end}}</a>{{end}}</div>
+            {{if .Dates}}<div class="project-dates">{{fmtOptDateRange .Dates}}</div>{{end}}
+        </div>
+
+        {{if .Technologies}}
+        <div class="job-technologies"><em>{{formatList .Technologies}}</em></div>
+        {{end}}
+
+        {{$high := filterEmpty .Highlights}}
+        {{if $high}}
+        <ul class="project-description">
+            {{range $high}}
+            <li>{{.}}</li>
+            {{end}}
+        </ul>
+        {{end}}
+    </div>
+    {{end}}
+</div>
+{{end}}
+{{end}}
+{{end}}
+
+{{define "section-languages"}}
+{{if .Languages}}
+{{if .Languages.Languages}}
+<div class="section">
+    <div class="section-title">{{default "Languages" .Languages.Title}}</div>
+    <ul class="lang-list">
+        {{range .Languages.Languages}}
+        <li>
+            {{- .Name -}}
+            {{- if .Proficiency}}, {{.Proficiency}}{{end -}}
+        </li>
+        {{end}}
+    </ul>
+</div>
+{{end}}
+{{end}}
+{{end}}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Contact.Name}} Resume</title>
+    <style>
+        /* ================================================================
+           DENSITY: CSS Custom Properties
+           ================================================================ */
+        :root {
+            /* Standard (default) */
+            --body-font-size: 10pt;
+            --body-line-height: 1.3;
+            --page-margin: 0.4in;
+            --section-margin-bottom: 10px;
+            --job-margin-bottom: 8px;
+            --company-margin-bottom: 10px;
+            --list-item-margin: 1px;
+            --header-name-size: 16pt;
+            --section-title-size: 11pt;
+        }
+
+        .density-compact {
+            --body-font-size: 9.5pt;
+            --body-line-height: 1.25;
+            --page-margin: 0.35in;
+            --section-margin-bottom: 8px;
+            --job-margin-bottom: 6px;
+            --company-margin-bottom: 8px;
+            --list-item-margin: 0px;
+            --header-name-size: 14pt;
+            --section-title-size: 10pt;
+        }
+
+        .density-detailed {
+            --body-font-size: 12pt;
+            --body-line-height: 1.55;
+            --page-margin: 0.75in;
+            --section-margin-bottom: 28px;
+            --job-margin-bottom: 22px;
+            --company-margin-bottom: 26px;
+            --list-item-margin: 4px;
+            --header-name-size: 22pt;
+            --section-title-size: 13pt;
+        }
+
+        /* ================================================================
+           TYPOGRAPHY
+           ================================================================ */
+        .typo-classic {
+            --heading-font: 'Times New Roman', Georgia, serif;
+            --body-font: 'Times New Roman', Georgia, serif;
+        }
+
+        .typo-modern {
+            --heading-font: 'Calibri', 'Helvetica Neue', Arial, sans-serif;
+            --body-font: 'Calibri', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .typo-elegant {
+            --heading-font: 'Garamond', 'Palatino', 'Palatino Linotype', Georgia, serif;
+            --body-font: 'Gill Sans', 'Calibri', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* ================================================================
+           BASE STYLES
+           ================================================================ */
+        @page {
+            size: 8.5in 11in;
+            margin: 0;
+        }
+
+        @media print {
+            html {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            html,
+            body {
+                width: 8.5in;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            body {
+                padding: var(--page-margin) !important;
+            }
+
+            .no-print {
+                display: none;
+            }
+
+            .section-title,
+            .company-name {
+                break-after: avoid;
+                page-break-after: avoid;
+            }
+
+            .job {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--body-font);
+            font-size: var(--body-font-size);
+            line-height: var(--body-line-height);
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: var(--page-margin);
+            background: white;
+            color: #000;
+            overflow-wrap: anywhere;
+        }
+
+        /* ================================================================
+           HEADER VARIANTS
+           ================================================================ */
+        .header {
+            padding-bottom: 4px;
+            margin-bottom: calc(var(--section-margin-bottom) * 0.5);
+        }
+
+        .header h1 {
+            font-family: var(--heading-font);
+            font-size: var(--header-name-size);
+            font-weight: bold;
+            margin: 0 0 2px 0;
+            text-transform: uppercase;
+        }
+
+        .header .title {
+            font-size: calc(var(--section-title-size));
+            font-style: italic;
+            margin: 0 0 5px 0;
+        }
+
+        .header .contact {
+            font-size: var(--body-font-size);
+            margin: 0;
+        }
+
+        .header .contact a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .header .contact a:hover {
+            text-decoration: underline;
+        }
+
+        /* Centered (default) */
+        .header-centered .header {
+            text-align: center;
+        }
+
+        /* Split: name left, contact stacked right */
+        .header-split .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #000;
+        }
+
+        .header-split .header-left h1 {
+            text-align: left;
+        }
+
+        .header-split .header-right {
+            text-align: right;
+        }
+
+        .header-split .header-right .contact {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .header-split .header-right .contact-item {
+            white-space: nowrap;
+        }
+
+        /* Minimal: name left, no border, subdued contact */
+        .header-minimal .header {
+            text-align: left;
+            border-bottom: none;
+        }
+
+        .header-minimal .header .contact {
+            color: #444;
+        }
+
+        /* ================================================================
+           SECTIONS
+           ================================================================ */
+        .section {
+            margin-bottom: var(--section-margin-bottom);
+        }
+
+        .section-title {
+            font-family: var(--heading-font);
+            font-size: var(--section-title-size);
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 1px solid #000;
+            margin-bottom: calc(var(--section-margin-bottom) * 0.5);
+            padding-bottom: 2px;
+        }
+
+        .summary {
+            margin-bottom: var(--section-margin-bottom);
+        }
+
+        .summary p {
+            margin: 0;
+            text-align: justify;
+        }
+
+        /* ================================================================
+           EDUCATION
+           ================================================================ */
+        .education-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .education-table td {
+            padding: 3px 0;
+            vertical-align: top;
+        }
+
+        .education-table .institution {
+            font-weight: bold;
+            width: 70%;
+        }
+
+        .education-table .dates {
+            text-align: right;
+            width: 30%;
+        }
+
+        .education-table .details {
+            font-weight: normal;
+            font-style: italic;
+        }
+
+        .education-details {
+            margin: 2px 0 0 16px;
+            padding: 0;
+        }
+
+        .education-details li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+        .education-subtitle {
+            font-style: italic;
+            padding-top: 0 !important;
+            padding-bottom: 2px !important;
+            font-size: calc(var(--body-font-size) - 0.5pt);
+        }
+
+        .education-subtitle a {
+            color: #000;
+            text-decoration: underline;
+        }
+
+        /* ================================================================
+           SKILLS
+           ================================================================ */
+        .skills-list {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .skills-list li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+        .skills-list strong {
+            font-weight: bold;
+        }
+
+        /* ================================================================
+           EXPERIENCE: COMPANY GROUPS
+           ================================================================ */
+        .company {
+            margin-bottom: var(--company-margin-bottom);
+        }
+
+        .company-name {
+            font-family: var(--heading-font);
+            font-weight: bold;
+            font-size: calc(var(--body-font-size) + 0.5pt);
+            margin-bottom: 2px;
+        }
+
+        .job {
+            margin-bottom: var(--job-margin-bottom);
+            padding-left: 10px;
+        }
+
+        .company .job:last-child {
+            margin-bottom: 0;
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 1px;
+        }
+
+        .job-title {
+            font-weight: bold;
+            font-style: italic;
+            font-size: var(--body-font-size);
+            flex-shrink: 0;
+        }
+
+        .job-dates {
+            font-weight: bold;
+            font-size: var(--body-font-size);
+            flex-shrink: 0;
+            text-align: right;
+        }
+
+        .job-company {
+            font-style: italic;
+            font-weight: normal;
+        }
+
+        .job-technologies {
+            margin-bottom: 2px;
+            font-size: calc(var(--body-font-size) - 0.5pt);
+        }
+
+        .job-duties {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .job-duties li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+        /* ================================================================
+           PROJECTS
+           ================================================================ */
+        .project {
+            margin-bottom: var(--job-margin-bottom);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 1px;
+        }
+
+        .project-name {
+            font-weight: bold;
+            font-size: var(--body-font-size);
+        }
+
+        .project-dates {
+            font-weight: bold;
+            font-size: var(--body-font-size);
+        }
+
+        .project-meta {
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+
+        .project-description {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .project-description li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+        .project-link {
+            color: #000;
+            text-decoration: underline;
+            font-weight: normal;
+            font-size: calc(var(--body-font-size) - 0.5pt);
+        }
+
+        /* ================================================================
+           CERTIFICATIONS
+           ================================================================ */
+        .cert-list {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .cert-list li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+        /* ================================================================
+           LANGUAGES
+           ================================================================ */
+        .lang-list {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .lang-list li {
+            margin-bottom: var(--list-item-margin);
+        }
+
+        /* ================================================================
+           RESPONSIVE / SCREEN
+           ================================================================ */
+        @media screen {
+            body {
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 0.25in;
+                font-size: 10pt;
+            }
+
+            .job-header,
+            .project-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .job-dates,
+            .project-dates {
+                font-size: 10pt;
+                margin-top: 2px;
+            }
+        }
+
+        /* ================================================================
+           REFERENCES FOOTER
+           ================================================================ */
+        .references {
+            text-align: center;
+            font-style: italic;
+            font-size: var(--body-font-size);
+            margin-top: var(--section-margin-bottom);
+        }
+    </style>
+</head>
+
+<body class="{{layoutClass .Layout}}">
+    <div class="header">
+        <div class="header-left">
+            <h1>{{.Contact.Name}}</h1>
+            {{- if .Contact.Headline}}<div class="title">{{.Contact.Headline}}</div>{{end}}
+        </div>
+        <div class="header-right">
+            <p class="contact">
+                {{- $sep := false -}}
+                {{- if .Contact.Email -}}
+                {{if $sep}} | {{end}}<a href="mailto:{{.Contact.Email}}">{{.Contact.Email}}</a>
+                {{- $sep = true -}}
+                {{- end -}}
+
+                {{- if .Contact.Phone -}}
+                {{if $sep}} | {{end}}<a href="tel:{{sanitizePhone .Contact.Phone}}">{{.Contact.Phone}}</a>
+                {{- $sep = true -}}
+                {{- end -}}
+
+                {{- if .Contact.Credentials -}}
+                {{if $sep}} | {{end}}{{.Contact.Credentials}}
+                {{- $sep = true -}}
+                {{- end -}}
+
+                {{- if .Contact.Location -}}
+                {{- $loc := formatLocation .Contact.Location -}}
+                {{- if $loc -}}
+                {{if $sep}} | {{end}}{{$loc}}
+                {{- $sep = true -}}
+                {{- end -}}
+                {{- end -}}
+
+                {{- range .Contact.Links -}}
+                {{- if .URI -}}
+                {{if $sep}} | {{end}}<a href="{{.URI}}">{{if .Label}}{{.Label}}{{else}}{{.URI}}{{end}}</a>
+                {{- $sep = true -}}
+                {{- end -}}
+                {{- end -}}
+            </p>
+        </div>
+    </div>
+
+    {{$root := .}}
+    {{range .SectionOrder}}
+        {{if eq . "summary"}}{{template "section-summary" $root}}
+        {{else if eq . "certifications"}}{{template "section-certifications" $root}}
+        {{else if eq . "education"}}{{template "section-education" $root}}
+        {{else if eq . "skills"}}{{template "section-skills" $root}}
+        {{else if eq . "experience"}}{{template "section-experience" $root}}
+        {{else if eq . "projects"}}{{template "section-projects" $root}}
+        {{else if eq . "languages"}}{{template "section-languages" $root}}
+        {{end}}
+    {{end}}
+
+    {{if and .Layout .Layout.References}}
+    <div class="references">
+        References available upon request
+    </div>
+    {{end}}
+</body>
+
+</html>
