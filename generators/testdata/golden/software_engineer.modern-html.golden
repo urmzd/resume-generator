@@ -464,7 +464,7 @@
     
     <div class="job">
         <div class="job-header">
-            <div class="job-title">Systems Engineer <span class="job-company">— FutureSoft</span></div>
+            <div class="job-title">Systems Engineer <span class="job-company">| FutureSoft</span></div>
             <div class="job-dates">Jan 2023 – Dec 2023</div>
         </div>
         
@@ -483,7 +483,7 @@
     
     <div class="job">
         <div class="job-header">
-            <div class="job-title">Lead Developer <span class="job-company">— Innovative Tech Corp</span></div>
+            <div class="job-title">Lead Developer <span class="job-company">| Innovative Tech Corp</span></div>
             <div class="job-dates">Aug 2022 – Dec 2022</div>
         </div>
         
@@ -502,7 +502,7 @@
     
     <div class="job">
         <div class="job-header">
-            <div class="job-title">Software Developer <span class="job-company">— Tech Innovations Inc.</span></div>
+            <div class="job-title">Software Developer <span class="job-company">| Tech Innovations Inc.</span></div>
             <div class="job-dates">Jul 2021 – Present</div>
         </div>
         
@@ -521,7 +521,7 @@
     
     <div class="job">
         <div class="job-header">
-            <div class="job-title">Junior Developer <span class="job-company">— NextGen Solutions</span></div>
+            <div class="job-title">Junior Developer <span class="job-company">| NextGen Solutions</span></div>
             <div class="job-dates">Jan 2020 – Jun 2021</div>
         </div>
         
@@ -577,7 +577,7 @@
     
     <div class="project">
         <div class="project-header">
-            <div class="project-name">Personal Finance Tracker — <a class="project-link" href="https://github.com/janedoe/finance-tracker">https://github.com/janedoe/finance-tracker</a></div>
+            <div class="project-name">Personal Finance Tracker | <a class="project-link" href="https://github.com/janedoe/finance-tracker">https://github.com/janedoe/finance-tracker</a></div>
             
         </div>
 
@@ -595,7 +595,7 @@
     
     <div class="project">
         <div class="project-header">
-            <div class="project-name">Eco-Friendly Route Finder — <a class="project-link" href="https://github.com/janedoe/eco-route-finder">https://github.com/janedoe/eco-route-finder</a></div>
+            <div class="project-name">Eco-Friendly Route Finder | <a class="project-link" href="https://github.com/janedoe/eco-route-finder">https://github.com/janedoe/eco-route-finder</a></div>
             
         </div>
 
