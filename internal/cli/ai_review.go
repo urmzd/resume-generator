@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -16,41 +15,40 @@ func initAIReviewCmd() {
 
 var aiReviewCmd = &cobra.Command{
 	Use:   "review [file]",
-	Short: "Review and score a resume using specialist LLM agents",
+	Short: "Print an LLM prompt that reviews and scores a resume",
 	Args:  cobra.ExactArgs(1),
-	Long: `Review a resume by delegating to four specialist sub-agents:
+	Long: `Print a self-contained review prompt with the resume embedded.
 
-  - content-analyst:  achievement quantity, metrics, specificity, impact
-  - writing-analyst:  succinctness, clarity, readability, grammar
-  - industry-analyst: industry-specific keywords, conventions, relevance
-  - format-analyst:   structure, section ordering, length, visual hierarchy
+The prompt asks the LLM to score four dimensions (content, writing,
+industry fit, structure) 1-10 with bullet-point feedback, then synthesize
+an overall score and top 3 priority improvements.
 
-Each agent scores its dimension 1-10 with bullet-point feedback.
-A coordinator synthesizes the results into a final report.`,
+Examples:
+  incipit ai review resume.json
+  incipit ai review resume.json | claude -p`,
 	Run: func(cmd *cobra.Command, args []string) {
-		inputPath, err := utils.ResolvePath(args[0])
+		content, err := readInputFile(args[0])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error resolving input path: %s\n", err)
-			os.Exit(1)
-		}
-		if !utils.FileExists(inputPath) {
-			fmt.Fprintf(os.Stderr, "Input file does not exist: %s\n", inputPath)
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 
-		yamlBytes, err := os.ReadFile(inputPath)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading input file: %s\n", err)
-			os.Exit(1)
-		}
-
-		ctx := context.Background()
-		result, err := ai.Review(ctx, string(yamlBytes), aiProviderOpts())
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Review failed: %s\n", err)
-			os.Exit(1)
-		}
-
-		fmt.Println(result.Report)
+		fmt.Println(ai.ReviewPrompt(content))
 	},
+}
+
+// readInputFile resolves and reads a CLI input path.
+func readInputFile(path string) (string, error) {
+	resolved, err := utils.ResolvePath(path)
+	if err != nil {
+		return "", fmt.Errorf("error resolving input path: %w", err)
+	}
+	if !utils.FileExists(resolved) {
+		return "", fmt.Errorf("input file does not exist: %s", resolved)
+	}
+	data, err := os.ReadFile(resolved)
+	if err != nil {
+		return "", fmt.Errorf("error reading input file: %w", err)
+	}
+	return string(data), nil
 }
