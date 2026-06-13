@@ -43,11 +43,17 @@ type GenerationResult struct {
 	OutputPath   string
 	LatestPath   string // stable copy in the "latest" index directory, empty if syncing failed
 	PageCount    int    // populated for PDFs, 0 otherwise
+	Artifact     bool   // true for intermediate source formats (HTML, LaTeX, Markdown)
 }
 
 // LatestDirName is the index directory, kept next to the timestamped run
 // directories, that always mirrors the most recent run's outputs.
 const LatestDirName = "latest"
+
+// ArtifactsDirName is the per-template subdirectory holding intermediate
+// source files (HTML, LaTeX, Markdown), keeping deliverables (PDF, DOCX)
+// visible at a glance in the template directory itself.
+const ArtifactsDirName = "artifacts"
 
 // Generate runs the full resume generation pipeline and returns the list of
 // generated files. Every template produces both its native format and a PDF.
@@ -106,9 +112,9 @@ func Generate(opts GenerateOptions) ([]GenerationResult, error) {
 
 // SyncLatestDir mirrors the run's outputs into a "latest" directory next to
 // the timestamped run directories, replacing whatever a previous run left
-// there, and records each copy's path in the corresponding result. Copies use
-// canonical "Base.template.ext" names, dropping any uniqueness suffixes the
-// run directory needed.
+// there, and records each copy's path in the corresponding result. Copies keep
+// the run layout (<template>/Base.ext, artifacts under <template>/artifacts/),
+// dropping any uniqueness suffixes the run directory needed.
 func SyncLatestDir(runDir, desiredBase string, results []GenerationResult) error {
 	latestDir := filepath.Join(filepath.Dir(runDir), LatestDirName)
 	if err := os.RemoveAll(latestDir); err != nil {
@@ -123,8 +129,14 @@ func SyncLatestDir(runDir, desiredBase string, results []GenerationResult) error
 	}
 
 	for i := range results {
-		name := desiredBase + "." + results[i].Template + filepath.Ext(results[i].OutputPath)
-		dst := filepath.Join(latestDir, name)
+		dir := filepath.Join(latestDir, results[i].Template)
+		if results[i].Artifact {
+			dir = filepath.Join(dir, ArtifactsDirName)
+		}
+		if err := utils.EnsureDir(dir); err != nil {
+			return fmt.Errorf("failed to create latest directory %s: %w", dir, err)
+		}
+		dst := filepath.Join(dir, desiredBase+filepath.Ext(results[i].OutputPath))
 		if err := copyFile(results[i].OutputPath, dst); err != nil {
 			return fmt.Errorf("failed to copy %s into latest directory: %w", results[i].OutputPath, err)
 		}
@@ -225,7 +237,7 @@ func generateMarkdown(
 	var results []GenerationResult
 
 	// Write native .md
-	mdOutputPath, err := EnsureUniqueOutputPath(runDir, desiredBase, tmpl.Name, ".md")
+	mdOutputPath, err := OutputPathFor(runDir, tmpl.Name, desiredBase, ".md", true)
 	if err != nil {
 		return nil, fmt.Errorf("error determining output filename for template %s: %w", tmpl.Name, err)
 	}
@@ -237,6 +249,7 @@ func generateMarkdown(
 		TemplateType: tmpl.Type,
 		OutputFormat: OutputFormatMarkdown,
 		OutputPath:   mdOutputPath,
+		Artifact:     true,
 	})
 
 	// Convert Markdown -> HTML -> PDF
@@ -245,7 +258,7 @@ func generateMarkdown(
 		return nil, fmt.Errorf("failed to convert Markdown to HTML for template %s: %w", tmpl.Name, err)
 	}
 
-	pdfOutputPath, err := EnsureUniqueOutputPath(runDir, desiredBase, tmpl.Name, ".pdf")
+	pdfOutputPath, err := OutputPathFor(runDir, tmpl.Name, desiredBase, ".pdf", false)
 	if err != nil {
 		return nil, fmt.Errorf("error determining PDF output filename for template %s: %w", tmpl.Name, err)
 	}
@@ -256,7 +269,7 @@ func generateMarkdown(
 	}
 
 	if compileErr := CompileHTMLToPDF(sugar, htmlContent, pdfOutputPath, debugDir); compileErr != nil {
-		persistedDebug := filepath.Join(runDir, desiredBase+"."+tmpl.Name+"_debug")
+		persistedDebug := filepath.Join(runDir, tmpl.Name, "debug")
 		_ = os.Rename(debugDir, persistedDebug)
 		return nil, fmt.Errorf("failed to compile Markdown template %s to PDF: %w (debug artifacts: %s)", tmpl.Name, compileErr, persistedDebug)
 	}
@@ -292,7 +305,7 @@ func generateHTML(
 	var results []GenerationResult
 
 	// Write native .html
-	htmlOutputPath, err := EnsureUniqueOutputPath(runDir, desiredBase, tmpl.Name, ".html")
+	htmlOutputPath, err := OutputPathFor(runDir, tmpl.Name, desiredBase, ".html", true)
 	if err != nil {
 		return nil, fmt.Errorf("error determining output filename for template %s: %w", tmpl.Name, err)
 	}
@@ -304,10 +317,11 @@ func generateHTML(
 		TemplateType: tmpl.Type,
 		OutputFormat: OutputFormatHTML,
 		OutputPath:   htmlOutputPath,
+		Artifact:     true,
 	})
 
 	// Compile HTML -> PDF
-	pdfOutputPath, err := EnsureUniqueOutputPath(runDir, desiredBase, tmpl.Name, ".pdf")
+	pdfOutputPath, err := OutputPathFor(runDir, tmpl.Name, desiredBase, ".pdf", false)
 	if err != nil {
 		return nil, fmt.Errorf("error determining PDF output filename for template %s: %w", tmpl.Name, err)
 	}
@@ -318,7 +332,7 @@ func generateHTML(
 	}
 
 	if compileErr := CompileHTMLToPDF(sugar, content, pdfOutputPath, debugDir); compileErr != nil {
-		persistedDebug := filepath.Join(runDir, desiredBase+"."+tmpl.Name+"_debug")
+		persistedDebug := filepath.Join(runDir, tmpl.Name, "debug")
 		_ = os.Rename(debugDir, persistedDebug)
 		return nil, fmt.Errorf("failed to compile template %s to PDF: %w (debug artifacts: %s)", tmpl.Name, compileErr, persistedDebug)
 	}
@@ -354,7 +368,7 @@ func generateLaTeX(
 	var results []GenerationResult
 
 	// Write native .tex
-	texOutputPath, err := EnsureUniqueOutputPath(runDir, desiredBase, tmpl.Name, ".tex")
+	texOutputPath, err := OutputPathFor(runDir, tmpl.Name, desiredBase, ".tex", true)
 	if err != nil {
 		return nil, fmt.Errorf("error determining output filename for template %s: %w", tmpl.Name, err)
 	}
@@ -366,10 +380,11 @@ func generateLaTeX(
 		TemplateType: tmpl.Type,
 		OutputFormat: OutputFormatLaTeX,
 		OutputPath:   texOutputPath,
+		Artifact:     true,
 	})
 
 	// Compile LaTeX -> PDF
-	pdfOutputPath, err := EnsureUniqueOutputPath(runDir, desiredBase, tmpl.Name, ".pdf")
+	pdfOutputPath, err := OutputPathFor(runDir, tmpl.Name, desiredBase, ".pdf", false)
 	if err != nil {
 		return nil, fmt.Errorf("error determining PDF output filename for template %s: %w", tmpl.Name, err)
 	}
@@ -381,7 +396,7 @@ func generateLaTeX(
 
 	templateDir := filepath.Dir(tmpl.Path)
 	if compileErr := CompileLaTeXToPDF(sugar, content, pdfOutputPath, debugDir, templateDir, latexEngine); compileErr != nil {
-		persistedDebug := filepath.Join(runDir, desiredBase+"."+tmpl.Name+"_debug")
+		persistedDebug := filepath.Join(runDir, tmpl.Name, "debug")
 		_ = os.Rename(debugDir, persistedDebug)
 		return nil, fmt.Errorf("failed to compile template %s to PDF: %w (debug artifacts: %s)", tmpl.Name, compileErr, persistedDebug)
 	}
@@ -418,7 +433,7 @@ func generateDOCX(
 	var results []GenerationResult
 
 	// Write native .docx
-	docxOutputPath, err := EnsureUniqueOutputPath(runDir, desiredBase, tmpl.Name, ".docx")
+	docxOutputPath, err := OutputPathFor(runDir, tmpl.Name, desiredBase, ".docx", false)
 	if err != nil {
 		return nil, fmt.Errorf("error determining output filename for template %s: %w", tmpl.Name, err)
 	}
@@ -442,7 +457,7 @@ func generateDOCX(
 		return results, nil
 	}
 
-	pdfOutputPath, err := EnsureUniqueOutputPath(runDir, desiredBase, tmpl.Name, ".pdf")
+	pdfOutputPath, err := OutputPathFor(runDir, tmpl.Name, desiredBase, ".pdf", false)
 	if err != nil {
 		return results, nil
 	}
@@ -453,7 +468,7 @@ func generateDOCX(
 	}
 
 	if pdfErr := CompileHTMLToPDF(sugar, htmlContent, pdfOutputPath, debugDir); pdfErr != nil {
-		persistedDebug := filepath.Join(runDir, desiredBase+"."+tmpl.Name+"_debug")
+		persistedDebug := filepath.Join(runDir, tmpl.Name, "debug")
 		_ = os.Rename(debugDir, persistedDebug)
 		return results, nil
 	}
@@ -594,8 +609,12 @@ func GenerateRunDir(baseDir string, t time.Time) string {
 	return filepath.Join(baseDir, t.Format("2006-01-02_15-04"))
 }
 
-// EnsureUniqueOutputPath returns a unique file path within the run directory.
-func EnsureUniqueOutputPath(runDir, desiredBase, templateName, extension string) (string, error) {
+// OutputPathFor returns a unique file path for one generated file, creating
+// the directory it lives in. Deliverables go to <runDir>/<template>/Base.ext;
+// artifacts (intermediate source formats) go one level deeper, under
+// <runDir>/<template>/artifacts/. A _N suffix disambiguates same-minute
+// reruns that share a run directory.
+func OutputPathFor(runDir, templateName, desiredBase, extension string, artifact bool) (string, error) {
 	base := strings.TrimSpace(desiredBase)
 	if base == "" {
 		base = "Resume"
@@ -614,21 +633,28 @@ func EnsureUniqueOutputPath(runDir, desiredBase, templateName, extension string)
 		ext = "." + ext
 	}
 
-	candidateBase := base + "." + tmplSlug
-	candidate := filepath.Join(runDir, candidateBase+ext)
+	dir := filepath.Join(runDir, tmplSlug)
+	if artifact {
+		dir = filepath.Join(dir, ArtifactsDirName)
+	}
+	if err := utils.EnsureDir(dir); err != nil {
+		return "", fmt.Errorf("failed to create output directory %s: %w", dir, err)
+	}
+
+	candidate := filepath.Join(dir, base+ext)
 	if !utils.FileExists(candidate) {
 		return candidate, nil
 	}
 
 	for attempt := 2; attempt <= 9999; attempt++ {
 		suffix := fmt.Sprintf("_%d", attempt)
-		candidate = filepath.Join(runDir, candidateBase+suffix+ext)
+		candidate = filepath.Join(dir, base+suffix+ext)
 		if !utils.FileExists(candidate) {
 			return candidate, nil
 		}
 	}
 
-	return "", fmt.Errorf("failed to find unique output filename in %s", runDir)
+	return "", fmt.Errorf("failed to find unique output filename in %s", dir)
 }
 
 func sanitizeTemplateNames(names []string) []string {

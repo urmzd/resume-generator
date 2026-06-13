@@ -38,8 +38,10 @@ Accepts .json resume files directly. For unstructured text (.txt, .md), use
 "incipit ai create" to get an LLM prompt that converts it to JSON first.
 
 Each template produces both its native format and a PDF. Outputs go to a
-timestamped run directory, and a sibling "latest" directory always mirrors
-the most recent run.
+timestamped run directory with one folder per template: deliverables (PDF,
+DOCX) sit at the template folder's root under a clean "Name.ext" filename,
+and intermediate sources (HTML, LaTeX, Markdown) live in an artifacts/
+subfolder. A sibling "latest" directory always mirrors the most recent run.
 
 Use --dry-run to validate and preview the resume without generating files.
 Use --schema to output the JSON schema for the resume input format.`,
@@ -85,6 +87,7 @@ Use --schema to output the JSON schema for the resume input format.`,
 			Path       string `json:"path"`
 			LatestPath string `json:"latest_path,omitempty"`
 			Pages      int    `json:"pages,omitempty"`
+			Artifact   bool   `json:"artifact,omitempty"`
 		}
 
 		out := make([]resultJSON, len(results))
@@ -96,15 +99,31 @@ Use --schema to output the JSON schema for the resume input format.`,
 				Path:       r.OutputPath,
 				LatestPath: r.LatestPath,
 				Pages:      r.PageCount,
+				Artifact:   r.Artifact,
 			}
 		}
 
 		payload := map[string]any{"results": out}
 		if len(results) > 0 && results[0].LatestPath != "" {
-			payload["latest_dir"] = filepath.Dir(results[0].LatestPath)
+			if root := latestRootDir(results[0].LatestPath); root != "" {
+				payload["latest_dir"] = root
+			}
 		}
 		outputJSON(payload)
 	},
+}
+
+// latestRootDir walks up from a path inside the "latest" directory to the
+// "latest" directory itself, returning "" if the path is not inside one.
+func latestRootDir(path string) string {
+	dir := filepath.Dir(path)
+	for dir != filepath.Dir(dir) {
+		if filepath.Base(dir) == services.LatestDirName {
+			return dir
+		}
+		dir = filepath.Dir(dir)
+	}
+	return ""
 }
 
 func runDryRun(inputPath string) {
