@@ -1,7 +1,7 @@
 {{define "section-summary"}}
 {{if .Summary}}
 <div class="section summary">
-    <p>{{.Summary}}</p>
+    <p>{{emphasize .Summary .Layout}}</p>
 </div>
 {{end}}
 {{end}}
@@ -39,16 +39,6 @@
             </td>
             <td class="dates">{{fmtDateRange .Dates}}</td>
         </tr>
-        {{- $descriptions := filterEmpty .Degree.Descriptions -}}
-        {{- if $descriptions }}
-        <tr>
-            <td colspan="2">
-                <ul class="education-details">
-                    {{- range $descriptions}}<li>{{.}}</li>{{- end}}
-                </ul>
-            </td>
-        </tr>
-        {{- end }}
         {{if .Thesis}}
         <tr>
             <td colspan="2" class="education-subtitle">
@@ -60,6 +50,16 @@
             </td>
         </tr>
         {{end}}
+        {{- $descriptions := filterEmpty .Degree.Descriptions -}}
+        {{- if $descriptions }}
+        <tr>
+            <td colspan="2">
+                <ul class="education-details">
+                    {{- range $descriptions}}<li>{{.}}</li>{{- end}}
+                </ul>
+            </td>
+        </tr>
+        {{- end }}
         {{end}}
     </table>
 </div>
@@ -119,7 +119,7 @@
             {{if $high}}
             <ul class="job-duties">
                 {{range $high}}
-                <li>{{.}}</li>
+                <li>{{emphasize . $.Layout}}</li>
                 {{end}}
             </ul>
             {{end}}
@@ -151,7 +151,7 @@
             {{if $high}}
             <ul class="job-duties">
                 {{range $high}}
-                <li>{{.}}</li>
+                <li>{{emphasize . $.Layout}}</li>
                 {{end}}
             </ul>
             {{end}}
@@ -184,7 +184,7 @@
         {{if $high}}
         <ul class="project-description">
             {{range $high}}
-            <li>{{.}}</li>
+            <li>{{emphasize . $.Layout}}</li>
             {{end}}
         </ul>
         {{end}}
@@ -238,15 +238,15 @@
         }
 
         .density-compact {
-            --body-font-size: 9.5pt;
-            --body-line-height: 1.25;
-            --page-margin: 0.35in;
-            --section-margin-bottom: 8px;
-            --job-margin-bottom: 6px;
-            --company-margin-bottom: 8px;
+            --body-font-size: 9pt;
+            --body-line-height: 1.18;
+            --page-margin: 0.3in;
+            --section-margin-bottom: 5px;
+            --job-margin-bottom: 4px;
+            --company-margin-bottom: 5px;
             --list-item-margin: 0px;
-            --header-name-size: 14pt;
-            --section-title-size: 10pt;
+            --header-name-size: 13pt;
+            --section-title-size: 9.5pt;
         }
 
         .density-detailed {
@@ -314,7 +314,11 @@
                 page-break-after: avoid;
             }
 
-            .job {
+            .job,
+            .project,
+            .skills-list,
+            .education-table,
+            li {
                 break-inside: avoid;
                 page-break-inside: avoid;
             }

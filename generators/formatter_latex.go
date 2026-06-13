@@ -146,12 +146,23 @@ func (f *latexFormatter) FormatLinkWithDomain(link string) string {
 	return fmt.Sprintf(`\href{%s}{%s}`, f.EscapeText(url), f.EscapeText(displayURL))
 }
 
+// Emphasize escapes text and bolds metrics/phrases per the layout's emphasis
+// config. With no config it is equivalent to plain LaTeX escaping.
+func (f *latexFormatter) Emphasize(text string, layout *resume.Layout) string {
+	var emphasis *resume.Emphasis
+	if layout != nil {
+		emphasis = layout.Emphasis
+	}
+	return emphasizeText(text, emphasis, f.EscapeText, `\textbf{`, `}`)
+}
+
 // TemplateFuncs exposes helper functions for LaTeX templates.
 func (f *latexFormatter) TemplateFuncs() template.FuncMap {
 	return template.FuncMap{
 		// Text escaping
 		"escape":           f.EscapeText,
 		"escapeLatexChars": f.EscapeText,
+		"emphasize":        f.Emphasize,
 
 		// Date formatting
 		"fmtDateRange": f.FormatDateRange,

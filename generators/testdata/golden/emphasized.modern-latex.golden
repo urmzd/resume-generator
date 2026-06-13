@@ -1,0 +1,34 @@
+\documentclass{default}
+
+\begin{document}
+
+% ============================================================================
+% HEADER
+% ============================================================================
+\resumename{Emphasized User}
+
+\resumecontact{%
+    \email{emphasized@example.com}%
+}
+
+
+
+% SUMMARY
+\section*{Professional Summary}
+Platform engineer who scaled agent systems to \textbf{2B} tokens/month for under \textbf{\$1K/month} and shipped work contributing \textbf{\textasciitilde{}\$2M} ACV.
+
+% SKILLS
+\section*{Skills}
+\begin{description}
+    \item[Languages:] Go, Python
+\end{description}
+
+% EXPERIENCE
+\section*{Experience}
+\resumeentry{Senior Engineer}{Example Corp}{Jan 2024 \textendash\ Present}
+\begin{itemize}
+    \item Rolled out to \textbf{1,500} employees at \textbf{\textasciitilde{}\$0.05} per answer, cutting costs \textbf{45-55\%} with \textbf{\textasciitilde{}4x} lower latency.
+    \item Shipped a \textbf{200+} scenario regression suite with \textbf{zero-downtime} deploys across \textbf{10} services.
+\end{itemize}
+
+\end{document}

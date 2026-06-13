@@ -1,0 +1,49 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{needspace}
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\pagestyle{plain}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+% Section styling with underline for clear separation
+\newcommand{\resumesection}[1]{\needspace{5\baselineskip}\section*{#1}\vspace{-4pt}\hrule\vspace{6pt}}
+
+\begin{document}
+
+% Header
+\begin{center}
+{\LARGE\bfseries Emphasized User}\\[4pt]
+emphasized@example.com
+\end{center}
+
+\vspace{8pt}
+
+
+\resumesection{Professional Summary}
+Platform engineer who scaled agent systems to \textbf{2B} tokens/month for under \textbf{\$1K/month} and shipped work contributing \textbf{\textasciitilde{}\$2M} ACV.
+\resumesection{Skills}
+\begin{description}
+    \item[Languages:] Go, Python
+\end{description}
+\resumesection{Professional Experience}
+\needspace{6\baselineskip}
+\noindent\textbf{Senior Engineer} \hfill 01/01/2024 - Present\nopagebreak
+
+\textbf{Example Corp}
+
+\needspace{3\baselineskip}
+\textbf{Job Description:}
+\begin{itemize}[leftmargin=*,nosep]
+\item Rolled out to \textbf{1,500} employees at \textbf{\textasciitilde{}\$0.05} per answer, cutting costs \textbf{45-55\%} with \textbf{\textasciitilde{}4x} lower latency.
+\item Shipped a \textbf{200+} scenario regression suite with \textbf{zero-downtime} deploys across \textbf{10} services.
+\end{itemize}
+
+\vspace{6pt plus 4pt minus 2pt}
+\pagebreak[2]
+
+\end{document}

@@ -48,7 +48,7 @@
 
 % SUMMARY
 \section*{Professional Summary}
-{{ escape .Summary }}
+{{ emphasize .Summary .Layout }}
 {{- end }}
 {{- end -}}
 
@@ -86,7 +86,7 @@
 {{- if $high }}
 \begin{itemize}
 {{- range $high }}
-    \item {{ escape . }}
+    \item {{ emphasize . $.Layout }}
 {{- end }}
 \end{itemize}
 {{- end }}
@@ -114,7 +114,7 @@
 {{- if $descriptions }}
 \begin{itemize}
     {{- range $descriptions }}
-    \item {{ escape . }}
+    \item {{ emphasize . $.Layout }}
     {{- end }}
 \end{itemize}
 {{- end }}
@@ -124,7 +124,7 @@
 {{- if .Thesis.Highlights }}
 \begin{itemize}
 {{- range .Thesis.Highlights }}
-    \item {{ escape . }}
+    \item {{ emphasize . $.Layout }}
 {{- end }}
 \end{itemize}
 {{- end }}
@@ -166,7 +166,7 @@
 {{- if $high }}
     \begin{itemize}
     {{- range $high }}
-        \item {{ escape . }}
+        \item {{ emphasize . $.Layout }}
     {{- end }}
     \end{itemize}
 {{- end }}

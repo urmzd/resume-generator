@@ -23,8 +23,13 @@ func TestGolden(t *testing.T) {
 		t.Fatalf("failed to resolve project root: %v", err)
 	}
 
-	// Point template resolution at the project root
+	// Point template resolution at the project root. The config manifest is
+	// consulted before RESUME_TEMPLATES_DIR, so isolate the user config dir
+	// too — otherwise locally installed templates shadow the repo's.
 	t.Setenv("RESUME_TEMPLATES_DIR", projectRoot)
+	fakeHome := t.TempDir()
+	t.Setenv("HOME", fakeHome)
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(fakeHome, ".config"))
 
 	logger := zap.NewNop().Sugar()
 	gen := NewGenerator(logger)
@@ -45,6 +50,7 @@ func TestGolden(t *testing.T) {
 	}{
 		{"software_engineer", "software_engineer.json"},
 		{"minimal", "minimal.json"},
+		{"emphasized", "emphasized.json"},
 	}
 
 	templates := []struct {

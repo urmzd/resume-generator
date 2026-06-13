@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+            xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <w:body>
+
+
+
+    
+    <w:p>
+      <w:pPr><w:jc w:val="center"/></w:pPr>
+      <w:r>
+        <w:rPr><w:b/><w:sz w:val="36"/></w:rPr>
+        <w:t>EMPHASIZED USER</w:t>
+      </w:r>
+    </w:p>
+
+    
+    <w:p>
+      <w:pPr><w:jc w:val="center"/></w:pPr>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t>emphasized@example.com</w:t>
+      </w:r>
+    </w:p>
+
+    
+    <w:p/>
+
+<w:p>
+      <w:r>
+        <w:rPr><w:b/><w:sz w:val="24"/></w:rPr>
+        <w:t>PROFESSIONAL SUMMARY</w:t>
+      </w:r>
+    </w:p>
+    <w:p/>
+    <w:p>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t>Platform engineer who scaled agent systems to 2B tokens/month for under $1K/month and shipped work contributing ~$2M ACV.</w:t>
+      </w:r>
+    </w:p>
+    <w:p/><w:p>
+      <w:r>
+        <w:rPr><w:b/><w:sz w:val="24"/></w:rPr>
+        <w:t>SKILLS</w:t>
+      </w:r>
+    </w:p>
+    <w:p/>
+    <w:p>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t xml:space="preserve">&#x2022; </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:b/><w:sz w:val="22"/></w:rPr>
+        <w:t xml:space="preserve">Languages: </w:t>
+      </w:r>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t>Go, Python</w:t>
+      </w:r>
+    </w:p>
+    <w:p/><w:p>
+      <w:r>
+        <w:rPr><w:b/><w:sz w:val="24"/></w:rPr>
+        <w:t>EXPERIENCE</w:t>
+      </w:r>
+    </w:p>
+    <w:p/>
+    <w:p>
+      <w:r>
+        <w:rPr><w:b/><w:sz w:val="22"/></w:rPr>
+        <w:t>Senior Engineer — Jan 2024 – Present</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:rPr><w:i/><w:sz w:val="22"/></w:rPr>
+        <w:t>Example Corp</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t xml:space="preserve">&#x2022; Rolled out to 1,500 employees at ~$0.05 per answer, cutting costs 45-55% with ~4x lower latency.</w:t>
+      </w:r>
+    </w:p>
+    <w:p>
+      <w:r>
+        <w:rPr><w:sz w:val="22"/></w:rPr>
+        <w:t xml:space="preserve">&#x2022; Shipped a 200+ scenario regression suite with zero-downtime deploys across 10 services.</w:t>
+      </w:r>
+    </w:p>
+    <w:p/>
+
+  </w:body>
+</w:document>

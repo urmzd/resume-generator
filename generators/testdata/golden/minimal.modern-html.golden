@@ -103,7 +103,12 @@
                 page-break-after: avoid;
             }
 
-            .job {
+            .job,
+            .project,
+            .skills-list,
+            .education-table,
+            .lang-list,
+            li {
                 break-inside: avoid;
                 page-break-inside: avoid;
             }

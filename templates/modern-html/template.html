@@ -1,7 +1,7 @@
 {{define "section-summary"}}
 {{if .Summary}}
 <div class="section summary">
-    <p>{{.Summary}}</p>
+    <p>{{emphasize .Summary .Layout}}</p>
 </div>
 {{end}}
 {{end}}
@@ -97,7 +97,7 @@
         {{if $high}}
         <ul class="job-duties">
             {{range $high}}
-            <li>{{.}}</li>
+            <li>{{emphasize . $.Layout}}</li>
             {{end}}
         </ul>
         {{end}}
@@ -127,7 +127,7 @@
         {{if $high}}
         <ul class="project-description">
             {{range $high}}
-            <li>{{.}}</li>
+            <li>{{emphasize . $.Layout}}</li>
             {{end}}
         </ul>
         {{end}}
@@ -253,7 +253,12 @@
                 page-break-after: avoid;
             }
 
-            .job {
+            .job,
+            .project,
+            .skills-list,
+            .education-table,
+            .lang-list,
+            li {
                 break-inside: avoid;
                 page-break-inside: avoid;
             }

@@ -150,11 +150,23 @@ type Resume struct {
 }
 
 type Layout struct {
-	Density      string `json:"density,omitempty" yaml:"density,omitempty" toml:"density,omitempty"`
-	Typography   string `json:"typography,omitempty" yaml:"typography,omitempty" toml:"typography,omitempty"`
-	Header       string `json:"header,omitempty" yaml:"header,omitempty" toml:"header,omitempty"`
-	SkillColumns int    `json:"skill_columns,omitempty" yaml:"skill_columns,omitempty" toml:"skill_columns,omitempty"`
-	References   bool   `json:"references,omitempty" yaml:"references,omitempty" toml:"references,omitempty"`
+	Density      string    `json:"density,omitempty" yaml:"density,omitempty" toml:"density,omitempty"`
+	Typography   string    `json:"typography,omitempty" yaml:"typography,omitempty" toml:"typography,omitempty"`
+	Header       string    `json:"header,omitempty" yaml:"header,omitempty" toml:"header,omitempty"`
+	SkillColumns int       `json:"skill_columns,omitempty" yaml:"skill_columns,omitempty" toml:"skill_columns,omitempty"`
+	References   bool      `json:"references,omitempty" yaml:"references,omitempty" toml:"references,omitempty"`
+	Emphasis     *Emphasis `json:"emphasis,omitempty" yaml:"emphasis,omitempty" toml:"emphasis,omitempty"`
+}
+
+// Emphasis controls bolding of quantified facts and key phrases in the summary
+// and highlight bullets so they stand out when a reader skims the resume.
+type Emphasis struct {
+	// Metrics bolds numbers, dollar amounts, percentages, and multipliers
+	// (e.g. "$2M", "1,500", "45-55%", "4x", "2B", "200+").
+	Metrics bool `json:"metrics,omitempty" yaml:"metrics,omitempty" toml:"metrics,omitempty"`
+	// Phrases bolds each listed phrase wherever it appears, matched
+	// case-insensitively.
+	Phrases []string `json:"phrases,omitempty" yaml:"phrases,omitempty" toml:"phrases,omitempty"`
 }
 
 type LanguageList struct {

@@ -70,11 +70,23 @@ func (f *markdownFormatter) ExtractDisplayURL(url string) string {
 	return url
 }
 
+// Emphasize bolds metrics/phrases per the layout's emphasis config. Text
+// outside emphasized spans is left verbatim, matching how highlight bullets
+// render without emphasis.
+func (f *markdownFormatter) Emphasize(text string, layout *resume.Layout) string {
+	var emphasis *resume.Emphasis
+	if layout != nil {
+		emphasis = layout.Emphasis
+	}
+	return emphasizeText(text, emphasis, nil, "**", "**")
+}
+
 // TemplateFuncs exposes helper functions for Markdown templates.
 func (f *markdownFormatter) TemplateFuncs() template.FuncMap {
 	return template.FuncMap{
 		// Text escaping
-		"escape": f.EscapeText,
+		"escape":    f.EscapeText,
+		"emphasize": f.Emphasize,
 
 		// Date formatting
 		"fmtDateRange":    f.FormatDateRange,

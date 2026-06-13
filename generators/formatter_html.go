@@ -62,6 +62,16 @@ func (f *htmlFormatter) layoutClass(layout *resume.Layout) string {
 	return fmt.Sprintf("density-%s typo-%s header-%s%s", density, typography, header, skillCols)
 }
 
+// Emphasize escapes text and bolds metrics/phrases per the layout's emphasis
+// config. With no config it is equivalent to plain HTML escaping.
+func (f *htmlFormatter) Emphasize(text string, layout *resume.Layout) template.HTML {
+	var emphasis *resume.Emphasis
+	if layout != nil {
+		emphasis = layout.Emphasis
+	}
+	return template.HTML(emphasizeText(text, emphasis, template.HTMLEscapeString, "<strong>", "</strong>"))
+}
+
 // hasSection checks whether a named section has data in the resume.
 func (f *htmlFormatter) hasSection(name string, r *resume.Resume) bool {
 	switch name {
@@ -98,8 +108,9 @@ func (f *htmlFormatter) containsSection(name string, sections []string) bool {
 func (f *htmlFormatter) TemplateFuncs() template.FuncMap {
 	return template.FuncMap{
 		// Text escaping
-		"escape":   f.EscapeText,
-		"safeHTML": func(value string) template.HTML { return template.HTML(value) },
+		"escape":    f.EscapeText,
+		"safeHTML":  func(value string) template.HTML { return template.HTML(value) },
+		"emphasize": f.Emphasize,
 
 		// Date formatting
 		"formatDate": func(pd resume.PartialDate) string {

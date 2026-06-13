@@ -1,0 +1,37 @@
+{
+  "layout": {
+    "emphasis": {
+      "metrics": true,
+      "phrases": ["zero-downtime"]
+    }
+  },
+  "contact": {
+    "name": "Emphasized User",
+    "email": "emphasized@example.com"
+  },
+  "summary": "Platform engineer who scaled agent systems to 2B tokens/month for under $1K/month and shipped work contributing ~$2M ACV.",
+  "skills": {
+    "categories": [
+      {
+        "category": "Languages",
+        "items": ["Go", "Python"]
+      }
+    ]
+  },
+  "experience": {
+    "positions": [
+      {
+        "title": "Senior Engineer",
+        "company": "Example Corp",
+        "dates": { "start": "2024-01-01T00:00:00Z" },
+        "highlights": [
+          "Rolled out to 1,500 employees at ~$0.05 per answer, cutting costs 45-55% with ~4x lower latency.",
+          "Shipped a 200+ scenario regression suite with zero-downtime deploys across 10 services."
+        ]
+      }
+    ]
+  },
+  "education": {
+    "institutions": []
+  }
+}

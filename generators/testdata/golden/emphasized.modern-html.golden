@@ -18,7 +18,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jane Doe Resume</title>
+    <title>Emphasized User Resume</title>
     <style>
          
         :root {
@@ -437,10 +437,10 @@
 <body class="density-standard typo-classic header-centered">
     <div class="header">
         <div class="header-left">
-            <h1>Jane Doe</h1>
+            <h1>Emphasized User</h1>
         </div>
         <div class="header-right">
-            <p class="contact"><a href="mailto:example@email.com">example@email.com</a> | <a href="tel:&#43;11234567890">&#43;1-123-456-7890</a> | Techville, Academia, USA | <a href="https://linkedin.com/in/janedoe">https://linkedin.com/in/janedoe</a> | <a href="https://github.com/janedoe">https://github.com/janedoe</a></p>
+            <p class="contact"><a href="mailto:emphasized@example.com">emphasized@example.com</a></p>
         </div>
     </div>
 
@@ -448,13 +448,20 @@
     
         
 
+<div class="section summary">
+    <p>Platform engineer who scaled agent systems to <strong>2B</strong> tokens/month for under <strong>$1K/month</strong> and shipped work contributing <strong>~$2M</strong> ACV.</p>
+</div>
+
+
+        
+    
+        
+
 <div class="section">
-    <div class="section-title">Core Skills</div>
+    <div class="section-title">Skills</div>
     <ul class="skills-list">
         
-        <li><strong>Programming Languages:</strong> Python, Java, C&#43;&#43;, JavaScript</li>
-        
-        <li><strong>Tools &amp; Frameworks:</strong> AWS, Docker, React, Node.js</li>
+        <li><strong>Languages:</strong> Go, Python</li>
         
     </ul>
 </div>
@@ -465,12 +472,12 @@
         
 
 <div class="section">
-    <div class="section-title">Professional Experience</div>
+    <div class="section-title">Experience</div>
     
     <div class="job">
         <div class="job-header">
-            <div class="job-title">Systems Engineer <span class="job-company">| FutureSoft</span></div>
-            <div class="job-dates">Jan 2023 – Dec 2023</div>
+            <div class="job-title">Senior Engineer <span class="job-company">| Example Corp</span></div>
+            <div class="job-dates">Jan 2024 – Present</div>
         </div>
         
 
@@ -478,66 +485,9 @@
         
         <ul class="job-duties">
             
-            <li>Implemented a company-wide upgrade of network security protocols, enhancing system security by 50%.</li>
+            <li>Rolled out to <strong>1,500</strong> employees at <strong>~$0.05</strong> per answer, cutting costs <strong>45-55%</strong> with <strong>~4x</strong> lower latency.</li>
             
-            <li>Automated key processes using Python and Bash scripts, saving 200 man-hours annually.</li>
-            
-        </ul>
-        
-    </div>
-    
-    <div class="job">
-        <div class="job-header">
-            <div class="job-title">Lead Developer <span class="job-company">| Innovative Tech Corp</span></div>
-            <div class="job-dates">Aug 2022 – Dec 2022</div>
-        </div>
-        
-
-        
-        
-        <ul class="job-duties">
-            
-            <li>Led the development of a scalable e-commerce platform, increasing user engagement by 30%.</li>
-            
-            <li>Managed a team of 5 developers and introduced agile delivery practices across the organization.</li>
-            
-        </ul>
-        
-    </div>
-    
-    <div class="job">
-        <div class="job-header">
-            <div class="job-title">Software Developer <span class="job-company">| Tech Innovations Inc.</span></div>
-            <div class="job-dates">Jul 2021 – Present</div>
-        </div>
-        
-
-        
-        
-        <ul class="job-duties">
-            
-            <li>Developed a cloud-based storage solution improving data retrieval efficiency by 40%.</li>
-            
-            <li>Collaborated on a team project to create a cross-platform mobile application.</li>
-            
-        </ul>
-        
-    </div>
-    
-    <div class="job">
-        <div class="job-header">
-            <div class="job-title">Junior Developer <span class="job-company">| NextGen Solutions</span></div>
-            <div class="job-dates">Jan 2020 – Jun 2021</div>
-        </div>
-        
-
-        
-        
-        <ul class="job-duties">
-            
-            <li>Assisted in developing APIs for internal tools, improving workflow efficiency by 25%.</li>
-            
-            <li>Won second place in a company-wide hackathon with a machine learning project.</li>
+            <li>Shipped a <strong>200+</strong> scenario regression suite with <strong>zero-downtime</strong> deploys across <strong>10</strong> services.</li>
             
         </ul>
         
@@ -549,75 +499,6 @@
         
     
         
-
-<div class="section">
-    <div class="section-title">Education</div>
-    <table class="education-table">
-        
-        <tr>
-            <td class="institution">
-                Prestigious University, Ph.D. in Computer Science</td>
-            <td class="dates">Sep 2021 – May 2024</td>
-        </tr>
-        
-        
-        <tr>
-            <td class="institution">
-                University of Fictional, Bachelor of Science in Software Engineering</td>
-            <td class="dates">Sep 2017 – Jun 2021</td>
-        </tr>
-        
-        
-    </table>
-</div>
-
-
-        
-    
-        
-
-
-<div class="section">
-    <div class="section-title">Projects</div>
-    
-    <div class="project">
-        <div class="project-header">
-            <div class="project-name">Personal Finance Tracker | <a class="project-link" href="https://github.com/janedoe/finance-tracker">https://github.com/janedoe/finance-tracker</a></div>
-            
-        </div>
-
-        
-
-        
-        
-        <ul class="project-description">
-            
-            <li>Developed a full-stack web application for personal finance management with budgeting and forecasting tools.</li>
-            
-        </ul>
-        
-    </div>
-    
-    <div class="project">
-        <div class="project-header">
-            <div class="project-name">Eco-Friendly Route Finder | <a class="project-link" href="https://github.com/janedoe/eco-route-finder">https://github.com/janedoe/eco-route-finder</a></div>
-            
-        </div>
-
-        
-
-        
-        
-        <ul class="project-description">
-            
-            <li>Created a mobile application that calculates eco-friendly travel routes to reduce carbon footprint.</li>
-            
-        </ul>
-        
-    </div>
-    
-</div>
-
 
 
         

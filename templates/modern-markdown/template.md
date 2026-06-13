@@ -3,7 +3,7 @@
 
 ## Summary
 
-{{.Summary}}
+{{emphasize .Summary .Layout}}
 {{end}}
 {{- end}}
 
@@ -58,7 +58,7 @@
 *{{formatList .Technologies}}*
 {{end}}
 {{- $high := filterEmpty .Highlights}}{{if $high}}
-{{range $high}}- {{.}}
+{{range $high}}- {{emphasize . $.Layout}}
 {{end}}{{end}}
 {{end}}
 {{- end}}
@@ -78,7 +78,7 @@
 *{{formatList .Technologies}}*
 {{end}}
 {{- $high := filterEmpty .Highlights}}{{if $high}}
-{{range $high}}- {{.}}
+{{range $high}}- {{emphasize . $.Layout}}
 {{end}}{{end}}
 {{end}}
 {{- end}}{{end}}
