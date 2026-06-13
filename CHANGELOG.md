@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.17.0 (2026-06-13)
+
+### Features
+
+- **generate**: organize outputs per template with an artifacts/ split ([7185717](https://github.com/urmzd/incipit/commit/71857172233954bac4f4ca40c526e42f0cfa5f43))
+- **templates**: bold metrics and key phrases via layout.emphasis ([1b905d1](https://github.com/urmzd/incipit/commit/1b905d1379fde620032a30047b8345e72638af89))
+
+### Misc
+
+- update showcase assets [skip ci] ([fc0d31b](https://github.com/urmzd/incipit/commit/fc0d31b9f1f9ce7adb664b5b86ab8ea9fd454055))
+
+[Full Changelog](https://github.com/urmzd/incipit/compare/v0.16.0...v0.17.0)
+
+
 ## 0.16.0 (2026-06-12)
 
 ### Features
