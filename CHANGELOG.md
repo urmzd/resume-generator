@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.18.0 (2026-06-24)
+
+### Features
+
+- **templates**: add link color, multi-column skills, and Garamond typography to modern-grouped ([f8d5e66](https://github.com/urmzd/incipit/commit/f8d5e66bf68a9cca7b63fcae5983f03ab03aef65))
+
+### Misc
+
+- bump GitHub Actions to Node 24 majors and switch app token to client-id ([1b1d0a3](https://github.com/urmzd/incipit/commit/1b1d0a360c99b220d9581a1723861dcc05c6fa1f))
+- update showcase assets [skip ci] ([2694751](https://github.com/urmzd/incipit/commit/26947513bddb908ff1b614192148972d98b2491c))
+
+[Full Changelog](https://github.com/urmzd/incipit/compare/v0.17.0...v0.18.0)
+
+
 ## 0.17.0 (2026-06-13)
 
 ### Features
