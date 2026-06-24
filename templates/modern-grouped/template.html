@@ -235,6 +235,7 @@
             --list-item-margin: 1px;
             --header-name-size: 16pt;
             --section-title-size: 11pt;
+            --link-color: #0563c1;
         }
 
         .density-compact {
@@ -275,8 +276,8 @@
         }
 
         .typo-elegant {
-            --heading-font: 'Garamond', 'Palatino', 'Palatino Linotype', Georgia, serif;
-            --body-font: 'Gill Sans', 'Calibri', 'Helvetica Neue', Arial, sans-serif;
+            --heading-font: 'Adobe Garamond Pro', 'Garamond', 'Palatino Linotype', 'Palatino', Georgia, serif;
+            --body-font: 'Adobe Garamond Pro', 'Garamond', 'Palatino Linotype', 'Palatino', Georgia, serif;
         }
 
         /* ================================================================
@@ -368,8 +369,8 @@
         }
 
         .header .contact a {
-            color: inherit;
-            text-decoration: none;
+            color: var(--link-color);
+            text-decoration: underline;
         }
 
         .header .contact a:hover {
@@ -488,7 +489,7 @@
         }
 
         .education-subtitle a {
-            color: #000;
+            color: var(--link-color);
             text-decoration: underline;
         }
 
@@ -506,6 +507,16 @@
 
         .skills-list strong {
             font-weight: bold;
+        }
+
+        /* Opt-in multi-column skills, enabled by layout.skill_columns >= 2. */
+        .skills-columns .skills-list {
+            column-count: 2;
+            column-gap: 28px;
+        }
+
+        .skills-columns .skills-list li {
+            break-inside: avoid;
         }
 
         /* ================================================================
@@ -610,7 +621,7 @@
         }
 
         .project-link {
-            color: #000;
+            color: var(--link-color);
             text-decoration: underline;
             font-weight: normal;
             font-size: calc(var(--body-font-size) - 0.5pt);
